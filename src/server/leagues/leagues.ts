@@ -216,6 +216,17 @@ export async function getLeague(actor: Actor, leagueId: string): Promise<LeagueV
   };
 }
 
+/** Mon solde dans une ligue (membre actif). */
+export async function getMyBalance(actor: Actor, leagueId: string): Promise<{ balance: number }> {
+  await memberOrNotFound(actor.id, leagueId);
+  const [row] = await getDb()
+    .select({ balance: leagueMembers.balance })
+    .from(leagueMembers)
+    .where(and(eq(leagueMembers.leagueId, leagueId), eq(leagueMembers.userId, actor.id)));
+  if (!row) throw new NotFoundError();
+  return row;
+}
+
 export type MemberView = {
   userId: string;
   username: string;

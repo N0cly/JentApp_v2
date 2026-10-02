@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { enterLeague } from "@/app/(app)/l/[ligue]/enter-league";
+import { BalanceCard } from "@/components/BalanceCard";
 import { LeagueTopBar } from "@/components/LeagueTopBar";
+import { getLeague, getMyBalance } from "@/server/leagues";
 import { Avatar, IconButton, SettingsIcon } from "@/components/ui";
 
 export const metadata: Metadata = { title: "Moi · JentApp" };
@@ -8,6 +10,10 @@ export const metadata: Metadata = { title: "Moi · JentApp" };
 export default async function MePage({ params }: PageProps<"/l/[ligue]/moi">) {
   const { ligue } = await params;
   const { user } = await enterLeague(ligue);
+  const [league, membership] = await Promise.all([
+    getLeague(user, ligue),
+    getMyBalance(user, ligue),
+  ]);
   return (
     <>
       <div className="shrink-0 px-5 pt-3">
@@ -27,6 +33,9 @@ export default async function MePage({ params }: PageProps<"/l/[ligue]/moi">) {
           {user.username}
         </h1>
       </header>
+      <main className="flex flex-col gap-3 px-5">
+        <BalanceCard leagueName={league.name} balance={membership.balance} />
+      </main>
     </>
   );
 }

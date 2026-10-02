@@ -14,7 +14,7 @@ export default async function BetsPage({ params, searchParams }: PageProps<"/l/[
   return (
     <>
       <header className="flex shrink-0 flex-col gap-1 px-5 py-3">
-        <LeagueTopBar userId={user.id} leagueId={ligue} />
+        <LeagueTopBar userId={user.id} leagueId={ligue} showBalance />
         <h1 className="text-title">Paris</h1>
       </header>
       {!user.emailVerified && (
