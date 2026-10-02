@@ -10,6 +10,7 @@ services:
       TRUST_PROXY: ${TRUST_PROXY:-false}
       UPLOADS_DIR: /app/uploads
       SETTLE_DELAY_SECONDS: ${SETTLE_DELAY_SECONDS:-600}
+      GIPHY_API_KEY: ${GIPHY_API_KEY:-}
       SMTP_HOST: mailpit
       SMTP_PORT: 1025
       EMAIL_FROM: ${EMAIL_FROM}
