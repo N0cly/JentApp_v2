@@ -35,6 +35,13 @@ export function formatRemaining(seconds: number, kind: Kind): string {
   return kind === "payout" ? `${pad(h * 60 + m)}:${pad(rest)}` : `${pad(h)}:${pad(m)}:${pad(rest)}`;
 }
 
+/** Secondes restantes jusqu'à `until`, mises à jour chaque seconde ; null au rendu serveur. */
+export function useRemaining(until: Date): number | null {
+  // L'heure n'existe que dans le navigateur : rien d'affiché au rendu serveur.
+  const now = useSyncExternalStore(subscribe, nowInSeconds, noTimeOnServer);
+  return now === null ? null : Math.floor(until.getTime() / 1000) - now;
+}
+
 type CountdownProps = {
   /** Échéance. */
   until: Date;
@@ -43,9 +50,7 @@ type CountdownProps = {
 };
 
 export function Countdown({ until, kind, className }: CountdownProps) {
-  // L'heure n'existe que dans le navigateur : rien d'affiché au rendu serveur.
-  const now = useSyncExternalStore(subscribe, nowInSeconds, noTimeOnServer);
-  const remaining = now === null ? null : Math.floor(until.getTime() / 1000) - now;
+  const remaining = useRemaining(until);
 
   const tone =
     kind !== "closes"

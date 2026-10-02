@@ -27,8 +27,8 @@ export async function LeagueTopBar({
       <LeagueSheet current={leagueId} leagues={leagues} />
       {(balance || action) && (
         <div className="flex items-center gap-2">
-          {balance}
           {action}
+          {balance}
         </div>
       )}
     </div>

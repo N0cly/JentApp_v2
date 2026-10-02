@@ -171,4 +171,19 @@ Tous les écrans de la v2 sont maquettés. Restent des états et des variantes, 
 - Quitter une ligue : dans Réglages de la ligue, la dernière ligne est « Transférer ou supprimer la ligue » pour l'owner et « Quitter la ligue » pour les autres, avec une feuille de confirmation.
 - États vides de la coquille de ligue en M1 : une phrase, sans action.
 
+Paris (M3), construits avec les composants existants :
+
+- Pari fermé vu par quelqu'un qui ne peut pas saisir : l'écran « Saisir le résultat » sans sélection ni boutons, chaque option avec ses totaux, et la phrase « En attente du résultat. ». Titre « Pari ».
+- Résultat en attente et pari réglé vus par quelqu'un qui n'a pas misé : le même écran sans le ticket.
+- Ticket d'un perdant : au règlement, tampon `PERDU` ; la ligne « Gain » devient « Perte » avec `−{mise}`. Pendant le délai de versement, pas de tampon, ligne « Perte » aussi.
+- Ticket d'une mise rendue : pas de tampon, ligne « Rendu » avec la mise et la raison (personne en face · pari annulé · égalité · sans résultat depuis 7 jours).
+- Ajouter à sa mise : le ticket de mise avec l'option figée et une ligne « Déjà misé » au-dessus de « Mise ». Sur la page du pari ouvert, le bouton « Augmenter ma mise ».
+- Modifier et annuler : en bas de la page du pari, deux boutons discrets, « Modifier le pari » (même formulaire que Nouveau pari, bouton « Enregistrer ») et « Annuler le pari », pour qui en a le droit. L'annulation passe par une feuille : « Annuler ce pari ? Toutes les mises sont rendues. »
+- Correction du résultat : l'écran « Saisir le résultat » avec l'option déjà choisie.
+- Cartes de la liste Paris : « Fermé · en attente du résultat », « Réglé » avec mon gain ou ma perte (ou « rendu »), « Annulé · mises rendues », dans la ligne d'état de la carte « Résultat saisi » de `paris.html`. Un pari programmé à question visible prend la carte du pari mystère, avec la question et « par {créateur} ».
+- Page d'un pari programmé : la mise en page du pari ouvert, avec « S'ouvre dans », la question (ou « Pari mystère »), « Créé par », les options sans action, sans pot ; « Modifier » et « Annuler » pour qui en a le droit.
+- Liste vide : « Rien d'ouvert. Lance un pari. », avec le bouton « Nouveau pari ».
+- Interrupteur « Pari mystère » activé : piste `brand-soft` bordée de `brand`, pastille `brand` à droite.
+- Heures dans le fuseau du téléphone : « à 23:30 » aujourd'hui, « le 12/10 à 23:30 » un autre jour.
+
 Si un cas ne rentre dans aucune de ces lignes, s'arrêter et demander.
