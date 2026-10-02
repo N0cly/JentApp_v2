@@ -211,6 +211,12 @@ export function ChatView({
     [leagueId, me.id],
   );
 
+  // Un pari change : ses cartes dans le fil se relisent.
+  useLiveEvents(["bet.changed"], (event) => {
+    if (event.type !== "bet.changed") return;
+    for (const m of messages) if (m.bet && m.betId === event.id) void refreshOne(m.id, false);
+  });
+
   useLiveEvents(["message.new", "message.deleted", "reaction.changed"], (event) => {
     if (event.type === "resync") {
       // Reconnexion : on relit les 50 derniers.

@@ -16,6 +16,7 @@ import {
   MomentBadge,
   useRemaining,
 } from "@/components/ui";
+import { RefreshAt } from "@/components/RefreshAt";
 import type { BetView } from "@/server/bets/view";
 import type { Moment } from "@/server/bets/rules";
 import { TicketSheet, type TicketTarget } from "./TicketSheet";
@@ -125,7 +126,11 @@ function BetCard({
         <MomentBadge moment={view.moment} />
         {view.state === "open" && <Countdown kind="closes" until={view.closesAt} />}
         {view.state === "resolved" && view.settlesAt && (
-          <Countdown kind="payout" until={view.settlesAt} />
+          <>
+            <Countdown kind="payout" until={view.settlesAt} />
+            {/* À l'échéance, le rechargement déclenche le versement côté serveur. */}
+            <RefreshAt until={view.settlesAt} />
+          </>
         )}
       </div>
       <Link href={href}>
