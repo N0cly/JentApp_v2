@@ -166,6 +166,34 @@ export const auditLog = pgTable(
   (t) => [index("audit_log_league_idx").on(t.leagueId, t.createdAt)],
 );
 
+// --- Journal des clopes ---------------------------------------------------
+// Écrit uniquement par src/server/ledger. Une ligne ne se modifie pas et ne se
+// supprime pas, sauf avec sa ligue (triggers de la migration 0002).
+
+export const ledger = pgTable(
+  "ledger",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    leagueId: uuid("league_id")
+      .notNull()
+      .references(() => leagues.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id),
+    delta: integer("delta").notNull(),
+    reason: text("reason").notNull(),
+    // Ce qui a causé le mouvement (tournée, pari…).
+    refId: uuid("ref_id"),
+    // Crédits automatiques : une seule fois par clé.
+    uniqueKey: text("unique_key").unique(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("ledger_member_idx").on(t.leagueId, t.userId, t.createdAt),
+    check("ledger_delta_not_zero", sql`${t.delta} <> 0`),
+  ],
+);
+
 // --- Limitation des tentatives ---------------------------------------------
 
 export const rateLimits = pgTable("rate_limits", {

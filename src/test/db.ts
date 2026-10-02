@@ -4,6 +4,6 @@ import { getDb } from "@/db/client";
 /** Vide les tables métier entre deux tests. */
 export async function resetDb() {
   await getDb().execute(
-    sql`truncate table audit_log, league_members, leagues, rate_limits, verifications, accounts, sessions, users restart identity cascade`,
+    sql`truncate table ledger, audit_log, league_members, leagues, rate_limits, verifications, accounts, sessions, users restart identity cascade`,
   );
 }
