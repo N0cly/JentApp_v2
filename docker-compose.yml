@@ -9,6 +9,7 @@ services:
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
       TRUST_PROXY: ${TRUST_PROXY:-false}
       UPLOADS_DIR: /app/uploads
+      SETTLE_DELAY_SECONDS: ${SETTLE_DELAY_SECONDS:-600}
       SMTP_HOST: mailpit
       SMTP_PORT: 1025
       EMAIL_FROM: ${EMAIL_FROM}

@@ -17,3 +17,4 @@ export {
   type ResultChoice,
   type ResultOutcome,
 } from "./result";
+export { settleDue } from "./payout";

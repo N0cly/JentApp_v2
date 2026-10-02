@@ -18,6 +18,8 @@ export default defineConfig({
     env: {
       APP_URL: "http://localhost:3000",
       BETTER_AUTH_SECRET: "test-secret-not-used-outside-tests-0123456789",
+      // Les tests supposent le délai de versement par défaut, quel que soit .env.
+      SETTLE_DELAY_SECONDS: "600",
     },
     globalSetup: ["src/test/global-setup.ts"],
     // Les tests d'intégration partagent une base : pas de fichiers en parallèle.
