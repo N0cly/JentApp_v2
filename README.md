@@ -27,6 +27,10 @@ pnpm test
 
 Avant de pousser : `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`.
 
+## Journal des clopes
+
+`pnpm ledger:check` compare, pour chaque membre de chaque ligue, la somme de ses lignes de journal à son solde. Il liste les écarts et sort en erreur s'il y en a.
+
 ## Jetons
 
 Après une modification de `design/tokens.json` : `pnpm tokens`, qui régénère `src/app/tokens.css`.

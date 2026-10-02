@@ -1,10 +1,13 @@
 import { sql } from "drizzle-orm";
-import type { getDb } from "@/db/client";
+import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 
 export type Discrepancy = { leagueId: string; userId: string; balance: number; journal: number };
 
 /** Membres dont le solde diffère de la somme de leurs lignes de journal. */
-export async function findDiscrepancies(db: ReturnType<typeof getDb>): Promise<Discrepancy[]> {
+// Sans alias d'import : `pnpm ledger:check` charge ce fichier directement avec Node.
+export async function findDiscrepancies(
+  db: Pick<PostgresJsDatabase<Record<string, unknown>>, "execute">,
+): Promise<Discrepancy[]> {
   const rows = await db.execute<{
     league_id: string;
     user_id: string;

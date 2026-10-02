@@ -18,7 +18,8 @@
     "tokens": "node scripts/tokens.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "node --env-file-if-exists=.env src/db/migrate.ts",
-    "test": "vitest run"
+    "test": "vitest run",
+    "ledger:check": "node --env-file-if-exists=.env scripts/ledger-check.ts"
   },
   "dependencies": {
     "better-auth": "1.7.7",
