@@ -92,3 +92,34 @@ describe("suppression de compte", () => {
     expect(again.ok).toBe(true);
   });
 });
+
+describe("suppression de compte et chat", () => {
+  beforeEach(resetDb);
+
+  it("les messages de l'utilisateur ont disparu, avec leurs réactions et mentions", async () => {
+    const { sendMessage, toggleLike, readMessages } = await import("@/server/chat");
+    const { messageMentions, messageReactions, messages } = await import("@/db/schema");
+    const a = await account("Alpha");
+    const b = await account("Bravo");
+    const l = await league(b.id, "Bande");
+    await joinLeague({ id: a.id }, l.inviteCode, new Date());
+    const now = new Date();
+    const mine = await sendMessage(a, l.id, { kind: "text", body: "Salut @Bravo" }, now);
+    const theirs = await sendMessage(b, l.id, { kind: "text", body: "Coucou" }, now);
+    if (!mine.ok || !theirs.ok) throw new Error();
+    await toggleLike(b, l.id, mine.id);
+
+    expect(await deleteAccount(a, "Alpha", new Date())).toEqual({ ok: true });
+
+    const left = await getDb().select().from(messages).where(eq(messages.userId, a.id));
+    expect(left).toHaveLength(0);
+    expect(
+      await getDb().select().from(messageReactions).where(eq(messageReactions.messageId, mine.id)),
+    ).toHaveLength(0);
+    expect(
+      await getDb().select().from(messageMentions).where(eq(messageMentions.messageId, mine.id)),
+    ).toHaveLength(0);
+    const visible = (await readMessages(b, l.id, new Date())).filter((m) => m.kind !== "system");
+    expect(visible.map((m) => m.body)).toEqual(["Coucou"]);
+  });
+});

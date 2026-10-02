@@ -4,12 +4,14 @@ import {
   accounts,
   leagueMembers,
   leagues,
+  messages,
   rateLimits,
   sessions,
   users,
   verifications,
 } from "@/db/schema";
 import { deletePhotoFile } from "@/server/avatars";
+import { notify } from "@/server/realtime/notify";
 
 export const deleteMessages = {
   confirm: "Écris ton pseudo exact pour confirmer.",
@@ -77,10 +79,23 @@ export async function deleteAccount(
       );
     }
 
-    await tx
+    const left = await tx
       .update(leagueMembers)
       .set({ leftAt: now })
-      .where(and(eq(leagueMembers.userId, user.id), isNull(leagueMembers.leftAt)));
+      .where(and(eq(leagueMembers.userId, user.id), isNull(leagueMembers.leftAt)))
+      .returning({ leagueId: leagueMembers.leagueId });
+    for (const { leagueId } of left) {
+      await notify(tx, { league: leagueId, type: "member.changed", id: user.id });
+    }
+
+    // Ses messages disparaissent, avec leurs réactions et mentions (en cascade).
+    const removed = await tx
+      .delete(messages)
+      .where(eq(messages.userId, user.id))
+      .returning({ id: messages.id, leagueId: messages.leagueId });
+    for (const { id, leagueId } of removed) {
+      await notify(tx, { league: leagueId, type: "message.deleted", id });
+    }
 
     const [row] = await tx.select({ image: users.image }).from(users).where(eq(users.id, user.id));
     await tx.delete(sessions).where(eq(sessions.userId, user.id));
