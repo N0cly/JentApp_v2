@@ -1,0 +1,12 @@
+.git
+.idea
+.next
+node_modules
+.env
+.env*.local
+coverage
+design/screens
+docs
+*.md
+!content/**/*.md
+deploy
