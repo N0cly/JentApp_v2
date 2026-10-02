@@ -5,6 +5,8 @@ import { useEffect, useRef, useState } from "react";
 export type FormState = {
   fieldErrors?: Partial<Record<string, string>>;
   formError?: string;
+  /** L'action a abouti sans changer de page (une feuille peut se fermer). */
+  done?: boolean;
 };
 
 /**

@@ -11,16 +11,26 @@ type AvatarProps = {
    */
   ring?: string;
   ringWidth?: 2 | 3;
+  /** Fond derrière l'initiale : `surface` sur bg, `surface-raised` sur surface. */
+  background?: "surface" | "surface-raised";
   className?: string;
 };
 
 /** Joueur : rond, avec son initiale. */
-export function Avatar({ name, size = 40, ring, ringWidth = 2, className }: AvatarProps) {
+export function Avatar({
+  name,
+  size = 40,
+  ring,
+  ringWidth = 2,
+  background = "surface",
+  className,
+}: AvatarProps) {
   return (
     <span
       aria-hidden="true"
       className={cx(
-        "flex shrink-0 items-center justify-center rounded-full border-line-strong bg-surface font-bold",
+        "flex shrink-0 items-center justify-center rounded-full border-line-strong font-bold",
+        background === "surface" ? "bg-surface" : "bg-surface-raised",
         ringWidth === 2 ? "border-2" : "border-3",
         className,
       )}
