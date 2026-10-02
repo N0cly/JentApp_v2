@@ -60,7 +60,7 @@ export function RoundButton({ leagueId, members }: { leagueId: string; members: 
             variant="outlined"
             size="lg"
             disabled={valid && amount <= MIN}
-            onClick={() => setValue(String(clamp((valid ? amount : MIN) - 1)))}
+            onClick={() => setValue((v) => String(clamp((Number.parseInt(v, 10) || MIN) - 1)))}
           >
             <MinusIcon size={22} />
           </IconButton>
@@ -83,7 +83,7 @@ export function RoundButton({ leagueId, members }: { leagueId: string; members: 
             variant="outlined"
             size="lg"
             disabled={valid && amount >= MAX}
-            onClick={() => setValue(String(clamp((valid ? amount : MIN) + 1)))}
+            onClick={() => setValue((v) => String(clamp((Number.parseInt(v, 10) || MIN) + 1)))}
           >
             <PlusIcon size={22} />
           </IconButton>

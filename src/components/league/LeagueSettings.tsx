@@ -12,6 +12,7 @@ import { FormMessage } from "@/components/FormMessage";
 import { useFormErrors, type FormState } from "@/components/forms/use-form-errors";
 import { ListGroup, ListRow, SectionTitle } from "@/components/List";
 import { BottomSheet, Button, TextField } from "@/components/ui";
+import { economyControls, EconomySheet, type EconomyField } from "./EconomySheet";
 import { RoundButton } from "./RoundSheet";
 
 type Member = { userId: string; username: string };
@@ -35,6 +36,7 @@ type Sheet = "rename" | "leave" | "manage" | null;
 
 export function LeagueSettings({ league, isOwner, others }: Props) {
   const [sheet, setSheet] = useState<Sheet>(null);
+  const [editing, setEditing] = useState<EconomyField | null>(null);
   const [regenerating, startRegenerate] = useTransition();
   const close = () => setSheet(null);
   const base = `/l/${league.id}`;
@@ -53,10 +55,28 @@ export function LeagueSettings({ league, isOwner, others }: Props) {
 
       <SectionTitle>ÉCONOMIE, EN CLOPES</SectionTitle>
       <ListGroup>
-        <ListRow label="Dotation de départ" value={league.joinGrant} />
-        <ListRow label="Allocation hebdomadaire" value={league.weeklyGrant} />
-        <ListRow label="Cagnotte par pari" value={league.seedAmount} />
+        {(["joinGrant", "weeklyGrant", "seedAmount"] as const).map((field) => (
+          <ListRow
+            key={field}
+            label={economyControls[field].label}
+            hint={
+              field === "seedAmount" && isOwner
+                ? "Un changement ne vaut que pour la suite"
+                : undefined
+            }
+            value={league[field]}
+            onClick={isOwner ? () => setEditing(field) : undefined}
+          />
+        ))}
       </ListGroup>
+      {editing && (
+        <EconomySheet
+          leagueId={league.id}
+          field={editing}
+          value={league[editing]}
+          onClose={() => setEditing(null)}
+        />
+      )}
 
       <SectionTitle>INVITATION</SectionTitle>
       <ListGroup>

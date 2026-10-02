@@ -1,4 +1,5 @@
 import { and, asc, count, eq, inArray, isNull, sql } from "drizzle-orm";
+import { z } from "zod";
 import { getDb } from "@/db/client";
 import { auditLog, leagueMembers, leagues, users } from "@/db/schema";
 import { fieldErrors, type FieldErrors } from "@/server/auth/validation";
@@ -470,6 +471,45 @@ export async function renameLeague(
       await tx.update(leagues).set({ name: parsed.data }).where(eq(leagues.id, leagueId));
       await audit(tx, leagueId, actor.id, "settings.changed", {
         name: { from: league.name, to: parsed.data },
+      });
+    }
+    return { ok: true } as const;
+  });
+}
+
+export type EconomyField = "joinGrant" | "weeklyGrant" | "seedAmount";
+
+const economyBounds: Record<EconomyField, { max: number; message: string }> = {
+  joinGrant: { max: 200, message: leagueMessages.joinGrantRange },
+  weeklyGrant: { max: 50, message: leagueMessages.weeklyGrantRange },
+  seedAmount: { max: 20, message: leagueMessages.seedAmountRange },
+};
+
+/**
+ * Réglage d'économie (owner). Mêmes bornes qu'à la création ; il ne vaut que
+ * pour la suite et s'inscrit au journal avec l'ancienne et la nouvelle valeur.
+ */
+export async function updateEconomy(
+  actor: Actor,
+  leagueId: string,
+  field: unknown,
+  value: unknown,
+): Promise<{ ok: true } | Failure<"value">> {
+  if (field !== "joinGrant" && field !== "weeklyGrant" && field !== "seedAmount")
+    throw new NotFoundError();
+  const bounds = economyBounds[field];
+  const parsed = z.coerce.number().int().min(0).max(bounds.max).safeParse(value);
+  if (!parsed.success) return { ok: false, fieldErrors: { value: bounds.message } };
+  return getDb().transaction(async (tx) => {
+    const { league } = await lockAs(tx, actor.id, leagueId, "owner");
+    const from = league[field];
+    if (from !== parsed.data) {
+      await tx
+        .update(leagues)
+        .set({ [field]: parsed.data })
+        .where(eq(leagues.id, leagueId));
+      await audit(tx, leagueId, actor.id, "settings.changed", {
+        [field]: { from, to: parsed.data },
       });
     }
     return { ok: true } as const;

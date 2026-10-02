@@ -17,6 +17,7 @@ import {
   removeMember,
   renameLeague,
   transferLeague,
+  updateEconomy,
   type InvitePreview,
 } from "@/server/leagues";
 
@@ -136,6 +137,19 @@ export async function offerRoundAction(
   const user = await requireUser();
   const result = await orNotFound(() => offerRound(user, leagueId, { roundId, amount }));
   if (!result.ok) return { error: result.fieldErrors.amount };
+  revalidatePath(`/l/${leagueId}`, "layout");
+  return { done: true };
+}
+
+export async function updateEconomyAction(
+  leagueId: string,
+  field: string,
+  _: FormState,
+  form: FormData,
+): Promise<FormState> {
+  const user = await requireUser();
+  const result = await orNotFound(() => updateEconomy(user, leagueId, field, form.get("value")));
+  if (!result.ok) return failure(result);
   revalidatePath(`/l/${leagueId}`, "layout");
   return { done: true };
 }

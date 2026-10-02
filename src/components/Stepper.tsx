@@ -19,7 +19,10 @@ export function Stepper({ name, label, hint, min, max, step, defaultValue }: Ste
   const current = Number.parseInt(value, 10);
   const clamp = (n: number) => Math.min(max, Math.max(min, n));
   const shift = (delta: number) =>
-    setValue(String(clamp((Number.isNaN(current) ? defaultValue : current) + delta)));
+    setValue((previous) => {
+      const n = Number.parseInt(previous, 10);
+      return String(clamp((Number.isNaN(n) ? defaultValue : n) + delta));
+    });
 
   return (
     <div>
