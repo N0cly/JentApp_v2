@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import {
   type AnyPgColumn,
+  bigint,
   boolean,
   check,
   index,
@@ -243,6 +244,73 @@ export const wagers = pgTable(
     check("wagers_amount_positive", sql`${t.amount} > 0`),
     check("wagers_payout_positive", sql`${t.payout} >= 0`),
     index("wagers_option_idx").on(t.optionId),
+  ],
+);
+
+// --- Chat ------------------------------------------------------------------
+
+export const messageKind = pgEnum("message_kind", ["text", "gif", "bet", "system"]);
+export const messageEvent = pgEnum("message_event", [
+  "bet_opened",
+  "bet_resolved",
+  "bet_corrected",
+  "bet_settled",
+  "bet_cancelled",
+  "round",
+  "member_joined",
+]);
+
+export const messages = pgTable(
+  "messages",
+  {
+    // Entier croissant : sert à paginer (before / after).
+    id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+    leagueId: uuid("league_id")
+      .notNull()
+      .references(() => leagues.id, { onDelete: "cascade" }),
+    // Vide pour un message automatique.
+    userId: uuid("user_id").references(() => users.id),
+    kind: messageKind("kind").notNull(),
+    body: text("body"),
+    gifUrl: text("gif_url"),
+    betId: uuid("bet_id").references(() => bets.id, { onDelete: "set null" }),
+    // Messages automatiques : l'événement et ce qu'il faut pour écrire la phrase.
+    event: messageEvent("event"),
+    data: jsonb("data").notNull().default({}),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  },
+  (t) => [index("messages_league_id_idx").on(t.leagueId, t.id)],
+);
+
+export const messageReactions = pgTable(
+  "message_reactions",
+  {
+    messageId: bigint("message_id", { mode: "number" })
+      .notNull()
+      .references(() => messages.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id),
+    // Une seule réaction pour l'instant : « like ».
+    emoji: text("emoji").notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.messageId, t.userId, t.emoji] })],
+);
+
+export const messageMentions = pgTable(
+  "message_mentions",
+  {
+    messageId: bigint("message_id", { mode: "number" })
+      .notNull()
+      .references(() => messages.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id),
+  },
+  (t) => [
+    primaryKey({ columns: [t.messageId, t.userId] }),
+    index("message_mentions_user_idx").on(t.userId),
   ],
 );
 

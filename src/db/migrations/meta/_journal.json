@@ -29,6 +29,13 @@
       "when": 1790964177458,
       "tag": "0003_bets",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1790968135903,
+      "tag": "0004_chat",
+      "breakpoints": true
     }
   ]
 }
