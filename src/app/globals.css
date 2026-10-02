@@ -3,7 +3,7 @@
 
 /*
  * Tailwind ne connaît que les jetons de design/tokens.json :
- * couleurs, espacements (space-1 à space-8) et rayons.
+ * couleurs, polices, espacements (space-1 à space-8) et rayons.
  */
 @theme inline reference {
   --color-*: initial;
@@ -40,6 +40,10 @@
   --spacing-6: var(--space-6);
   --spacing-8: var(--space-8);
 
+  --font-*: initial;
+  --font-display: var(--font-display);
+  --font-mono: var(--font-mono);
+
   --radius-*: initial;
   --radius-sm: var(--radius-sm);
   --radius-md: var(--radius-md);
@@ -47,7 +51,15 @@
   --radius-full: var(--radius-full);
 }
 
-body {
-  background: var(--bg);
-  color: var(--ink);
+@layer base {
+  html {
+    --default-font-family: var(--font-display);
+    --default-mono-font-family: var(--font-mono);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-display);
+  }
 }
