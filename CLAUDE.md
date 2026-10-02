@@ -88,4 +88,4 @@ docker compose up   app + Postgres en local
 
 ## Jalon en cours
 
-M0 — Socle (`docs/M0.md`). Mettre cette section à jour à chaque changement de jalon.
+M1 — Comptes et ligues (`docs/M1.md`). Mettre cette section à jour à chaque changement de jalon.

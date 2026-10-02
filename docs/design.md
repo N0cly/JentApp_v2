@@ -89,9 +89,10 @@ Un ticket de papier avec le J et une barre de laiton, sur fond `bg`. Les fichier
 | Connexion | `connexion.html` | `/connexion` | M1 |
 | Inscription | `inscription.html` | `/inscription` | M1 |
 | Mot de passe oublié | `mot-de-passe-oublie.html` | `/mot-de-passe-oublie` | M1 |
+| Nouveau mot de passe | `mot-de-passe-oublie.html` (mise en page) | `/nouveau-mot-de-passe` | M1 |
 | Réglages du compte | `reglages-du-compte.html` | `/compte` | M1 (profil), M7 (notifications) |
 | Bienvenue, aucune ligue | `bienvenue.html` | `/bienvenue` | M1 |
-| Rejoindre une ligue | `rejoindre-une-ligue.html` | `/j/{code}` | M1 |
+| Rejoindre une ligue | `rejoindre-une-ligue.html` | `/j/{code}`, et `/j` avec le champ vide | M1 |
 | Créer une ligue | `creer-une-ligue.html` | `/ligues/nouvelle` | M1 |
 | Inviter | `inviter.html` | `/l/{ligue}/inviter` | M1 |
 | Tes ligues | `ligues.html` | feuille, depuis le sélecteur | M1 |
@@ -144,6 +145,15 @@ Un ticket de papier avec le J et une barre de laiton, sur fond `bg`. Les fichier
 - **Voix.** Tutoiement, phrases courtes, pas d'emoji, pas de point d'exclamation en rafale. « Valider le ticket », pas « Confirmer la transaction ». « Il te manque 6 clopes. », pas « Fonds insuffisants ».
 - **Données d'exemple.** Les pseudos, questions et montants des pages de référence sont des exemples : ne jamais les coder en dur.
 
+## Erreurs de formulaire
+
+Pages de référence : `inscription-erreur.html` et `connexion-erreur.html`.
+
+- **`TextField` en erreur.** La bordure passe de `line-strong` à `loss`, toujours 1 px. Le message remplace le texte d'aide sous le champ : icône d'alerte de 16 px suivie du texte, en `caption`, couleur `loss`. Le libellé ne change pas. `aria-invalid="true"` et `aria-describedby` vers le message. Le focus garde son contour `brand`.
+- **Case à cocher en erreur.** Même message, sous la case.
+- **Message de formulaire.** Pour une erreur qui ne tient pas à un champ (connexion refusée, trop de tentatives) : bloc `loss-soft`, `radius-md`, icône d'alerte de 18 px en `loss`, texte `ink` en 14 px et 600, `role="alert"`, placé au-dessus du premier champ.
+- **À l'envoi.** Les erreurs s'affichent toutes ensemble et le focus va au premier champ en erreur. Une erreur disparaît dès que le champ est modifié.
+
 ## Ce qui n'a pas de maquette
 
 Tous les écrans de la v2 sont maquettés. Restent des états et des variantes, à construire avec les composants existants, sans inventer de nouvelle apparence :
@@ -157,5 +167,8 @@ Tous les écrans de la v2 sont maquettés. Restent des états et des variantes, 
 - Correction d'un résultat : c'est l'écran « Saisir le résultat », avec l'option déjà choisie.
 - Pages légales : le texte vient de `content/legal`, la mise en page de la page de référence.
 - Rappel « Confirme ton email » : le bandeau de l'écran Bienvenue, repris en haut de l'écran Paris tant que l'email n'est pas confirmé.
+- Nouveau mot de passe : la mise en page de Mot de passe oublié, un champ et un bouton primaire.
+- Quitter une ligue : dans Réglages de la ligue, la dernière ligne est « Transférer ou supprimer la ligue » pour l'owner et « Quitter la ligue » pour les autres, avec une feuille de confirmation.
+- États vides de la coquille de ligue en M1 : une phrase, sans action.
 
 Si un cas ne rentre dans aucune de ces lignes, s'arrêter et demander.
