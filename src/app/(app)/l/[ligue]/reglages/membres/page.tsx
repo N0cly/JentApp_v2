@@ -20,7 +20,12 @@ export default async function MembersPage({ params }: PageProps<"/l/[ligue]/regl
         <MemberList
           leagueId={ligue}
           leagueName={league.name}
-          members={members.map((m) => ({ userId: m.userId, username: m.username, role: m.role }))}
+          members={members.map((m) => ({
+            userId: m.userId,
+            username: m.username,
+            image: m.image,
+            role: m.role,
+          }))}
           me={user.id}
           isOwner={membership.role === "owner"}
         />

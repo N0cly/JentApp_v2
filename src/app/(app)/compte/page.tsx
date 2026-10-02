@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { signOutAction } from "@/app/(compte)/actions";
 import { ProfileRows } from "@/components/account/AccountSettings";
+import { PhotoRow } from "@/components/account/PhotoRow";
 import { ListGroup, ListRow, SectionTitle } from "@/components/List";
 import { Screen } from "@/components/Screen";
 import { ScreenHeader } from "@/components/ScreenHeader";
@@ -32,7 +33,11 @@ export default async function AccountPage({ searchParams }: PageProps<"/compte">
       <ScreenHeader back={league ? `/l/${league}/moi` : "/"} title="Réglages" />
       <main className="flex grow flex-col gap-3 px-5 pt-2 pb-6">
         <SectionTitle>PROFIL</SectionTitle>
-        <ProfileRows username={user.username} email={user.email} />
+        <ProfileRows
+          username={user.username}
+          email={user.email}
+          photoRow={<PhotoRow username={user.username} image={user.image} />}
+        />
         <SectionTitle>{league ? "LIGUE, PLATEFORME, AIDE" : "AIDE"}</SectionTitle>
         <ListGroup>
           {league && <ListRow label="Réglages de la ligue" href={`/l/${league}/reglages`} />}

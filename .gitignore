@@ -21,5 +21,8 @@ next-env.d.ts
 npm-debug.log*
 pnpm-debug.log*
 
+# fichiers envoyés en local (UPLOADS_DIR par défaut)
+/uploads
+
 # tests
 /coverage

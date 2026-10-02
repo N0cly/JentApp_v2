@@ -1,9 +1,12 @@
+import Image from "next/image";
 import { cx } from "@/lib/cx";
 
 type Size = 32 | 36 | 40 | 48 | 56 | 64 | 72;
 
 type AvatarProps = {
   name: string;
+  /** Photo de profil ; sinon l'initiale. */
+  src?: string | null;
   size?: Size;
   /**
    * Couleur de l'anneau : la bordure portée (teinte du cosmétique) ou un jeton
@@ -16,9 +19,10 @@ type AvatarProps = {
   className?: string;
 };
 
-/** Joueur : rond, avec son initiale. */
+/** Joueur : rond, avec sa photo ou son initiale. */
 export function Avatar({
   name,
+  src,
   size = 40,
   ring,
   ringWidth = 2,
@@ -29,7 +33,7 @@ export function Avatar({
     <span
       aria-hidden="true"
       className={cx(
-        "flex shrink-0 items-center justify-center rounded-full border-line-strong font-bold",
+        "flex shrink-0 items-center justify-center overflow-hidden rounded-full border-line-strong font-bold",
         background === "surface" ? "bg-surface" : "bg-surface-raised",
         ringWidth === 2 ? "border-2" : "border-3",
         className,
@@ -41,7 +45,19 @@ export function Avatar({
         borderColor: ring,
       }}
     >
-      {name.charAt(0).toUpperCase()}
+      {src ? (
+        // Fichier déjà recadré à 256 px par le serveur : pas d'optimisation à faire.
+        <Image
+          src={src}
+          alt=""
+          width={size}
+          height={size}
+          unoptimized
+          className="size-full rounded-full object-cover"
+        />
+      ) : (
+        name.charAt(0).toUpperCase()
+      )}
     </span>
   );
 }
