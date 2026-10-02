@@ -28,6 +28,10 @@ export default async function HelpPage({ searchParams }: PageProps<"/compte/aide
           <ListRow label="Politique de confidentialité" href="/confidentialite" />
           <ListRow label="Mentions légales" href="/mentions-legales" />
         </ListGroup>
+        <SectionTitle>COMPTE</SectionTitle>
+        <ListGroup>
+          <ListRow label="Supprimer mon compte" tone="loss" href="/compte/supprimer" />
+        </ListGroup>
         <div className="grow" />
         <p className="text-caption text-ink-subtle">JentApp v2</p>
       </main>

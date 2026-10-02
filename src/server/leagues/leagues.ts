@@ -1,4 +1,4 @@
-import { and, asc, count, eq, isNull, sql } from "drizzle-orm";
+import { and, asc, count, eq, inArray, isNull, sql } from "drizzle-orm";
 import { getDb } from "@/db/client";
 import { auditLog, leagueMembers, leagues, users } from "@/db/schema";
 import { fieldErrors, type FieldErrors } from "@/server/auth/validation";
@@ -223,6 +223,16 @@ export async function listMembers(actor: Actor, leagueId: string): Promise<Membe
     .where(and(eq(leagueMembers.leagueId, leagueId), isNull(leagueMembers.leftAt)))
     .orderBy(asc(leagueMembers.joinedAt));
   return rows.map((r) => ({ ...r, username: r.username ?? DELETED_PLAYER }));
+}
+
+/** Pseudos à afficher pour des joueurs, y compris ceux qui ont supprimé leur compte. */
+export async function playerNames(userIds: string[]): Promise<Map<string, string>> {
+  if (userIds.length === 0) return new Map();
+  const rows = await getDb()
+    .select({ id: users.id, username: users.name })
+    .from(users)
+    .where(inArray(users.id, userIds));
+  return new Map(rows.map((r) => [r.id, r.username ?? DELETED_PLAYER]));
 }
 
 // --- Rejoindre -------------------------------------------------------------
