@@ -8,7 +8,11 @@ Réécriture complète de la v1 (`N0cly/JentApp`, React Native + Supabase). Rien
 
 - `docs/spec.md` : spec fonctionnelle et logique. C'est la source de vérité produit.
 - `docs/M0.md`, `docs/M1.md`… : un fichier par jalon. On ne code que le jalon en cours.
+- `docs/design.md` : comment appliquer la maquette (jetons, composants, écrans, routes).
 - `design/tokens.json` : jetons du design system (couleurs, typo, espacements, rayons).
+- `design/screens/*.html` : pages de référence des écrans. Elles font foi pour l'apparence.
+- `design/icon/` : icône de l'app.
+- `content/legal/*.md` : texte des pages légales.
 
 ## Stack
 
@@ -28,6 +32,16 @@ Réécriture complète de la v1 (`N0cly/JentApp`, React Native + Supabase). Rien
 5. **Pas de fuite de compte.** Aucun email ni donnée de compte dans ce qui est renvoyé aux autres joueurs.
 6. **Pas de secret dans le dépôt.** `.env` est ignoré ; `.env.example` documente chaque variable.
 7. **Pas de tâche planifiée.** L'état d'un pari et l'allocation hebdomadaire se calculent à la lecture (spec §4 et §5).
+8. **Les clopes n'ont aucune valeur réelle.** Ni achat, ni vente, ni conversion, ni lot. Ne jamais ajouter de paiement ou d'échange (spec §15).
+
+## Interface
+
+- L'apparence suit `design/screens`. Un écran sans page de référence ne s'invente pas : s'arrêter et demander.
+- Aucune couleur, aucun rayon, aucun espacement en dur : uniquement les variables issues de `design/tokens.json`.
+- Les composants de base vivent dans `src/components/ui` et portent les noms de `docs/design.md`.
+- Pas d'emoji, pas d'ombre, pas de dégradé, pas de bibliothèque de composants tierce.
+- Le papier (`paper`) est réservé au composant `Ticket`.
+- Les pseudos, questions et montants des pages de référence sont des exemples, jamais des valeurs à coder en dur.
 
 ## Conventions
 
@@ -41,11 +55,13 @@ Réécriture complète de la v1 (`N0cly/JentApp`, React Native + Supabase). Rien
 
 ```
 src/app/            routes et pages (App Router)
-src/components/     composants d'interface
+src/components/ui/  composants de base du design system
+src/components/     composants d'écran
 src/server/         logique métier, jamais importée côté client
 src/db/             schéma Drizzle, migrations, client
 src/lib/            utilitaires partagés
 design/tokens.json  jetons du design system
+design/screens/     pages HTML de référence des écrans
 docs/               spec et jalons
 deploy/             compose de production, configuration Nginx
 ```

@@ -1,0 +1,160 @@
+# Design — JentApp v2
+
+Ce document dit comment appliquer la maquette. Les valeurs viennent de `design/tokens.json`, l'apparence exacte des écrans de `design/screens/*.html`. En cas de doute, la page HTML de référence fait foi.
+
+## Direction : le comptoir de nuit
+
+Un bar-tabac après la fermeture, où chaque mise sort sur un ticket.
+
+1. **Le ticket est la signature.** Une mise est un ticket de papier clair (`paper`) sur un fond de nuit. Le papier est réservé au ticket : prise de mise, pari réglé, pari partagé dans le chat, invitation à une ligue. Rien d'autre n'est clair.
+2. **Les chiffres sont imprimés.** Montants, pots, cotes finales, comptes à rebours et rangs sont en mono.
+3. **Le laiton se mérite.** `brand` marque une seule chose par écran : l'action principale ou ma sélection.
+4. **Le pouce d'abord.** Cibles de 44 px minimum, actions en bas d'écran, quatre onglets.
+
+## Fichiers de référence
+
+- `design/tokens.json` : couleurs, styles de texte, espacements, rayons, avec une note d'usage par jeton.
+- `design/screens/*.html` : les 40 écrans de l'app, un fichier par écran. La table du § Écrans donne le fichier, la route et le jalon de chacun.
+- `design/icon/` : l'icône de l'app, en SVG et aux tailles du manifeste.
+- `content/legal/*.md` : le texte des trois pages légales, à compléter et à faire relire.
+
+Les pages HTML sont des images fidèles, pas du code à copier : styles en ligne, données d'exemple, aucune logique. Elles s'ouvrent dans un navigateur, à 390 px de large, et les liens mènent d'un écran à l'autre.
+
+## Jetons
+
+- Les couleurs, espacements et rayons de `tokens.json` deviennent des variables CSS (`--bg`, `--space-4`, `--radius-md`…). Aucune couleur, aucun rayon et aucun espacement n'est écrit en dur dans un composant.
+- Un seul thème, `nuit`. Pas de thème clair.
+- Trois niveaux de fond qui s'empilent : `bg`, `surface`, `surface-raised`. Pas d'ombre portée, pas de dégradé.
+- Texte : `ink`, puis `ink-muted`, puis `ink-subtle`. `line` décore, `line-strong` borde un contrôle.
+- `win` et `loss` ne sont jamais seuls : un signe (+ ou −), une coche, une croix ou un tampon les accompagne.
+- Sur le papier, on n'utilise que `on-paper`, `on-paper-muted`, `on-paper-win` et `on-paper-loss`.
+
+## Typographie
+
+Deux familles, chargées avec `next/font/google`.
+
+- **Bricolage Grotesque** pour tout ce qui se lit. Titres en 800 avec `font-stretch: 85%`, texte courant en 400, libellés en 600.
+- **DM Mono** en 500 pour tout ce qui se compte.
+
+Les styles nommés sont dans `tokens.json` : `display`, `title`, `heading`, `body`, `label`, `caption`, `data-xl`, `data`, `overline`. Les questions de pari sont en `heading`, jamais en capitales. Les capitales sont réservées à `overline`. Aucun texte sous 12 px.
+
+## Icône de l'app
+
+Un ticket de papier avec le J et une barre de laiton, sur fond `bg`. Les fichiers sont dans `design/icon` : `icon.svg` (source), `icon-512.png` et `icon-192.png` pour le manifeste (en `any` et `maskable`), `apple-touch-icon.png`, `favicon-32.png`. Dans l'interface, elle apparaît sur la connexion et l'écran d'installation, avec le nom en Bricolage Grotesque 800.
+
+## Icônes
+
+- Icônes au trait, grille de 24, épaisseur 1.75, bouts ronds, couleur du texte. Une bibliothèque au trait (Lucide) convient pour les icônes courantes.
+- Aucun emoji dans l'interface.
+- Trois icônes maison portent la monnaie et suivent toujours un nombre. À créer comme composants, `viewBox="0 0 24 24"`, `fill="none"`, `stroke="currentColor"` :
+
+```html
+<!-- clope -->
+<rect x="2" y="13" width="16" height="5" rx="1"/><path d="M6 13v5"/><path d="M21 13v5"/><path d="M17 9c0-2 2-2 2-4"/>
+<!-- joint -->
+<path d="M3 21l3.5-1.5L20 6l-2-2L4.5 17.5z"/><path d="M19 5l2-2"/><path d="M7 15l2 2"/>
+<!-- paquet -->
+<rect x="5" y="9" width="14" height="12" rx="1.5"/><path d="M5 13h14"/><path d="M9 9V4h3v5"/><path d="M12 6h3v3"/>
+```
+
+## Composants
+
+| Composant | Rôle | À retenir |
+| --- | --- | --- |
+| `Button` | Action | Primaire (`brand` / `on-brand`, un par écran, 56 px en bas d'écran), secondaire (`surface`, bordure `line-strong`, 52 px), discret. Rayon `radius-md` |
+| `IconButton` | Action en icône | 44 × 44, rond, `aria-label` obligatoire |
+| `Chip` | Filtre, moment | 44 px, `radius-full`. Sélectionné : fond `ink`, texte `on-paper` |
+| `Segmented` | Bascule de vue | Piste `surface`, segment actif sur fond `ink` |
+| `Card` | Carte de pari | Fond `surface`, `radius-lg`, intérieur `space-4`, 12 px entre les blocs |
+| `MomentBadge` | `BEFORE`, `NIGHT`, `AFTER`, `DAILY`, `SPÉCIAL` | `overline`, bordure `line-strong`, `radius-sm`. Tous identiques |
+| `Countdown` | Échéance | Horloge + `data`. « Ferme dans » en `ink-muted`, en `loss` sous une heure. « S'ouvre dans » et « Versement dans » en `brand` |
+| `BetOption` | Option d'un pari | 52 px minimum, `surface-raised`, `radius-md`. Ma mise : bordure `brand`, fond `brand-soft`, rappel « Ta mise · 5 ». Aucune cote affichée tant que le pari est ouvert |
+| `Amount` | Montant | Nombre en mono suivi de l'icône clope en `brand`. Delta : `+19` en `win`, `−8` en `loss`, avec le vrai signe moins |
+| `Ticket` | Signature | Fond `paper`, coins `radius-sm`, lignes libellé / valeur en mono, ligne de découpe : pointillés `on-paper-muted` et deux encoches rondes de 16 px de la couleur du fond derrière le ticket |
+| `Stamp` | `GAGNÉ`, `PERDU` | Mono, capitales, bordure 2 px, incliné de −6°. Un seul par écran |
+| `Avatar` | Joueur | Rond. La bordure portée est un anneau de couleur |
+| `LeagueBadge` | Ligue | Carré arrondi avec l'initiale, pour ne pas le confondre avec un joueur |
+| `LeagueSwitcher` | Ligue active | Pilule en haut à gauche de chaque onglet : badge, nom, chevron. Ouvre la feuille « Tes ligues » |
+| `BottomSheet` | Feuille modale | Fond `surface-raised`, haut en `radius-lg`, poignée, bouton fermer |
+| `TabBar` | Navigation | Quatre onglets : Paris, Classement, Chat, Moi. Actif en `brand` |
+| `TextField` | Saisie | 52 px, `surface`, bordure `line-strong`, libellé visible au-dessus |
+
+## Écrans
+
+`{ligue}` est l'identifiant de la ligue active, porté par l'URL. Un écran se construit dans le jalon indiqué, à partir de sa page de référence.
+
+| Écran | Référence | Route | Jalon |
+| --- | --- | --- | --- |
+| Connexion | `connexion.html` | `/connexion` | M1 |
+| Inscription | `inscription.html` | `/inscription` | M1 |
+| Mot de passe oublié | `mot-de-passe-oublie.html` | `/mot-de-passe-oublie` | M1 |
+| Réglages du compte | `reglages-du-compte.html` | `/compte` | M1 (profil), M7 (notifications) |
+| Bienvenue, aucune ligue | `bienvenue.html` | `/bienvenue` | M1 |
+| Rejoindre une ligue | `rejoindre-une-ligue.html` | `/j/{code}` | M1 |
+| Créer une ligue | `creer-une-ligue.html` | `/ligues/nouvelle` | M1 |
+| Inviter | `inviter.html` | `/l/{ligue}/inviter` | M1 |
+| Tes ligues | `ligues.html` | feuille, depuis le sélecteur | M1 |
+| Réglages de la ligue | `reglages-de-la-ligue.html` | `/l/{ligue}/reglages` | M1 (nom, code), M2 (économie) |
+| Membres et rôles | `membres.html` | `/l/{ligue}/reglages/membres` | M1 |
+| Tournée générale | `tournee-generale.html` | feuille, depuis les réglages | M2 |
+| Journal de la ligue | `journal.html` | `/l/{ligue}/reglages/journal` | M7 |
+| Paris | `paris.html` | `/l/{ligue}/paris` | M3 |
+| Nouveau pari | `nouveau-pari.html` | `/l/{ligue}/paris/nouveau` | M3 |
+| Ticket de mise | `ticket-de-mise.html` | feuille, depuis une option | M3 |
+| Pari ouvert | `pari-ouvert.html` | `/l/{ligue}/paris/{pari}` | M3 |
+| Saisir le résultat | `saisir-le-resultat.html` | même route, pari fermé | M3 |
+| Résultat en attente | `resultat-en-attente.html` | même route, pendant les 10 minutes | M3 |
+| Pari réglé | `pari-regle.html` | même route, gains versés | M3 |
+| Chat | `chat.html` | `/l/{ligue}/chat` | M4 |
+| Choisir un GIF | `gif.html` | feuille, depuis le chat | M4 |
+| Classement | `classement.html` | `/l/{ligue}/classement` | M5 |
+| Profil d'un membre | `profil-d-un-membre.html` | feuille, depuis le classement ou le chat | M5 |
+| Moi | `moi.html` | `/l/{ligue}/moi` | M2 (solde), M5 (statistiques, historique) |
+| Moi : succès | `moi-succes.html` | même route, onglet | M6 |
+| Moi : cosmétiques | `moi-cosmetiques.html` | même route, onglet | M6 |
+| Boutique | `boutique.html` | `/l/{ligue}/boutique` | M6 |
+| Catalogue (super-admin) | `catalogue.html` | `/admin/catalogue` | M6 |
+| Notifications | `notifications.html` | `/notifications` | M7 |
+| Présentation 1 : miser | `presentation-1-miser.html` | `/bienvenue/presentation` | M1 |
+| Présentation 2 : le pot | `presentation-2-pot.html` | même route, étape 2 | M1 |
+| Présentation 3 : les ligues | `presentation-3-ligues.html` | même route, étape 3 | M1 |
+| Installer l'app | `installer-l-app.html` | `/installer` | M7 |
+| Activer les notifications | `activer-les-notifications.html` | `/notifications/activer` | M7 |
+| Aide et légal | `aide-et-legal.html` | `/compte/aide` | M1 |
+| Conditions d'utilisation | `conditions-d-utilisation.html` | `/conditions` | M1 |
+| Politique de confidentialité | `confidentialite.html` | `/confidentialite` | M1 |
+| Mentions légales | `mentions-legales.html` | `/mentions-legales` | M1 |
+| Supprimer mon compte | `supprimer-mon-compte.html` | `/compte/supprimer` | M1 |
+
+## Ce que les écrans montrent du pari mutuel
+
+- **Pari ouvert.** Les options n'ont pas de cote. La carte affiche le pot total, le nombre de parieurs et le créateur. La répartition reste cachée.
+- **Ticket de mise.** Il indique le pot actuel et « Gain : connu à la fermeture ». Raccourcis de mise : +5 (un joint), +20 (un paquet), tapis.
+- **Résultat en attente.** Pendant les 10 minutes avant versement, la carte affiche « Résultat saisi », par qui, et le compte à rebours du versement.
+- **Pari réglé.** Le ticket porte la mise, la cote finale et le gain, avec le tampon. Dessous : la répartition des mises, puis les gains versés.
+- **Mises rendues.** Dans l'historique, un pari remboursé affiche « rendu » et la raison.
+
+## Règles d'intégration
+
+- **Mobile d'abord.** Les maquettes sont à 390 px. Au-delà de 480 px, l'app reste une colonne centrée de 480 px au plus.
+- **Zones sûres.** La barre d'onglets et les actions de bas d'écran respectent `env(safe-area-inset-bottom)`.
+- **Accessibilité.** Vrais `button`, `a`, `input` avec `label`. Contraste 4.5:1 pour le texte, 3:1 pour les bordures de contrôle. Focus visible : contour `brand` de 2 px, décalé de 2 px.
+- **États non dessinés.** Chargement : squelettes aux formes des cartes, en `surface-raised`. Liste vide : une phrase et une action (« Rien d'ouvert. Lance un pari. »). Erreur : une phrase qui dit quoi faire, jamais un code.
+- **Voix.** Tutoiement, phrases courtes, pas d'emoji, pas de point d'exclamation en rafale. « Valider le ticket », pas « Confirmer la transaction ». « Il te manque 6 clopes. », pas « Fonds insuffisants ».
+- **Données d'exemple.** Les pseudos, questions et montants des pages de référence sont des exemples : ne jamais les coder en dur.
+
+## Ce qui n'a pas de maquette
+
+Tous les écrans de la v2 sont maquettés. Restent des états et des variantes, à construire avec les composants existants, sans inventer de nouvelle apparence :
+
+- Chargement, liste vide et erreur de chaque écran (règles ci-dessus).
+- Classement en vue « Bilan net » : même écran, autre tri.
+- Onglet « Avatars » de la boutique et onglet « Succès » du catalogue : mêmes grilles et mêmes lignes.
+- Formulaire d'ajout ou de modification d'un cosmétique : `TextField`, `Chip` et `Button`.
+- Modification du pseudo, de l'email ou du mot de passe : un champ et un bouton primaire.
+- Transfert et suppression d'une ligue, exclusion d'un membre : une feuille de confirmation qui dit ce qui va se passer.
+- Correction d'un résultat : c'est l'écran « Saisir le résultat », avec l'option déjà choisie.
+- Pages légales : le texte vient de `content/legal`, la mise en page de la page de référence.
+- Rappel « Confirme ton email » : le bandeau de l'écran Bienvenue, repris en haut de l'écran Paris tant que l'email n'est pas confirmé.
+
+Si un cas ne rentre dans aucune de ces lignes, s'arrêter et demander.
