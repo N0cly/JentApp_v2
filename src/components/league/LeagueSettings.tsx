@@ -12,6 +12,7 @@ import { FormMessage } from "@/components/FormMessage";
 import { useFormErrors, type FormState } from "@/components/forms/use-form-errors";
 import { ListGroup, ListRow, SectionTitle } from "@/components/List";
 import { BottomSheet, Button, TextField } from "@/components/ui";
+import { RoundButton } from "./RoundSheet";
 
 type Member = { userId: string; username: string };
 
@@ -73,6 +74,8 @@ export function LeagueSettings({ league, isOwner, others }: Props) {
           />
         )}
       </ListGroup>
+
+      {isOwner && <RoundButton leagueId={league.id} members={league.members} />}
 
       {isOwner ? (
         <Button variant="discreet" destructive onClick={() => setSheet("manage")}>

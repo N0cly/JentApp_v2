@@ -240,3 +240,13 @@ export function SignOutIcon(props: IconProps) {
     </Svg>
   );
 }
+
+export function GiftIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <rect x="4" y="10" width="16" height="10" rx="1.5" />
+      <path d="M3 7h18v3H3zM12 7v13" />
+      <path d="M12 7c-2-4-6-3-5 0M12 7c2-4 6-3 5 0" />
+    </Svg>
+  );
+}

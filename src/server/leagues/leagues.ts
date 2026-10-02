@@ -36,7 +36,8 @@ export type AuditAction =
   | "role.changed"
   | "member.removed"
   | "invite.regenerated"
-  | "league.transferred";
+  | "league.transferred"
+  | "round.offered";
 
 async function audit(
   tx: Tx,

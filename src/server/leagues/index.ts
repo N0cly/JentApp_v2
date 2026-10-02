@@ -6,3 +6,4 @@ export {
   normalizeCode,
 } from "./rules";
 export { grantWeekly } from "./weekly-grant";
+export { offerRound, ROUND_MAX, ROUND_MIN, roundMessages, type RoundResult } from "./round";

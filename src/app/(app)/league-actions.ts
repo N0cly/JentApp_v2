@@ -11,6 +11,7 @@ import {
   deleteLeague,
   joinLeague,
   leaveLeague,
+  offerRound,
   previewInvite,
   regenerateInviteCode,
   removeMember,
@@ -123,4 +124,18 @@ export async function deleteLeagueAction(
   const result = await orNotFound(() => deleteLeague(user, leagueId, form.get("confirmation")));
   if (!result.ok) return failure(result);
   redirect("/");
+}
+
+export type RoundState = { error?: string; done?: boolean };
+
+export async function offerRoundAction(
+  leagueId: string,
+  roundId: string,
+  amount: number,
+): Promise<RoundState> {
+  const user = await requireUser();
+  const result = await orNotFound(() => offerRound(user, leagueId, { roundId, amount }));
+  if (!result.ok) return { error: result.fieldErrors.amount };
+  revalidatePath(`/l/${leagueId}`, "layout");
+  return { done: true };
 }
