@@ -13,6 +13,6 @@ export { MomentBadge, type Moment } from "./MomentBadge";
 export { Segmented } from "./Segmented";
 export { Stamp } from "./Stamp";
 export { TabBar, type Tab } from "./TabBar";
-export { TextField } from "./TextField";
+export { FieldError, TextField } from "./TextField";
 export { Ticket, TicketCut, TicketOverline, TicketRow, TicketSection, TicketTitle } from "./Ticket";
 export * from "./icons";

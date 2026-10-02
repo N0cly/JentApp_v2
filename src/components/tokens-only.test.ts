@@ -1,10 +1,14 @@
 import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
 
-// CLAUDE.md : aucune couleur, aucun rayon, aucun espacement en dur dans le kit.
-const dir = join(process.cwd(), "src/components/ui");
-const files = readdirSync(dir).filter((f) => f.endsWith(".tsx"));
+// CLAUDE.md : aucune couleur, aucun rayon, aucun espacement en dur dans l'interface.
+const roots = ["src/components", "src/app"].map((d) => join(process.cwd(), d));
+const files = roots.flatMap((root) =>
+  readdirSync(root, { recursive: true, encoding: "utf8" })
+    .filter((f) => f.endsWith(".tsx"))
+    .map((f) => relative(process.cwd(), join(root, f))),
+);
 
 const forbidden: [string, RegExp][] = [
   ["couleur hexadécimale", /#[0-9a-fA-F]{3,8}\b/],
@@ -17,9 +21,9 @@ const forbidden: [string, RegExp][] = [
   ["couleur arbitraire", /\b(bg|text|border|ring|outline|fill|stroke)-\[#/],
 ];
 
-describe("kit d'interface", () => {
+describe("interface", () => {
   it.each(files)("%s n'utilise que des jetons", (file) => {
-    const source = readFileSync(join(dir, file), "utf8");
+    const source = readFileSync(file, "utf8");
     for (const [name, pattern] of forbidden) {
       expect(source, `${name} dans ${file}`).not.toMatch(pattern);
     }

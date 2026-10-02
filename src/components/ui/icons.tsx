@@ -186,3 +186,22 @@ export function UserIcon(props: IconProps) {
     </Svg>
   );
 }
+
+export function AlertIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 8v5" />
+      <path d="M12 16.5v.01" />
+    </Svg>
+  );
+}
+
+export function MailIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <path d="M3 7l9 6 9-6" />
+    </Svg>
+  );
+}

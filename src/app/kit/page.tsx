@@ -280,6 +280,7 @@ export default function KitPage() {
             hint="3 à 20 caractères. C'est le nom que voient tes ligues."
           />
           <TextField label="Nom de la ligue" placeholder="Coloc" />
+          <TextField label="Pseudo" defaultValue="Nocly" error="Ce pseudo est déjà pris." />
         </Section>
 
         <Section name="TabBar">
