@@ -1,4 +1,9 @@
-export { findDiscrepancies, type Discrepancy } from "./check";
+export {
+  findBetDiscrepancies,
+  findDiscrepancies,
+  type BetDiscrepancy,
+  type Discrepancy,
+} from "./check";
 export {
   InsufficientBalanceError,
   inLockOrder,
