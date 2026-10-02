@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  type AnyPgColumn,
   boolean,
   check,
   index,
@@ -164,6 +165,85 @@ export const auditLog = pgTable(
     createdAt: createdAt(),
   },
   (t) => [index("audit_log_league_idx").on(t.leagueId, t.createdAt)],
+);
+
+// --- Paris -----------------------------------------------------------------
+// L'état d'un pari n'est jamais stocké : il se déduit de ses dates (betState).
+
+export const betMoment = pgEnum("bet_moment", ["BEFORE", "NIGHT", "AFTER", "DAILY", "SPECIAL"]);
+export const cancelReason = pgEnum("bet_cancel_reason", ["creator", "admin", "tie", "expired"]);
+
+export const bets = pgTable(
+  "bets",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    leagueId: uuid("league_id")
+      .notNull()
+      .references(() => leagues.id, { onDelete: "cascade" }),
+    createdBy: uuid("created_by")
+      .notNull()
+      .references(() => users.id),
+    question: text("question").notNull(),
+    moment: betMoment("moment").notNull(),
+    hiddenUntilOpen: boolean("hidden_until_open").notNull().default(false),
+    opensAt: timestamp("opens_at", { withTimezone: true }).notNull(),
+    closesAt: timestamp("closes_at", { withTimezone: true }).notNull(),
+    // Cagnotte, décidée à la saisie du résultat.
+    seed: integer("seed").notNull().default(0),
+    winningOptionId: uuid("winning_option_id").references((): AnyPgColumn => betOptions.id),
+    resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+    resolvedBy: uuid("resolved_by").references(() => users.id),
+    settledAt: timestamp("settled_at", { withTimezone: true }),
+    cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
+    // Vide quand l'annulation est automatique (expiration).
+    cancelledBy: uuid("cancelled_by").references(() => users.id),
+    cancelReason: cancelReason("cancel_reason"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("bets_league_closes_idx").on(t.leagueId, t.closesAt),
+    check("bets_seed_positive", sql`${t.seed} >= 0`),
+    check("bets_dates_order", sql`${t.closesAt} > ${t.opensAt}`),
+  ],
+);
+
+export const betOptions = pgTable(
+  "bet_options",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    betId: uuid("bet_id")
+      .notNull()
+      .references(() => bets.id, { onDelete: "cascade" }),
+    label: text("label").notNull(),
+    position: integer("position").notNull(),
+  },
+  (t) => [uniqueIndex("bet_options_position_idx").on(t.betId, t.position)],
+);
+
+export const wagers = pgTable(
+  "wagers",
+  {
+    betId: uuid("bet_id")
+      .notNull()
+      .references(() => bets.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id),
+    optionId: uuid("option_id")
+      .notNull()
+      .references(() => betOptions.id),
+    amount: integer("amount").notNull(),
+    // Vide tant que rien n'est versé.
+    payout: integer("payout"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.betId, t.userId] }),
+    check("wagers_amount_positive", sql`${t.amount} > 0`),
+    check("wagers_payout_positive", sql`${t.payout} >= 0`),
+    index("wagers_option_idx").on(t.optionId),
+  ],
 );
 
 // --- Journal des clopes ---------------------------------------------------

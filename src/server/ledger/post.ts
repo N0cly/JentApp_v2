@@ -7,8 +7,8 @@ import { leagueMembers, ledger } from "@/db/schema";
 type Db = ReturnType<typeof getDb>;
 export type Tx = Parameters<Parameters<Db["transaction"]>[0]>[0];
 
-/** Raisons d'un mouvement. `wager` sert aux mises (M3). */
-export type Reason = "join_grant" | "weekly_grant" | "round" | "wager";
+/** Raisons d'un mouvement. Mises, gains et remboursements portent ref_id = le pari. */
+export type Reason = "join_grant" | "weekly_grant" | "round" | "wager" | "payout" | "refund";
 
 export class InsufficientBalanceError extends Error {
   constructor() {

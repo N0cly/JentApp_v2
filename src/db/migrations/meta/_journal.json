@@ -22,6 +22,13 @@
       "when": 1790960929886,
       "tag": "0002_ledger",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1790964177458,
+      "tag": "0003_bets",
+      "breakpoints": true
     }
   ]
 }
