@@ -1,0 +1,13 @@
+# Entrée JentApp pour config/services.yaml du dashboard Homepage, sur le VPS.
+# À fusionner dans le fichier existant : adapter le nom du groupe (« Apps »)
+# et `server`, qui doit correspondre à une entrée de config/docker.yaml.
+
+- Apps:
+    - JentApp:
+        icon: https://jentapp.nocly.fr/icons/icon-192.png
+        href: https://jentapp.nocly.fr
+        description: Carnet de paris entre potes
+        siteMonitor: https://jentapp.nocly.fr/api/health
+        server: my-docker
+        # Nom du conteneur créé par deploy/docker-compose.yml (projet « jentapp »).
+        container: jentapp-app-1

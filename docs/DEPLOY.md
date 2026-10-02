@@ -118,6 +118,10 @@ docker compose exec db psql -U jentapp -d jentapp -c "select * from app_meta"
 curl -s https://jentapp.nocly.fr/api/health
 ```
 
+## 7. Dashboard Homepage
+
+Fusionner `deploy/homepage/services.yaml` dans `config/services.yaml` de Homepage, en adaptant le groupe et `server` (le nom de l'hôte Docker déclaré dans `config/docker.yaml`). Homepage recharge sa configuration tout seul. La tuile affiche l'état du conteneur `jentapp-app-1` et le temps de réponse de `/api/health`.
+
 ## Sauvegarde
 
 Pas de sauvegarde automatisée en M0. Le volume `jentapp_pgdata` doit être couvert par la sauvegarde du VPS ; le choix d'un `pg_dump` quotidien est à trancher avant M7 (`docs/M0.md`).
