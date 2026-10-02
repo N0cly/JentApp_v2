@@ -15,5 +15,8 @@ export default defineConfig({
   test: {
     include: ["src/**/*.test.ts", "scripts/**/*.test.ts"],
     environment: "node",
+    globalSetup: ["src/test/global-setup.ts"],
+    // Les tests d'intégration partagent une base : pas de fichiers en parallèle.
+    fileParallelism: false,
   },
 });
