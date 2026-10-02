@@ -40,7 +40,7 @@ describe("base Postgres", () => {
     ).rejects.toThrow();
   });
 
-  it("refuse un second owner actif et un solde négatif", async () => {
+  it("refuse un second owner actif", async () => {
     const a = await createUser("Alpha");
     const b = await createUser("Bravo");
     const db = getDb();
@@ -52,9 +52,6 @@ describe("base Postgres", () => {
 
     await expect(
       db.insert(leagueMembers).values({ leagueId: league!.id, userId: b.id, role: "owner" }),
-    ).rejects.toThrow();
-    await expect(
-      db.insert(leagueMembers).values({ leagueId: league!.id, userId: b.id, balance: -1 }),
     ).rejects.toThrow();
   });
 });

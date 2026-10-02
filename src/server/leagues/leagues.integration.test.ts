@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { getDb } from "@/db/client";
 import { auditLog, leagueMembers, leagues } from "@/db/schema";
 import { NotFoundError } from "@/server/errors";
+import { post } from "@/server/ledger";
 import { resetDb } from "@/test/db";
 import { createUser } from "@/test/factories";
 import {
@@ -193,8 +194,10 @@ describe("rejoindre", () => {
     const league = await newLeague(a.id);
     await joinLeague({ id: b.id }, league.inviteCode, new Date());
     await changeRole({ id: a.id }, league.id, b.id, "admin");
-    // Solde posé directement : en M1, aucun code ne l'écrit.
-    await getDb().update(leagueMembers).set({ balance: 42 }).where(eq(leagueMembers.userId, b.id));
+    // Un mouvement quelconque, pour un solde distinct de la dotation.
+    await getDb().transaction((tx) =>
+      post(tx, { leagueId: league.id, userId: b.id, delta: 42, reason: "round" }),
+    );
     await leaveLeague({ id: b.id }, league.id, new Date());
     await joinLeague({ id: b.id }, league.inviteCode, new Date());
     const row = await membership(league.id, b.id);
