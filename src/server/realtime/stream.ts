@@ -8,6 +8,7 @@ import {
   type ServerEvent,
   type Subscriber,
 } from "./hub";
+import { broadcastPresence } from "./presence";
 
 export const MAX_STREAMS = 3;
 const KEEPALIVE_MS = 25_000;
@@ -19,11 +20,6 @@ export const STREAM_HEADERS = {
   Connection: "keep-alive",
 } as const;
 
-type Hooks = {
-  /** Appelé à l'ouverture et à la fermeture (présence). */
-  onChange?: (leagueId: string) => void;
-};
-
 /**
  * Ouvre le flux d'un membre actif ; un non-membre reçoit une 404. Trois flux
  * au plus par joueur et par ligue : le plus ancien est fermé. Un membre qui
@@ -33,7 +29,6 @@ export async function openStream(
   userId: string,
   leagueId: string,
   signal: AbortSignal,
-  hooks: Hooks = {},
 ): Promise<{ stream: ReadableStream<Uint8Array>; subscriber: Subscriber }> {
   await memberOrNotFound(userId, leagueId);
   await ensureListening();
@@ -61,7 +56,7 @@ export async function openStream(
     } catch {
       // Déjà fermé côté client.
     }
-    hooks.onChange?.(leagueId);
+    broadcastPresence(leagueId);
   };
 
   const subscriber: Subscriber = {
@@ -100,6 +95,6 @@ export async function openStream(
 
   addSubscriber(subscriber);
   signal.addEventListener("abort", close, { once: true });
-  hooks.onChange?.(leagueId);
+  broadcastPresence(leagueId);
   return { stream, subscriber };
 }

@@ -11,3 +11,4 @@ export {
 } from "./hub";
 export { CHANNEL, notify, type Envelope, type EventType } from "./notify";
 export { MAX_STREAMS, openStream, STREAM_HEADERS } from "./stream";
+export { broadcastPresence, broadcastTyping, onlineIn } from "./presence";
