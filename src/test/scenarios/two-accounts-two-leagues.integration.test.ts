@@ -28,6 +28,7 @@ async function register(username: string) {
       terms: true,
     },
     new Headers(),
+    new Date(),
   );
   if (!result.ok) throw new Error(JSON.stringify(result));
   const me = await getSessionUser(requestHeaders(result.headers));
@@ -44,24 +45,27 @@ describe("scénario : deux comptes, deux ligues", () => {
     const b = await register("Bravo");
 
     // A crée la ligue 1.
-    const one = await createLeague(a, { name: "Ligue 1", ...settings });
+    const one = await createLeague(a, { name: "Ligue 1", ...settings }, new Date());
     if (!one.ok) throw new Error("ligue 1");
     const league1 = await getLeague(a, one.leagueId);
     expect(league1.myRole).toBe("owner");
 
     // B la rejoint par le lien partagé par A : /j/{code}?par=Alpha.
-    const preview = await previewInvite(b, league1.inviteCode, "Alpha");
+    const preview = await previewInvite(b, league1.inviteCode, new Date(), "Alpha");
     expect(preview).toMatchObject({
       ok: true,
       preview: { name: "Ligue 1", invitedBy: "Alpha", members: 1 },
     });
-    expect(await joinLeague(b, league1.inviteCode)).toEqual({ ok: true, leagueId: league1.id });
+    expect(await joinLeague(b, league1.inviteCode, new Date())).toEqual({
+      ok: true,
+      leagueId: league1.id,
+    });
 
     // B crée la ligue 2, A la rejoint par le code, tapé en minuscules.
-    const two = await createLeague(b, { name: "Ligue 2", ...settings });
+    const two = await createLeague(b, { name: "Ligue 2", ...settings }, new Date());
     if (!two.ok) throw new Error("ligue 2");
     const league2 = await getLeague(b, two.leagueId);
-    expect(await joinLeague(a, league2.inviteCode.toLowerCase())).toEqual({
+    expect(await joinLeague(a, league2.inviteCode.toLowerCase(), new Date())).toEqual({
       ok: true,
       leagueId: league2.id,
     });
@@ -97,7 +101,7 @@ describe("scénario : deux comptes, deux ligues", () => {
     const shared = JSON.stringify([
       await listMembers(a, league1.id),
       await listMembers(b, league2.id),
-      await previewInvite(c, league1.inviteCode),
+      await previewInvite(c, league1.inviteCode, new Date()),
     ]);
     for (const email of emails) expect(shared).not.toContain(email);
     expect(await getDb().select().from(users).where(eq(users.id, c.id))).toHaveLength(1);

@@ -12,37 +12,39 @@ describe("rate-limit", () => {
   });
 
   it("refuse au-delà du quota, avec le délai restant", async () => {
-    await consume(rule, "a");
-    await consume(rule, "a");
-    const error = await consume(rule, "a").catch((e: unknown) => e);
+    await consume(rule, "a", new Date());
+    await consume(rule, "a", new Date());
+    const error = await consume(rule, "a", new Date()).catch((e: unknown) => e);
     expect(error).toBeInstanceOf(RateLimitedError);
     expect((error as RateLimitedError).status).toBe(429);
     expect((error as RateLimitedError).message).toBe("Trop d'essais. Réessaie dans 10 minutes.");
   });
 
   it("assertAllowed ne compte rien", async () => {
-    await assertAllowed(rule, "a");
-    await assertAllowed(rule, "a");
-    await assertAllowed(rule, "a");
-    await record(rule, "a");
-    await record(rule, "a");
-    await expect(assertAllowed(rule, "a")).rejects.toBeInstanceOf(RateLimitedError);
+    await assertAllowed(rule, "a", new Date());
+    await assertAllowed(rule, "a", new Date());
+    await assertAllowed(rule, "a", new Date());
+    await record(rule, "a", new Date());
+    await record(rule, "a", new Date());
+    await expect(assertAllowed(rule, "a", new Date())).rejects.toBeInstanceOf(RateLimitedError);
   });
 
   it("une nouvelle fenêtre remet le compteur à zéro", async () => {
     vi.useFakeTimers({ toFake: ["Date"] });
-    await record(rule, "a");
-    await record(rule, "a");
+    await record(rule, "a", new Date());
+    await record(rule, "a", new Date());
     vi.setSystemTime(Date.now() + rule.windowMs + 1);
-    await expect(assertAllowed(rule, "a")).resolves.toBeUndefined();
-    expect((await record(rule, "a")).count).toBe(1);
+    await expect(assertAllowed(rule, "a", new Date())).resolves.toBeUndefined();
+    expect((await record(rule, "a", new Date())).count).toBe(1);
   });
 
   it("les sujets sont indépendants et insensibles à la casse", async () => {
-    await record(rule, "A@x.fr");
-    await record(rule, "a@x.fr");
-    await expect(assertAllowed(rule, "a@X.fr")).rejects.toBeInstanceOf(RateLimitedError);
-    await expect(assertAllowed(rule, "b@x.fr")).resolves.toBeUndefined();
+    await record(rule, "A@x.fr", new Date());
+    await record(rule, "a@x.fr", new Date());
+    await expect(assertAllowed(rule, "a@X.fr", new Date())).rejects.toBeInstanceOf(
+      RateLimitedError,
+    );
+    await expect(assertAllowed(rule, "b@x.fr", new Date())).resolves.toBeUndefined();
   });
 
   it("message au singulier pour une minute", () => {

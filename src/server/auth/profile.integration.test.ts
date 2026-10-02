@@ -15,6 +15,7 @@ async function account(username: string, email: string) {
   const result = await signUp(
     { username, email, password: "motdepasse", terms: true },
     new Headers(),
+    new Date(),
   );
   if (!result.ok) throw new Error(JSON.stringify(result));
   const [user] = await getDb().select().from(users).where(eq(users.email, email));
@@ -67,7 +68,11 @@ describe("compte", () => {
 
   it("mot de passe : demande l'actuel et ferme les autres sessions", async () => {
     const a = await account("Alpha", "a@exemple.fr");
-    const other = await signIn({ email: "a@exemple.fr", password: "motdepasse" }, new Headers());
+    const other = await signIn(
+      { email: "a@exemple.fr", password: "motdepasse" },
+      new Headers(),
+      new Date(),
+    );
     expect(
       await changePassword(
         { currentPassword: "mauvais!!", newPassword: "nouveaumotdepasse" },
@@ -85,7 +90,13 @@ describe("compte", () => {
     expect(await getSessionUser(requestHeaders(other.ok ? other.headers : undefined))).toBeNull();
     expect(await getDb().select().from(sessions)).toHaveLength(1);
     expect(
-      (await signIn({ email: "a@exemple.fr", password: "nouveaumotdepasse" }, new Headers())).ok,
+      (
+        await signIn(
+          { email: "a@exemple.fr", password: "nouveaumotdepasse" },
+          new Headers(),
+          new Date(),
+        )
+      ).ok,
     ).toBe(true);
   });
 });

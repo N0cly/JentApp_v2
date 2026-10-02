@@ -13,7 +13,7 @@ export async function JoinPage({ code, invitedBy }: { code?: string; invitedBy: 
   const normalized = code ? (normalizeCode(code) ?? code.toUpperCase().slice(0, 6)) : "";
   let initialPreview = {};
   if (code) {
-    const result = await previewInvite(user, normalized, invitedBy);
+    const result = await previewInvite(user, normalized, new Date(), invitedBy);
     initialPreview = result.ok
       ? { preview: result.preview }
       : { error: result.fieldErrors?.code ?? result.formError };

@@ -40,13 +40,13 @@ function key(rule: Rule, subject: string) {
 }
 
 /** Refuse si le quota est déjà atteint, sans compter de tentative. */
-export async function assertAllowed(rule: Rule, subject: string): Promise<void> {
+export async function assertAllowed(rule: Rule, subject: string, now: Date): Promise<void> {
   const [row] = await getDb()
     .select()
     .from(rateLimits)
     .where(eq(rateLimits.key, key(rule, subject)));
   if (!row) return;
-  const remaining = row.resetAt.getTime() - Date.now();
+  const remaining = row.resetAt.getTime() - now.getTime();
   if (remaining > 0 && row.count >= rule.limit) throw new RateLimitedError(remaining);
 }
 
@@ -54,8 +54,8 @@ export async function assertAllowed(rule: Rule, subject: string): Promise<void> 
 export async function record(
   rule: Rule,
   subject: string,
+  now: Date,
 ): Promise<{ count: number; resetAt: Date }> {
-  const now = new Date();
   const resetAt = new Date(now.getTime() + rule.windowMs);
   const [row] = await getDb()
     .insert(rateLimits)
@@ -72,9 +72,9 @@ export async function record(
 }
 
 /** Compte la tentative et refuse au-delà du quota : chaque demande compte. */
-export async function consume(rule: Rule, subject: string): Promise<void> {
-  const { count, resetAt } = await record(rule, subject);
-  if (count > rule.limit) throw new RateLimitedError(resetAt.getTime() - Date.now());
+export async function consume(rule: Rule, subject: string, now: Date): Promise<void> {
+  const { count, resetAt } = await record(rule, subject, now);
+  if (count > rule.limit) throw new RateLimitedError(resetAt.getTime() - now.getTime());
 }
 
 /**

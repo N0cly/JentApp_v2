@@ -113,6 +113,7 @@ type CreateField = "name" | "joinGrant" | "weeklyGrant" | "seedAmount";
 export async function createLeague(
   actor: Actor,
   input: unknown,
+  now: Date,
 ): Promise<{ ok: true; leagueId: string } | Failure<CreateField>> {
   const parsed = createLeagueSchema.safeParse(input);
   if (!parsed.success) return { ok: false, fieldErrors: fieldErrors(parsed.error) };
@@ -128,7 +129,7 @@ export async function createLeague(
       .returning({ id: leagues.id });
     await tx
       .insert(leagueMembers)
-      .values({ leagueId: league!.id, userId: actor.id, role: "owner" });
+      .values({ leagueId: league!.id, userId: actor.id, role: "owner", joinedAt: now });
     return { ok: true, leagueId: league!.id } as const;
   });
 }
@@ -246,15 +247,15 @@ export type InvitePreview = {
   alreadyMember: boolean;
 };
 
-async function findByCode(actor: Actor, rawCode: unknown) {
+async function findByCode(actor: Actor, rawCode: unknown, now: Date) {
   // 10 codes inconnus par heure et par compte.
-  await assertAllowed(rules.inviteCode, actor.id);
+  await assertAllowed(rules.inviteCode, actor.id, now);
   const code = normalizeCode(rawCode);
   const [league] = code
     ? await getDb().select().from(leagues).where(eq(leagues.inviteCode, code))
     : [];
   if (!league) {
-    await record(rules.inviteCode, actor.id);
+    await record(rules.inviteCode, actor.id, now);
     return null;
   }
   return league;
@@ -271,10 +272,11 @@ function limitedOr<T>(error: unknown, fallback?: T): Failure | T {
 export async function previewInvite(
   actor: Actor,
   rawCode: unknown,
+  now: Date,
   invitedBy?: unknown,
 ): Promise<{ ok: true; preview: InvitePreview } | Failure<"code">> {
   try {
-    const league = await findByCode(actor, rawCode);
+    const league = await findByCode(actor, rawCode, now);
     if (!league) return { ok: false, fieldErrors: { code: leagueMessages.codeUnknown } };
     const [me] = await getDb()
       .select({ userId: leagueMembers.userId })
@@ -322,10 +324,11 @@ async function activeMemberNamed(leagueId: string, username: unknown): Promise<s
 export async function joinLeague(
   actor: Actor,
   rawCode: unknown,
+  now: Date,
 ): Promise<{ ok: true; leagueId: string } | Failure<"code">> {
   let league;
   try {
-    league = await findByCode(actor, rawCode);
+    league = await findByCode(actor, rawCode, now);
   } catch (error) {
     return limitedOr(error);
   }
@@ -354,10 +357,12 @@ export async function joinLeague(
       // Ancien membre : il retrouve sa ligne et son solde gelé, en joueur.
       await tx
         .update(leagueMembers)
-        .set({ leftAt: null, role: "player", joinedAt: new Date() })
+        .set({ leftAt: null, role: "player", joinedAt: now })
         .where(and(eq(leagueMembers.leagueId, leagueId), eq(leagueMembers.userId, actor.id)));
     } else {
-      await tx.insert(leagueMembers).values({ leagueId, userId: actor.id, role: "player" });
+      await tx
+        .insert(leagueMembers)
+        .values({ leagueId, userId: actor.id, role: "player", joinedAt: now });
     }
     return { ok: true, leagueId } as const;
   });
@@ -365,14 +370,18 @@ export async function joinLeague(
 
 // --- Quitter, rôles, exclusion ---------------------------------------------
 
-export async function leaveLeague(actor: Actor, leagueId: string): Promise<{ ok: true } | Failure> {
+export async function leaveLeague(
+  actor: Actor,
+  leagueId: string,
+  now: Date,
+): Promise<{ ok: true } | Failure> {
   return getDb().transaction(async (tx) => {
     const { role } = await lockAs(tx, actor.id, leagueId, "player");
     if (role === "owner")
       return { ok: false, formError: leagueMessages.ownerMustTransfer } as const;
     await tx
       .update(leagueMembers)
-      .set({ leftAt: new Date() })
+      .set({ leftAt: now })
       .where(and(eq(leagueMembers.leagueId, leagueId), eq(leagueMembers.userId, actor.id)));
     return { ok: true } as const;
   });
@@ -409,6 +418,7 @@ export async function removeMember(
   actor: Actor,
   leagueId: string,
   targetUserId: string,
+  now: Date,
 ): Promise<{ ok: true }> {
   return getDb().transaction(async (tx) => {
     await lockAs(tx, actor.id, leagueId, "owner");
@@ -416,7 +426,7 @@ export async function removeMember(
     if (target.role === "owner") throw new NotFoundError();
     await tx
       .update(leagueMembers)
-      .set({ leftAt: new Date() })
+      .set({ leftAt: now })
       .where(and(eq(leagueMembers.leagueId, leagueId), eq(leagueMembers.userId, targetUserId)));
     await audit(tx, leagueId, actor.id, "member.removed", { userId: targetUserId });
     return { ok: true } as const;

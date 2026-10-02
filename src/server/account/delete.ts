@@ -44,6 +44,7 @@ export async function blockingLeagues(
 export async function deleteAccount(
   user: { id: string; username: string; email: string },
   confirmation: unknown,
+  now: Date,
 ): Promise<
   { ok: true } | { ok: false; fieldErrors?: { confirmation: string }; formError?: string }
 > {
@@ -78,7 +79,7 @@ export async function deleteAccount(
 
     await tx
       .update(leagueMembers)
-      .set({ leftAt: new Date() })
+      .set({ leftAt: now })
       .where(and(eq(leagueMembers.userId, user.id), isNull(leagueMembers.leftAt)));
 
     const [row] = await tx.select({ image: users.image }).from(users).where(eq(users.id, user.id));
@@ -95,7 +96,7 @@ export async function deleteAccount(
         email: `${user.id}@deleted.invalid`,
         emailVerified: false,
         image: null,
-        deletedAt: new Date(),
+        deletedAt: now,
       })
       .where(and(eq(users.id, user.id), ne(users.email, `${user.id}@deleted.invalid`)));
     return { blocked: false, image: row?.image ?? null } as const;

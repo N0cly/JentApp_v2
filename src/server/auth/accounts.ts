@@ -64,13 +64,21 @@ function isUniqueViolation(error: unknown, constraint: string) {
 
 type SignUpField = "username" | "email" | "password" | "terms";
 
-export async function signUp(input: unknown, headers: Headers): Promise<Result<SignUpField>> {
-  return limited(() => signUpUnlimited(input, headers));
+export async function signUp(
+  input: unknown,
+  headers: Headers,
+  now: Date,
+): Promise<Result<SignUpField>> {
+  return limited(() => signUpUnlimited(input, headers, now));
 }
 
-async function signUpUnlimited(input: unknown, headers: Headers): Promise<Result<SignUpField>> {
+async function signUpUnlimited(
+  input: unknown,
+  headers: Headers,
+  now: Date,
+): Promise<Result<SignUpField>> {
   const ip = clientIp(headers);
-  await assertAllowed(rules.signUpIp, ip);
+  await assertAllowed(rules.signUpIp, ip, now);
 
   const parsed = signUpSchema.safeParse(input);
   const errors: FieldErrors<SignUpField> = parsed.success ? {} : fieldErrors(parsed.error);
@@ -93,7 +101,7 @@ async function signUpUnlimited(input: unknown, headers: Headers): Promise<Result
       headers,
       returnHeaders: true,
     });
-    await record(rules.signUpIp, ip);
+    await record(rules.signUpIp, ip, now);
     return { ok: true, headers: responseHeaders };
   } catch (error) {
     // Course entre deux inscriptions : l'index unique tranche.
@@ -110,14 +118,15 @@ async function signUpUnlimited(input: unknown, headers: Headers): Promise<Result
 export async function signIn(
   input: unknown,
   headers: Headers,
+  now: Date,
 ): Promise<Result<"email" | "password">> {
   return limited(async () => {
     const parsed = z.object({ email: z.string(), password: z.string() }).safeParse(input);
     if (!parsed.success) return { ok: false, formError: messages.signInRefused } as const;
     const email = parsed.data.email.trim().toLowerCase();
     const ip = clientIp(headers);
-    await assertAllowed(rules.loginEmail, email);
-    await assertAllowed(rules.loginIp, ip);
+    await assertAllowed(rules.loginEmail, email, now);
+    await assertAllowed(rules.loginIp, ip, now);
     try {
       const { headers: responseHeaders } = await getAuth().api.signInEmail({
         body: { email, password: parsed.data.password },
@@ -128,8 +137,8 @@ export async function signIn(
     } catch (error) {
       if (!isAPIError(error) || error.statusCode >= 500) throw error;
       // Seuls les échecs comptent. Jamais lequel des deux est faux.
-      await record(rules.loginEmail, email);
-      await record(rules.loginIp, ip);
+      await record(rules.loginEmail, email, now);
+      await record(rules.loginIp, ip, now);
       return { ok: false, formError: messages.signInRefused } as const;
     }
   });
@@ -143,11 +152,12 @@ export async function signOut(headers: Headers) {
 export async function requestPasswordReset(
   input: unknown,
   headers: Headers,
+  now: Date,
 ): Promise<Result<"email">> {
   const parsed = z.object({ email: emailSchema }).safeParse(input);
   if (!parsed.success) return { ok: false, fieldErrors: fieldErrors(parsed.error) };
   return limited(async () => {
-    await consume(rules.resetEmail, parsed.data.email);
+    await consume(rules.resetEmail, parsed.data.email, now);
     await getAuth().api.requestPasswordReset({
       body: { email: parsed.data.email, redirectTo: RESET_PAGE },
       headers,
@@ -175,9 +185,12 @@ export async function resetPassword(input: unknown): Promise<Result<"password">>
   }
 }
 
-export async function resendVerification(user: { id: string; email: string }): Promise<Result> {
+export async function resendVerification(
+  user: { id: string; email: string },
+  now: Date,
+): Promise<Result> {
   return limited(async () => {
-    await consume(rules.resendVerification, user.id);
+    await consume(rules.resendVerification, user.id, now);
     await getAuth().api.sendVerificationEmail({
       body: { email: user.email, callbackURL: VERIFY_CALLBACK },
     });

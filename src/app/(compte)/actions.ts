@@ -25,6 +25,7 @@ export async function signInAction(_: FormState, form: FormData): Promise<FormSt
   const result = await signIn(
     { email: form.get("email"), password: form.get("password") },
     await headers(),
+    new Date(),
   );
   if (!result.ok) return failure(result);
   redirect(safeNext(form.get("next")) ?? "/");
@@ -39,6 +40,7 @@ export async function signUpAction(_: FormState, form: FormData): Promise<FormSt
       terms: form.get("terms") === "on",
     },
     await headers(),
+    new Date(),
   );
   if (!result.ok) return failure(result);
   // Présentation d'abord, puis l'invitation si on venait d'un lien.
@@ -49,7 +51,11 @@ export async function signUpAction(_: FormState, form: FormData): Promise<FormSt
 }
 
 export async function forgotPasswordAction(_: FormState, form: FormData): Promise<FormState> {
-  const result = await requestPasswordReset({ email: form.get("email") }, await headers());
+  const result = await requestPasswordReset(
+    { email: form.get("email") },
+    await headers(),
+    new Date(),
+  );
   if (!result.ok) return failure(result);
   redirect("/connexion");
 }
@@ -70,6 +76,6 @@ export type ResendState = { sent?: boolean; error?: string };
 export async function resendVerificationAction(): Promise<ResendState> {
   const user = await requireUser();
   if (user.emailVerified) return { sent: true };
-  const result = await resendVerification(user);
+  const result = await resendVerification(user, new Date());
   return result.ok ? { sent: true } : { error: result.formError };
 }

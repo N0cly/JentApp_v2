@@ -38,12 +38,16 @@ function failure(result: {
 
 export async function createLeagueAction(_: FormState, form: FormData): Promise<FormState> {
   const user = await requireUser();
-  const result = await createLeague(user, {
-    name: form.get("name"),
-    joinGrant: form.get("joinGrant"),
-    weeklyGrant: form.get("weeklyGrant"),
-    seedAmount: form.get("seedAmount"),
-  });
+  const result = await createLeague(
+    user,
+    {
+      name: form.get("name"),
+      joinGrant: form.get("joinGrant"),
+      weeklyGrant: form.get("weeklyGrant"),
+      seedAmount: form.get("seedAmount"),
+    },
+    new Date(),
+  );
   if (!result.ok) return failure(result);
   redirect(`/l/${result.leagueId}/inviter?nouvelle=1`);
 }
@@ -55,21 +59,21 @@ export async function previewInviteAction(
   invitedBy: string | null,
 ): Promise<PreviewState> {
   const user = await requireUser();
-  const result = await previewInvite(user, code, invitedBy);
+  const result = await previewInvite(user, code, new Date(), invitedBy);
   if (result.ok) return { preview: result.preview };
   return { error: result.fieldErrors?.code ?? result.formError };
 }
 
 export async function joinLeagueAction(_: FormState, form: FormData): Promise<FormState> {
   const user = await requireUser();
-  const result = await joinLeague(user, form.get("code"));
+  const result = await joinLeague(user, form.get("code"), new Date());
   if (!result.ok) return failure(result);
   redirect(`/l/${result.leagueId}/paris`);
 }
 
 export async function leaveLeagueAction(leagueId: string): Promise<FormState> {
   const user = await requireUser();
-  const result = await orNotFound(() => leaveLeague(user, leagueId));
+  const result = await orNotFound(() => leaveLeague(user, leagueId, new Date()));
   if (!result.ok) return failure(result);
   redirect("/");
 }
@@ -82,7 +86,7 @@ export async function changeRoleAction(leagueId: string, userId: string, role: "
 
 export async function removeMemberAction(leagueId: string, userId: string) {
   const user = await requireUser();
-  await orNotFound(() => removeMember(user, leagueId, userId));
+  await orNotFound(() => removeMember(user, leagueId, userId, new Date()));
   revalidatePath(`/l/${leagueId}/reglages/membres`);
 }
 

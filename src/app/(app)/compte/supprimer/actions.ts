@@ -8,7 +8,7 @@ import { requireUser } from "@/server/auth";
 
 export async function deleteAccountAction(_: FormState, form: FormData): Promise<FormState> {
   const user = await requireUser();
-  const result = await deleteAccount(user, form.get("confirmation"));
+  const result = await deleteAccount(user, form.get("confirmation"), new Date());
   if (!result.ok) return { fieldErrors: result.fieldErrors, formError: result.formError };
   // Les sessions sont effacées en base ; on retire aussi les cookies du navigateur.
   const jar = await cookies();

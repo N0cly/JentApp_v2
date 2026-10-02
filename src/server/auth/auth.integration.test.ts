@@ -33,7 +33,7 @@ describe("inscription", () => {
   });
 
   it("crée le compte, ouvre une session et envoie la confirmation", async () => {
-    const result = await signUp(valid, new Headers());
+    const result = await signUp(valid, new Headers(), new Date());
     expect(result.ok).toBe(true);
 
     const [user] = await getDb().select().from(users).where(eq(users.email, valid.email));
@@ -54,6 +54,7 @@ describe("inscription", () => {
     const result = await signUp(
       { username: "a b", email: "pas-un-email", password: "motde", terms: false },
       new Headers(),
+      new Date(),
     );
     expect(result).toEqual({
       ok: false,
@@ -68,19 +69,23 @@ describe("inscription", () => {
   });
 
   it("accepte les accents, refuse un pseudo pris sans tenir compte de la casse", async () => {
-    expect((await signUp({ ...valid, username: "Léa_Dèche-2" }, new Headers())).ok).toBe(true);
+    expect(
+      (await signUp({ ...valid, username: "Léa_Dèche-2" }, new Headers(), new Date())).ok,
+    ).toBe(true);
     const taken = await signUp(
       { ...valid, username: "léa_dèche-2", email: "autre@exemple.fr" },
       new Headers(),
+      new Date(),
     );
     expect(taken).toEqual({ ok: false, fieldErrors: { username: "Ce pseudo est déjà pris." } });
   });
 
   it("dit qu'un email est déjà utilisé", async () => {
-    await signUp(valid, new Headers());
+    await signUp(valid, new Headers(), new Date());
     const again = await signUp(
       { ...valid, username: "Autre", email: "NOCLY@exemple.fr" },
       new Headers(),
+      new Date(),
     );
     expect(again).toEqual({
       ok: false,
@@ -99,7 +104,7 @@ describe("confirmation de l'email", () => {
   });
 
   it("le lien confirme l'email", async () => {
-    await signUp(valid, new Headers());
+    await signUp(valid, new Headers(), new Date());
     await flush();
     const response = await follow(linkIn(outbox[0]!.text));
     expect(response.status).toBe(302);
@@ -109,7 +114,7 @@ describe("confirmation de l'email", () => {
 
   it("le lien expire après 24 heures", async () => {
     vi.useFakeTimers({ toFake: ["Date"] });
-    await signUp(valid, new Headers());
+    await signUp(valid, new Headers(), new Date());
     await flush();
     vi.setSystemTime(Date.now() + 24 * 60 * 60 * 1000 + 1000);
     const response = await follow(linkIn(outbox[0]!.text));
@@ -119,9 +124,9 @@ describe("confirmation de l'email", () => {
   });
 
   it("on peut renvoyer l'email", async () => {
-    await signUp(valid, new Headers());
+    await signUp(valid, new Headers(), new Date());
     const [user] = await getDb().select().from(users);
-    await resendVerification({ id: user!.id, email: valid.email });
+    await resendVerification({ id: user!.id, email: valid.email }, new Date());
     await flush();
     expect(outbox).toHaveLength(2);
   });
@@ -130,13 +135,14 @@ describe("confirmation de l'email", () => {
 describe("connexion", () => {
   beforeEach(async () => {
     await resetDb();
-    await signUp(valid, new Headers());
+    await signUp(valid, new Headers(), new Date());
   });
 
   it("ouvre une session avec le bon mot de passe", async () => {
     const result = await signIn(
       { email: "Nocly@Exemple.fr", password: valid.password },
       new Headers(),
+      new Date(),
     );
     expect(result.ok).toBe(true);
   });
@@ -145,10 +151,12 @@ describe("connexion", () => {
     const wrongPassword = await signIn(
       { email: valid.email, password: "mauvais!!" },
       new Headers(),
+      new Date(),
     );
     const unknownEmail = await signIn(
       { email: "x@exemple.fr", password: valid.password },
       new Headers(),
+      new Date(),
     );
     expect(wrongPassword).toEqual({ ok: false, formError: "Email ou mot de passe incorrect." });
     expect(unknownEmail).toEqual(wrongPassword);
@@ -171,23 +179,31 @@ describe("mot de passe oublié", () => {
   }
 
   it("même réponse que l'email existe ou non", async () => {
-    await signUp(valid, new Headers());
+    await signUp(valid, new Headers(), new Date());
     await flush();
     outbox.length = 0;
-    expect(await requestPasswordReset({ email: "inconnu@exemple.fr" }, new Headers())).toEqual({
+    expect(
+      await requestPasswordReset({ email: "inconnu@exemple.fr" }, new Headers(), new Date()),
+    ).toEqual({
       ok: true,
     });
-    expect(await requestPasswordReset({ email: valid.email }, new Headers())).toEqual({ ok: true });
+    expect(await requestPasswordReset({ email: valid.email }, new Headers(), new Date())).toEqual({
+      ok: true,
+    });
     await flush();
     expect(outbox.map((e) => e.to)).toEqual([valid.email]);
   });
 
   it("change le mot de passe, ferme les sessions, ne sert qu'une fois", async () => {
-    const first = await signUp(valid, new Headers());
-    const other = await signIn({ email: valid.email, password: valid.password }, new Headers());
+    const first = await signUp(valid, new Headers(), new Date());
+    const other = await signIn(
+      { email: valid.email, password: valid.password },
+      new Headers(),
+      new Date(),
+    );
     expect(await getDb().select().from(sessions)).toHaveLength(2);
 
-    await requestPasswordReset({ email: valid.email }, new Headers());
+    await requestPasswordReset({ email: valid.email }, new Headers(), new Date());
     const token = await resetToken();
     expect(await resetPassword({ token, password: "nouveaumotdepasse" })).toEqual({ ok: true });
 
@@ -195,11 +211,18 @@ describe("mot de passe oublié", () => {
     expect(await getSessionUser(requestHeaders(first.ok ? first.headers : undefined))).toBeNull();
     expect(await getSessionUser(requestHeaders(other.ok ? other.headers : undefined))).toBeNull();
 
-    expect((await signIn({ email: valid.email, password: valid.password }, new Headers())).ok).toBe(
-      false,
-    );
     expect(
-      (await signIn({ email: valid.email, password: "nouveaumotdepasse" }, new Headers())).ok,
+      (await signIn({ email: valid.email, password: valid.password }, new Headers(), new Date()))
+        .ok,
+    ).toBe(false);
+    expect(
+      (
+        await signIn(
+          { email: valid.email, password: "nouveaumotdepasse" },
+          new Headers(),
+          new Date(),
+        )
+      ).ok,
     ).toBe(true);
 
     expect(await resetPassword({ token, password: "encoreunautre" })).toEqual({
@@ -210,8 +233,8 @@ describe("mot de passe oublié", () => {
 
   it("le lien expire après 1 heure", async () => {
     vi.useFakeTimers({ toFake: ["Date"] });
-    await signUp(valid, new Headers());
-    await requestPasswordReset({ email: valid.email }, new Headers());
+    await signUp(valid, new Headers(), new Date());
+    await requestPasswordReset({ email: valid.email }, new Headers(), new Date());
     const token = await resetToken();
     vi.setSystemTime(Date.now() + 60 * 60 * 1000 + 1000);
     expect((await resetPassword({ token, password: "nouveaumotdepasse" })).ok).toBe(false);
