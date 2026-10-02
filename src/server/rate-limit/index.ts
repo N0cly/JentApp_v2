@@ -21,6 +21,10 @@ export const rules = {
   inviteCode: { name: "invite:user", limit: 10, windowMs: HOUR },
   /** Renvoi de l'email de confirmation : 3 par heure, par compte. */
   resendVerification: { name: "verify:user", limit: 3, windowMs: HOUR },
+  /** Chat : 30 messages par minute, par compte. */
+  chatMessage: { name: "chat:user", limit: 30, windowMs: MINUTE },
+  /** Recherche de GIF : 30 par minute, par compte. */
+  gifSearch: { name: "gif:user", limit: 30, windowMs: MINUTE },
 } as const satisfies Record<string, Rule>;
 
 export class RateLimitedError extends Error {
