@@ -18,3 +18,11 @@ export {
   type ResultOutcome,
 } from "./result";
 export { settleDue } from "./payout";
+export {
+  getBet,
+  listBets,
+  type BetView,
+  type MyWager,
+  type OptionTotals,
+  type RefundReason,
+} from "./view";
