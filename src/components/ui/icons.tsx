@@ -231,3 +231,12 @@ export function SettingsIcon(props: IconProps) {
     </Svg>
   );
 }
+
+export function SignOutIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M14 5H6a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8" />
+      <path d="M11 12h9M17 9l3 3-3 3" />
+    </Svg>
+  );
+}

@@ -15,3 +15,4 @@ export {
 export { messages, type FieldErrors } from "./validation";
 export { homePath, isUuid, memberOrNotFound, safeNext, type Membership, type Role } from "./access";
 export { requireMember, requireUser } from "./guard";
+export { changePassword, changeUsername, requestEmailChange } from "./profile";

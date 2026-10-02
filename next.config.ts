@@ -8,6 +8,10 @@ const nextConfig: NextConfig = {
   // (src/db/migrate.ts) s'en sert avant le démarrage de l'app.
   serverExternalPackages: ["drizzle-orm", "postgres"],
   outputFileTracingIncludes: {
+    // Pages légales lues depuis le dépôt.
+    "/conditions": ["./content/legal/*.md"],
+    "/confidentialite": ["./content/legal/*.md"],
+    "/mentions-legales": ["./content/legal/*.md"],
     "/api/health": [
       "./node_modules/drizzle-orm/**/*.js",
       "./node_modules/drizzle-orm/package.json",

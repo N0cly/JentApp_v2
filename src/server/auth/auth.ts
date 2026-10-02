@@ -43,6 +43,9 @@ function createAuth() {
       updateAge: DAY,
     },
     user: {
+      // Le nouvel email ne remplace l'ancien qu'après le lien de confirmation,
+      // envoyé à la nouvelle adresse (même email que la confirmation).
+      changeEmail: { enabled: true },
       additionalFields: {
         isSuperAdmin: { type: "boolean", input: false, returned: false, defaultValue: false },
         termsAcceptedAt: { type: "date", input: false, returned: false, required: false },

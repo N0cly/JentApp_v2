@@ -10,6 +10,7 @@ export const messages = {
   termsRequired: "Coche la case pour continuer.",
   signInRefused: "Email ou mot de passe incorrect.",
   linkExpired: "Ce lien n'est plus valable. Demande-en un nouveau.",
+  currentPasswordWrong: "Ce n'est pas ton mot de passe actuel.",
 } as const;
 
 export const PASSWORD_MIN = 8;
