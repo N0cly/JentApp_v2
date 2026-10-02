@@ -17,7 +17,8 @@
     "format:check": "prettier --check .",
     "tokens": "node scripts/tokens.ts",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "node --env-file-if-exists=.env src/db/migrate.ts"
+    "db:migrate": "node --env-file-if-exists=.env src/db/migrate.ts",
+    "test": "vitest run"
   },
   "dependencies": {
     "drizzle-orm": "0.45.3",
@@ -37,6 +38,7 @@
     "eslint-config-prettier": "^10.1.8",
     "prettier": "^3.9.9",
     "tailwindcss": "4.3.3",
-    "typescript": "6.0.3"
+    "typescript": "6.0.3",
+    "vitest": "5.0.3"
   }
 }
