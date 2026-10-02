@@ -120,7 +120,8 @@ describe("confirmation de l'email", () => {
 
   it("on peut renvoyer l'email", async () => {
     await signUp(valid, new Headers());
-    await resendVerification(valid.email);
+    const [user] = await getDb().select().from(users);
+    await resendVerification({ id: user!.id, email: valid.email });
     await flush();
     expect(outbox).toHaveLength(2);
   });
