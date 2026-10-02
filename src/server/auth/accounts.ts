@@ -1,0 +1,165 @@
+import { and, eq, isNull, sql } from "drizzle-orm";
+import { isAPIError } from "better-auth/api";
+import { z } from "zod";
+import { getDb } from "@/db/client";
+import { users } from "@/db/schema";
+import { getAuth } from "./auth";
+import {
+  emailSchema,
+  fieldErrors,
+  messages,
+  passwordSchema,
+  signUpSchema,
+  type FieldErrors,
+} from "./validation";
+
+export type Result<F extends string = string> =
+  { ok: true; headers?: Headers } | { ok: false; fieldErrors?: FieldErrors<F>; formError?: string };
+
+/** Après une confirmation d'email, le lien ramène à l'accueil. */
+const VERIFY_CALLBACK = "/";
+export const RESET_PAGE = "/nouveau-mot-de-passe";
+
+export async function isUsernameTaken(username: string, exceptUserId?: string) {
+  const [row] = await getDb()
+    .select({ id: users.id })
+    .from(users)
+    .where(sql`lower(${users.name}) = lower(${username})`);
+  return row !== undefined && row.id !== exceptUserId;
+}
+
+async function isEmailTaken(email: string) {
+  const [row] = await getDb().select({ id: users.id }).from(users).where(eq(users.email, email));
+  return row !== undefined;
+}
+
+function isUniqueViolation(error: unknown, constraint: string) {
+  const cause = (error as { cause?: { code?: string; constraint_name?: string } })?.cause ?? error;
+  const e = cause as { code?: string; constraint_name?: string };
+  return e.code === "23505" && e.constraint_name === constraint;
+}
+
+type SignUpField = "username" | "email" | "password" | "terms";
+
+export async function signUp(input: unknown, headers: Headers): Promise<Result<SignUpField>> {
+  const parsed = signUpSchema.safeParse(input);
+  const errors: FieldErrors<SignUpField> = parsed.success ? {} : fieldErrors(parsed.error);
+
+  // Pseudo et email pris : signalés avec les autres erreurs, en une fois.
+  const raw = z.object({ username: z.string(), email: z.string() }).safeParse(input);
+  if (raw.success) {
+    const username = raw.data.username.trim().normalize("NFC");
+    const email = raw.data.email.trim().toLowerCase();
+    if (!errors.username && (await isUsernameTaken(username)))
+      errors.username = messages.usernameTaken;
+    if (!errors.email && (await isEmailTaken(email))) errors.email = messages.emailTaken;
+  }
+  if (!parsed.success || Object.keys(errors).length > 0) return { ok: false, fieldErrors: errors };
+
+  const { username, email, password } = parsed.data;
+  try {
+    const { headers: responseHeaders } = await getAuth().api.signUpEmail({
+      body: { name: username, email, password, callbackURL: VERIFY_CALLBACK },
+      headers,
+      returnHeaders: true,
+    });
+    return { ok: true, headers: responseHeaders };
+  } catch (error) {
+    // Course entre deux inscriptions : l'index unique tranche.
+    if (isUniqueViolation(error, "users_username_lower_idx")) {
+      return { ok: false, fieldErrors: { username: messages.usernameTaken } };
+    }
+    if (isAPIError(error) && error.statusCode === 422) {
+      return { ok: false, fieldErrors: { email: messages.emailTaken } };
+    }
+    throw error;
+  }
+}
+
+export async function signIn(
+  input: unknown,
+  headers: Headers,
+): Promise<Result<"email" | "password">> {
+  const parsed = z.object({ email: z.string(), password: z.string() }).safeParse(input);
+  if (!parsed.success) return { ok: false, formError: messages.signInRefused };
+  try {
+    const { headers: responseHeaders } = await getAuth().api.signInEmail({
+      body: { email: parsed.data.email.trim().toLowerCase(), password: parsed.data.password },
+      headers,
+      returnHeaders: true,
+    });
+    return { ok: true, headers: responseHeaders };
+  } catch (error) {
+    // Jamais lequel des deux est faux.
+    if (isAPIError(error) && error.statusCode < 500)
+      return { ok: false, formError: messages.signInRefused };
+    throw error;
+  }
+}
+
+export async function signOut(headers: Headers) {
+  await getAuth().api.signOut({ headers });
+}
+
+/** Même réponse que l'email existe ou non. */
+export async function requestPasswordReset(
+  input: unknown,
+  headers: Headers,
+): Promise<Result<"email">> {
+  const parsed = z.object({ email: emailSchema }).safeParse(input);
+  if (!parsed.success) return { ok: false, fieldErrors: fieldErrors(parsed.error) };
+  await getAuth().api.requestPasswordReset({
+    body: { email: parsed.data.email, redirectTo: RESET_PAGE },
+    headers,
+  });
+  return { ok: true };
+}
+
+export async function resetPassword(input: unknown): Promise<Result<"password">> {
+  const parsed = z.object({ token: z.string().min(1), password: passwordSchema }).safeParse(input);
+  if (!parsed.success) {
+    const errors = fieldErrors<"password" | "token">(parsed.error);
+    if (errors.token) return { ok: false, formError: messages.linkExpired };
+    return { ok: false, fieldErrors: { password: errors.password } };
+  }
+  try {
+    await getAuth().api.resetPassword({
+      body: { token: parsed.data.token, newPassword: parsed.data.password },
+    });
+    return { ok: true };
+  } catch (error) {
+    if (isAPIError(error) && error.statusCode < 500)
+      return { ok: false, formError: messages.linkExpired };
+    throw error;
+  }
+}
+
+export async function resendVerification(email: string) {
+  await getAuth().api.sendVerificationEmail({ body: { email, callbackURL: VERIFY_CALLBACK } });
+}
+
+export type SessionUser = {
+  id: string;
+  username: string;
+  email: string;
+  emailVerified: boolean;
+  image: string | null;
+};
+
+/** Utilisateur de la session, ou null. Un compte supprimé n'a plus de session. */
+export async function getSessionUser(headers: Headers): Promise<SessionUser | null> {
+  const session = await getAuth().api.getSession({ headers });
+  if (!session) return null;
+  const [user] = await getDb()
+    .select({
+      id: users.id,
+      username: users.name,
+      email: users.email,
+      emailVerified: users.emailVerified,
+      image: users.image,
+    })
+    .from(users)
+    .where(and(eq(users.id, session.user.id), isNull(users.deletedAt)));
+  if (!user || !user.username) return null;
+  return { ...user, username: user.username };
+}

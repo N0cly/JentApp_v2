@@ -15,6 +15,10 @@ export default defineConfig({
   test: {
     include: ["src/**/*.test.ts", "scripts/**/*.test.ts"],
     environment: "node",
+    env: {
+      APP_URL: "http://localhost:3000",
+      BETTER_AUTH_SECRET: "test-secret-not-used-outside-tests-0123456789",
+    },
     globalSetup: ["src/test/global-setup.ts"],
     // Les tests d'intégration partagent une base : pas de fichiers en parallèle.
     fileParallelism: false,
