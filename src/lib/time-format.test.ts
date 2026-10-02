@@ -13,3 +13,16 @@ describe("atTime", () => {
     expect(atTime(new Date("2026-10-07T22:30:00Z"), now, "Europe/Paris")).toBe("le 08/10 à 00:30");
   });
 });
+
+describe("dayLabel", () => {
+  const now = new Date("2026-10-07T18:00:00Z");
+  const tz = "Europe/Paris";
+  it("aujourd'hui, hier, puis le jour et la date", async () => {
+    const { dayLabel, clockTime } = await import("./time-format");
+    expect(dayLabel(new Date("2026-10-07T06:00:00Z"), now, tz)).toBe("AUJOURD'HUI");
+    expect(dayLabel(new Date("2026-10-06T21:00:00Z"), now, tz)).toBe("HIER");
+    expect(dayLabel(new Date("2026-10-05T12:00:00Z"), now, tz)).toBe("LUNDI 5 OCTOBRE");
+    expect(dayLabel(new Date("2025-12-31T12:00:00Z"), now, tz)).toBe("MERCREDI 31 DÉCEMBRE 2025");
+    expect(clockTime(new Date("2026-10-07T19:14:00Z"), tz)).toBe("21:14");
+  });
+});

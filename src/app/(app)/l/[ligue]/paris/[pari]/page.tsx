@@ -8,6 +8,7 @@ import {
   ScheduledBet,
   SettledBet,
 } from "@/components/bets/BetScreens";
+import { ShareInChat } from "@/components/bets/ShareInChat";
 import { Screen } from "@/components/Screen";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { getBet, settleDelayMs } from "@/server/bets";
@@ -62,6 +63,7 @@ export default async function BetPage({
       <ScreenHeader
         back={correcting ? `/l/${ligue}/paris/${pari}` : `/l/${ligue}/paris`}
         title={title}
+        action={correcting ? undefined : <ShareInChat leagueId={ligue} betId={pari} />}
       />
       <main className="flex grow flex-col gap-4 px-5 pt-2 pb-6">{content}</main>
     </Screen>

@@ -186,4 +186,17 @@ Paris (M3), construits avec les composants existants :
 - Interrupteur « Pari mystère » activé : piste `brand-soft` bordée de `brand`, pastille `brand` à droite.
 - Heures dans le fuseau du téléphone : « à 23:30 » aujourd'hui, « le 12/10 à 23:30 » un autre jour.
 
+Chat (M4), construits avec les composants existants :
+
+- Actions sur un message : un appui ouvre la feuille « Message » avec « J'aime » ou « Retirer mon j'aime » (bouton secondaire), et « Supprimer » (discret, `loss`) pour l'auteur, un admin ou l'owner. La pastille du nombre de « j'aime » s'affiche dès le premier : `brand-soft` bordée de `brand` quand c'est le mien, sinon `surface` bordée de `line-strong` ; un appui dessus bascule le mien.
+- Suggestion de mention : après `@`, au plus cinq membres qui correspondent, dans un bloc `surface-raised` au-dessus de la saisie (avatar 32 et pseudo).
+- Choisir un pari à partager : la feuille « Partager un pari » liste les paris ouverts et programmés (« Pari mystère » pour un mystère) ; sans pari : « Aucun pari ouvert à partager. ».
+- Séparateur de jour : l'overline des titres de jour de `journal.html`, centré ; « AUJOURD'HUI », « HIER », puis « LUNDI 5 OCTOBRE ».
+- Nouveaux messages pendant qu'on lit plus haut : un `Chip` sélectionné « Nouveaux messages », en bas du fil, qui ramène en bas.
+- Fil vide : « Personne n'a encore rien dit. »
+- Message automatique : la ligne centrée de `chat.html` (icône ticket, mono 12, `ink-subtle`) ; s'il concerne un pari, elle mène à sa page, et « Nouveau pari » est suivi de la carte du pari.
+- Carte d'un pari dans le chat, hors état ouvert : en haut à droite « S'OUVRE DANS hh:mm », « FERMÉ », « RÉSULTAT SAISI », « RÉGLÉ » ou « ANNULÉ » ; le bouton devient « Voir ». Un pari mystère programmé n'affiche que le moment, « S'OUVRE DANS » et « Pari mystère ».
+- Feuille GIF : sans recherche, « Cherche un GIF. » (pas de tendances) ; sans résultat, « Aucun GIF pour cette recherche. ».
+- Flux coupé ou erreur d'envoi : le message d'erreur des champs (icône d'alerte, `loss`) au-dessus de la saisie, « Connexion perdue. On réessaie… ».
+
 Si un cas ne rentre dans aucune de ces lignes, s'arrêter et demander.
