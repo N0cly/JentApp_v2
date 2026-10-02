@@ -10,3 +10,10 @@ export {
 export { betState, type BetState } from "./state";
 export { placeWager, type WagerResult } from "./wager";
 export { formatOdds, settle, type Settlement, type Stake } from "./settle";
+export {
+  correctResult,
+  MAX_SEEDED_PER_WEEK,
+  resolveBet,
+  type ResultChoice,
+  type ResultOutcome,
+} from "./result";

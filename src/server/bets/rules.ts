@@ -18,6 +18,7 @@ export const betMessages = {
   otherOption: "Tu as déjà misé sur une autre option.",
   amount: "Mise un nombre entier de clopes, 1 au moins.",
   locked: "On ne modifie plus un pari dès la première mise.",
+  notClosed: "Le résultat se saisit une fois le pari fermé.",
 } as const;
 
 export const MOMENTS = ["BEFORE", "NIGHT", "AFTER", "DAILY", "SPECIAL"] as const;
