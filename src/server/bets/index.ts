@@ -8,3 +8,4 @@ export {
   type Moment,
 } from "./rules";
 export { betState, type BetState } from "./state";
+export { placeWager, type WagerResult } from "./wager";

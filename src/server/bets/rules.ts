@@ -38,7 +38,8 @@ export function settleDelayMs(): number {
 export const EXPIRY_MS = 7 * 24 * 60 * 60 * 1000;
 
 const optionalDate = z
-  .union([z.string(), z.date(), z.null(), z.undefined()])
+  .union([z.string(), z.date(), z.null()])
+  .optional()
   .transform((v) => (v === null || v === undefined || v === "" ? null : new Date(v)));
 
 const betInputSchema = z.object({
