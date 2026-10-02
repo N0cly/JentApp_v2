@@ -1,0 +1,53 @@
+@import "tailwindcss";
+@import "./tokens.css";
+
+/*
+ * Tailwind ne connaît que les jetons de design/tokens.json :
+ * couleurs, espacements (space-1 à space-8) et rayons.
+ */
+@theme inline reference {
+  --color-*: initial;
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-subtle: var(--ink-subtle);
+  --color-brand: var(--brand);
+  --color-on-brand: var(--on-brand);
+  --color-brand-soft: var(--brand-soft);
+  --color-win: var(--win);
+  --color-win-soft: var(--win-soft);
+  --color-loss: var(--loss);
+  --color-loss-soft: var(--loss-soft);
+  --color-paper: var(--paper);
+  --color-on-paper: var(--on-paper);
+  --color-on-paper-muted: var(--on-paper-muted);
+  --color-on-paper-win: var(--on-paper-win);
+  --color-on-paper-loss: var(--on-paper-loss);
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  --spacing: initial;
+  --spacing-*: initial;
+  --spacing-1: var(--space-1);
+  --spacing-2: var(--space-2);
+  --spacing-3: var(--space-3);
+  --spacing-4: var(--space-4);
+  --spacing-5: var(--space-5);
+  --spacing-6: var(--space-6);
+  --spacing-8: var(--space-8);
+
+  --radius-*: initial;
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-full: var(--radius-full);
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+}

@@ -24,6 +24,7 @@ Les pages HTML sont des images fidèles, pas du code à copier : styles en ligne
 
 - Les couleurs, espacements et rayons de `tokens.json` deviennent des variables CSS (`--bg`, `--space-4`, `--radius-md`…). Aucune couleur, aucun rayon et aucun espacement n'est écrit en dur dans un composant.
 - Un seul thème, `nuit`. Pas de thème clair.
+- Les pages de référence emploient parfois des valeurs hors jetons (6, 10, 14 px…). On les ramène au jeton le plus proche, en suivant sa note d'usage. Les dimensions des contrôles (hauteurs de 44, 52 et 56 px, tailles d'icônes) et les épaisseurs de bordure ne sont pas des espacements : elles restent des tailles fixes.
 - Trois niveaux de fond qui s'empilent : `bg`, `surface`, `surface-raised`. Pas d'ombre portée, pas de dégradé.
 - Texte : `ink`, puis `ink-muted`, puis `ink-subtle`. `line` décore, `line-strong` borde un contrôle.
 - `win` et `loss` ne sont jamais seuls : un signe (+ ou −), une coche, une croix ou un tampon les accompagne.
