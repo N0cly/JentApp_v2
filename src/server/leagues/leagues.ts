@@ -5,6 +5,7 @@ import { auditLog, leagueMembers, leagues, users } from "@/db/schema";
 import { fieldErrors, type FieldErrors } from "@/server/auth/validation";
 import { memberOrNotFound, type Role } from "@/server/auth/access";
 import { NotFoundError } from "@/server/errors";
+import { postSystemMessage } from "@/server/chat/system";
 import { post } from "@/server/ledger";
 import { assertAllowed, RateLimitedError, record, rules } from "@/server/rate-limit";
 import {
@@ -398,6 +399,12 @@ export async function joinLeague(
       // Dotation : à la première arrivée seulement, au montant de cet instant.
       await payJoinGrant(tx, leagueId, actor.id, locked.joinGrant);
     }
+    await postSystemMessage(
+      tx,
+      leagueId,
+      { event: "member_joined", data: { userId: actor.id } },
+      now,
+    );
     return { ok: true, leagueId } as const;
   });
 }

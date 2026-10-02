@@ -135,7 +135,9 @@ export async function offerRoundAction(
   amount: number,
 ): Promise<RoundState> {
   const user = await requireUser();
-  const result = await orNotFound(() => offerRound(user, leagueId, { roundId, amount }));
+  const result = await orNotFound(() =>
+    offerRound(user, leagueId, { roundId, amount }, new Date()),
+  );
   if (!result.ok) return { error: result.fieldErrors.amount };
   revalidatePath(`/l/${leagueId}`, "layout");
   return { done: true };

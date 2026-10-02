@@ -2,6 +2,7 @@ import { and, eq, isNotNull, isNull, lte } from "drizzle-orm";
 import { getDb } from "@/db/client";
 import { bets, wagers } from "@/db/schema";
 import { inLockOrder, post } from "@/server/ledger";
+import { postSystemMessage } from "@/server/chat/system";
 import { audit, refundAll, type BetRow, type Tx } from "./internal";
 import { EXPIRY_MS, settleDelayMs } from "./rules";
 import { settle } from "./settle";
@@ -77,6 +78,16 @@ async function settleOne(betId: string, now: Date): Promise<boolean> {
       await refundAll(tx, bet);
       // Rien en face : la cagnotte n'est pas versée.
       await tx.update(bets).set({ settledAt: now, seed: 0 }).where(eq(bets.id, betId));
+      await postSystemMessage(
+        tx,
+        bet.leagueId,
+        {
+          event: "bet_settled",
+          betId,
+          data: { optionId: bet.winningOptionId!, oddsCents: null, refund: true },
+        },
+        now,
+      );
       return true;
     }
 
@@ -99,6 +110,16 @@ async function settleOne(betId: string, now: Date): Promise<boolean> {
         .where(and(eq(wagers.betId, betId), eq(wagers.userId, userId)));
     }
     await tx.update(bets).set({ settledAt: now }).where(eq(bets.id, betId));
+    await postSystemMessage(
+      tx,
+      bet.leagueId,
+      {
+        event: "bet_settled",
+        betId,
+        data: { optionId: bet.winningOptionId!, oddsCents: result.oddsCents, refund: false },
+      },
+      now,
+    );
     return true;
   });
 }
@@ -115,6 +136,12 @@ async function expireOne(betId: string, now: Date): Promise<boolean> {
       .set({ cancelledAt: now, cancelledBy: null, cancelReason: "expired" })
       .where(eq(bets.id, betId));
     await audit(tx, bet.leagueId, null, "bet.cancelled", { betId, reason: "expired" });
+    await postSystemMessage(
+      tx,
+      bet.leagueId,
+      { event: "bet_cancelled", betId, data: { by: null, reason: "expired" } },
+      now,
+    );
     return true;
   });
 }

@@ -3,6 +3,7 @@ import { getDb } from "@/db/client";
 import { betOptions, bets, leagues, wagers } from "@/db/schema";
 import { NotFoundError } from "@/server/errors";
 import { weekStart } from "@/lib/week";
+import { postSystemMessage } from "@/server/chat/system";
 import { audit, lockBet, refundAll, type BetRow, type Tx } from "./internal";
 import { betMessages, settleDelayMs } from "./rules";
 import { betState } from "./state";
@@ -60,6 +61,12 @@ async function cancelForTie(tx: Tx, bet: BetRow, actorId: string, now: Date) {
     .set({ cancelledAt: now, cancelledBy: actorId, cancelReason: "tie" })
     .where(eq(bets.id, bet.id));
   await audit(tx, bet.leagueId, actorId, "bet.cancelled", { betId: bet.id, reason: "tie" });
+  await postSystemMessage(
+    tx,
+    bet.leagueId,
+    { event: "bet_cancelled", betId: bet.id, data: { by: actorId, reason: "tie" } },
+    now,
+  );
 }
 
 async function applyResult(tx: Tx, bet: BetRow, actorId: string, optionId: string, now: Date) {
@@ -97,6 +104,12 @@ export async function resolveBet(
     }
     await applyResult(tx, bet, actor.id, choice.optionId, now);
     await audit(tx, leagueId, actor.id, "bet.resolved", { betId, optionId: choice.optionId });
+    await postSystemMessage(
+      tx,
+      leagueId,
+      { event: "bet_resolved", betId, data: { by: actor.id, optionId: choice.optionId } },
+      now,
+    );
     return { ok: true } as const;
   });
 }
@@ -128,6 +141,12 @@ export async function correctResult(
     }
     await applyResult(tx, bet, actor.id, choice.optionId, now);
     await audit(tx, leagueId, actor.id, "bet.corrected", { betId, optionId: choice.optionId });
+    await postSystemMessage(
+      tx,
+      leagueId,
+      { event: "bet_corrected", betId, data: { by: actor.id, optionId: choice.optionId } },
+      now,
+    );
     return { ok: true } as const;
   });
 }

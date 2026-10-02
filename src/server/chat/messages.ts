@@ -1,9 +1,17 @@
 import { and, asc, count, desc, eq, gt, inArray, isNull, lt, sql } from "drizzle-orm";
 import { getDb } from "@/db/client";
-import { leagueMembers, messageMentions, messageReactions, messages, users } from "@/db/schema";
+import {
+  betOptions,
+  leagueMembers,
+  messageMentions,
+  messageReactions,
+  messages,
+  users,
+} from "@/db/schema";
 import { memberOrNotFound } from "@/server/auth/access";
 import { NotFoundError } from "@/server/errors";
-import { DELETED_PLAYER } from "@/server/leagues";
+import { formatOdds } from "@/server/bets/settle";
+import { DELETED_PLAYER, playerNames } from "@/server/leagues";
 import { consume, RateLimitedError, rules } from "@/server/rate-limit";
 import {
   chatMessages,
@@ -167,6 +175,85 @@ export async function toggleLike(actor: { id: string }, leagueId: string, id: nu
   });
 }
 
+// --- Phrases des messages automatiques -------------------------------------
+
+type SystemData = {
+  by?: string | null;
+  userId?: string;
+  optionId?: string;
+  oddsCents?: number | null;
+  refund?: boolean;
+  reason?: string;
+  amount?: number;
+};
+
+/** Phrase de chaque message automatique, avec les pseudos et libellés actuels. */
+async function systemText(rows: MessageRow[]): Promise<Map<number, string>> {
+  const system = rows.filter((r) => r.kind === "system");
+  if (system.length === 0) return new Map();
+  const data = (r: MessageRow) => r.data as SystemData;
+  const people = new Set<string>();
+  const optionIds = new Set<string>();
+  for (const r of system) {
+    const d = data(r);
+    if (d.by) people.add(d.by);
+    if (d.userId) people.add(d.userId);
+    if (d.optionId) optionIds.add(d.optionId);
+  }
+  const [names, options] = await Promise.all([
+    playerNames([...people]),
+    optionIds.size
+      ? getDb()
+          .select({ id: betOptions.id, label: betOptions.label })
+          .from(betOptions)
+          .where(inArray(betOptions.id, [...optionIds]))
+      : [],
+  ]);
+  const name = (id: string | null | undefined) =>
+    id ? (names.get(id) ?? DELETED_PLAYER) : DELETED_PLAYER;
+  const label = (id: string | undefined) => options.find((o) => o.id === id)?.label ?? "";
+
+  const texts = new Map<number, string>();
+  for (const r of system) {
+    const d = data(r);
+    let text: string;
+    switch (r.event) {
+      case "bet_opened":
+        text = `Nouveau pari · par ${name(d.by)}`;
+        break;
+      case "bet_resolved":
+        text = `Résultat saisi · ${label(d.optionId)} · par ${name(d.by)}`;
+        break;
+      case "bet_corrected":
+        text = `Résultat corrigé · ${label(d.optionId)} · par ${name(d.by)}`;
+        break;
+      case "bet_settled":
+        text = d.refund
+          ? `Pari réglé · ${label(d.optionId)} · personne en face, mises rendues`
+          : `Pari réglé · ${label(d.optionId)} · cote ${formatOdds(d.oddsCents ?? 0)}`;
+        break;
+      case "bet_cancelled":
+        text =
+          d.reason === "tie"
+            ? `Égalité · pari annulé, mises rendues · par ${name(d.by)}`
+            : d.reason === "expired"
+              ? "Pari annulé · sans résultat depuis 7 jours"
+              : `Pari annulé · mises rendues · par ${name(d.by)}`;
+        break;
+      case "round":
+        text = `Tournée générale · +${d.amount} pour tous · par ${name(d.by)}`;
+        break;
+      case "member_joined":
+        text = `${name(d.userId)} rejoint la ligue`;
+        break;
+      default:
+        continue;
+    }
+    texts.set(r.id, text);
+  }
+  return texts;
+}
+
 // --- Lecture -------------------------------------------------------------------
 
 export type MessageView = {
@@ -220,6 +307,7 @@ async function toViews(rows: MessageRow[], me: string): Promise<MessageView[]> {
   const byAuthor = new Map(authors.map((a) => [a.id, a]));
   const likeCount = new Map(likes.map((l) => [l.messageId, l.n]));
   const liked = new Set(mine.map((m) => m.messageId));
+  const texts = await systemText(rows);
 
   return rows.map((r) => {
     const author = r.userId ? byAuthor.get(r.userId) : undefined;
@@ -232,7 +320,7 @@ async function toViews(rows: MessageRow[], me: string): Promise<MessageView[]> {
         ? { url: r.gifUrl, width: data.width ?? null, height: data.height ?? null }
         : null,
       betId: r.betId,
-      text: null,
+      text: texts.get(r.id) ?? null,
       author: r.userId
         ? {
             id: r.userId,

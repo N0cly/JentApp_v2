@@ -3,6 +3,7 @@ import { getDb } from "@/db/client";
 import { betOptions, bets, leagueMembers, wagers } from "@/db/schema";
 import { memberOrNotFound } from "@/server/auth/access";
 import { NotFoundError } from "@/server/errors";
+import { postSystemMessage } from "@/server/chat/system";
 import { activeRole, audit, lockBet, refundAll, type Tx } from "./internal";
 import { betMessages, PLAYER_BET_CAP, validateBet, type BetField } from "./rules";
 import { betState } from "./state";
@@ -64,6 +65,12 @@ export async function createBet(
       .returning({ id: bets.id });
     await insertOptions(tx, row!.id, options);
     await audit(tx, leagueId, actor.id, "bet.created", { betId: row!.id });
+    await postSystemMessage(
+      tx,
+      leagueId,
+      { event: "bet_opened", betId: row!.id, data: { by: actor.id } },
+      now,
+    );
     return { ok: true, betId: row!.id } as const;
   });
 }
@@ -126,6 +133,12 @@ export async function cancelBet(
       .set({ cancelledAt: now, cancelledBy: actor.id, cancelReason: reason })
       .where(eq(bets.id, betId));
     await audit(tx, leagueId, actor.id, "bet.cancelled", { betId, reason });
+    await postSystemMessage(
+      tx,
+      leagueId,
+      { event: "bet_cancelled", betId, data: { by: actor.id, reason } },
+      now,
+    );
     return { ok: true } as const;
   });
 }

@@ -4,6 +4,7 @@ import { getDb } from "@/db/client";
 import { auditLog, leagueMembers, leagues } from "@/db/schema";
 import { isUuid, memberOrNotFound } from "@/server/auth/access";
 import { NotFoundError } from "@/server/errors";
+import { postSystemMessage } from "@/server/chat/system";
 import { inLockOrder, post } from "@/server/ledger";
 
 export const ROUND_MIN = 1;
@@ -23,6 +24,7 @@ export async function offerRound(
   actor: { id: string },
   leagueId: string,
   input: { roundId: unknown; amount: unknown },
+  now: Date,
 ): Promise<RoundResult> {
   const amount = z.coerce.number().int().min(ROUND_MIN).max(ROUND_MAX).safeParse(input.amount);
   if (!amount.success) return { ok: false, fieldErrors: { amount: roundMessages.amount } };
@@ -71,6 +73,12 @@ export async function offerRound(
         action: "round.offered",
         details: { roundId, amount: amount.data, members: paid },
       });
+      await postSystemMessage(
+        tx,
+        leagueId,
+        { event: "round", data: { by: actor.id, amount: amount.data } },
+        now,
+      );
     }
     return {
       ok: true,

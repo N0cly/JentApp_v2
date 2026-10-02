@@ -6,7 +6,12 @@ import { NotFoundError } from "@/server/errors";
 import { leaveLeague } from "@/server/leagues";
 import { leagueWith, makeAdmin } from "@/test/bets";
 import { resetDb } from "@/test/db";
-import { deleteMessage, readMessages, sendMessage, toggleLike } from "./messages";
+import { deleteMessage, readMessages as readAll, sendMessage, toggleLike } from "./messages";
+
+/** Messages des joueurs, sans les messages automatiques (arrivées). */
+async function readMessages(...args: Parameters<typeof readAll>) {
+  return (await readAll(...args)).filter((m) => m.kind !== "system");
+}
 
 const now = new Date("2026-10-07T18:00:00Z");
 const text = (body: string) => ({ kind: "text" as const, body });
@@ -86,7 +91,8 @@ describe("messages", () => {
     await deleteMessage(p1, league.id, a, now);
     await deleteMessage(p2, league.id, b, now);
     expect(await readMessages(owner, league.id)).toEqual([]);
-    const rows = await getDb().select().from(messages);
+    const rows = (await getDb().select().from(messages)).filter((r) => r.kind !== "system");
+    expect(rows).toHaveLength(2);
     expect(rows.every((r) => r.body === null && r.deletedAt !== null)).toBe(true);
   });
 

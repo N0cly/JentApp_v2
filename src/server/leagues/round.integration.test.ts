@@ -42,7 +42,12 @@ describe("tournée générale", () => {
 
   it("le même montant pour chaque membre actif, owner compris ; pas pour les partis", async () => {
     const s = await setup();
-    const result = await offerRound(s.owner, s.leagueId, { roundId: randomUUID(), amount: 10 });
+    const result = await offerRound(
+      s.owner,
+      s.leagueId,
+      { roundId: randomUUID(), amount: 10 },
+      new Date(),
+    );
     expect(result).toEqual({ ok: true, members: 3, created: 30, alreadyPaid: false });
     const after = await balances(s.leagueId);
     expect([after[s.owner.id], after[s.admin.id], after[s.player.id], after[s.gone.id]]).toEqual([
@@ -60,7 +65,7 @@ describe("tournée générale", () => {
     const s = await setup();
     for (const actor of [s.admin, s.player, s.gone]) {
       await expect(
-        offerRound(actor, s.leagueId, { roundId: randomUUID(), amount: 10 }),
+        offerRound(actor, s.leagueId, { roundId: randomUUID(), amount: 10 }, new Date()),
       ).rejects.toBeInstanceOf(NotFoundError);
     }
     expect(await getDb().select().from(ledger).where(eq(ledger.reason, "round"))).toHaveLength(0);
@@ -69,21 +74,26 @@ describe("tournée générale", () => {
   it("de 1 à 100 clopes", async () => {
     const s = await setup();
     for (const amount of [0, 101, 2.5, "abc"]) {
-      expect(await offerRound(s.owner, s.leagueId, { roundId: randomUUID(), amount })).toEqual({
+      expect(
+        await offerRound(s.owner, s.leagueId, { roundId: randomUUID(), amount }, new Date()),
+      ).toEqual({
         ok: false,
         fieldErrors: { amount: "Un nombre entier entre 1 et 100." },
       });
     }
-    expect((await offerRound(s.owner, s.leagueId, { roundId: randomUUID(), amount: 100 })).ok).toBe(
-      true,
-    );
+    expect(
+      (await offerRound(s.owner, s.leagueId, { roundId: randomUUID(), amount: 100 }, new Date()))
+        .ok,
+    ).toBe(true);
   });
 
   it("règle 4 : un double envoi ne paie qu'une fois, même simultané", async () => {
     const s = await setup();
     const roundId = randomUUID();
     const results = await Promise.all(
-      Array.from({ length: 10 }, () => offerRound(s.owner, s.leagueId, { roundId, amount: 10 })),
+      Array.from({ length: 10 }, () =>
+        offerRound(s.owner, s.leagueId, { roundId, amount: 10 }, new Date()),
+      ),
     );
     expect(results.filter((r) => r.ok && !r.alreadyPaid)).toHaveLength(1);
     expect(await getDb().select().from(ledger).where(eq(ledger.refId, roundId))).toHaveLength(3);
