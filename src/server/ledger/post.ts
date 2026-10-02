@@ -1,6 +1,7 @@
 import { and, eq, sql } from "drizzle-orm";
 import type { getDb } from "@/db/client";
 import { leagueMembers, ledger } from "@/db/schema";
+import { notify } from "@/server/realtime/notify";
 
 // Le seul code qui écrit league_members.balance (CLAUDE.md, règle 2).
 
@@ -71,6 +72,7 @@ export async function post(tx: Tx, movement: Movement): Promise<PostResult> {
     if (!exists) throw new Error("Membre introuvable");
     throw new InsufficientBalanceError();
   }
+  await notify(tx, { league: leagueId, type: "balance.changed", user: userId });
   return { applied: true, balance: updated.balance };
 }
 

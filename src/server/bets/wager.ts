@@ -1,4 +1,5 @@
 import { and, eq, sql } from "drizzle-orm";
+import { notify } from "@/server/realtime/notify";
 import { z } from "zod";
 import { getDb } from "@/db/client";
 import { betOptions, leagueMembers, wagers } from "@/db/schema";
@@ -78,6 +79,7 @@ export async function placeWager(
           set: { amount: sql`${wagers.amount} + ${amount.data}`, updatedAt: now },
         })
         .returning({ amount: wagers.amount });
+      await notify(tx, { league: leagueId, type: "bet.changed", id: betId });
       return { ok: true, stake: row!.amount, balance } as const;
     });
   } catch (error) {

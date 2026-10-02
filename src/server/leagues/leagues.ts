@@ -7,6 +7,7 @@ import { memberOrNotFound, type Role } from "@/server/auth/access";
 import { NotFoundError } from "@/server/errors";
 import { postSystemMessage } from "@/server/chat/system";
 import { post } from "@/server/ledger";
+import { notify } from "@/server/realtime/notify";
 import { assertAllowed, RateLimitedError, record, rules } from "@/server/rate-limit";
 import {
   createLeagueSchema,
@@ -405,6 +406,7 @@ export async function joinLeague(
       { event: "member_joined", data: { userId: actor.id } },
       now,
     );
+    await notify(tx, { league: leagueId, type: "member.changed", id: actor.id });
     return { ok: true, leagueId } as const;
   });
 }
@@ -424,6 +426,7 @@ export async function leaveLeague(
       .update(leagueMembers)
       .set({ leftAt: now })
       .where(and(eq(leagueMembers.leagueId, leagueId), eq(leagueMembers.userId, actor.id)));
+    await notify(tx, { league: leagueId, type: "member.changed", id: actor.id });
     return { ok: true } as const;
   });
 }
@@ -444,6 +447,7 @@ export async function changeRole(
         .update(leagueMembers)
         .set({ role })
         .where(and(eq(leagueMembers.leagueId, leagueId), eq(leagueMembers.userId, targetUserId)));
+      await notify(tx, { league: leagueId, type: "member.changed", id: targetUserId });
       await audit(tx, leagueId, actor.id, "role.changed", {
         userId: targetUserId,
         from: target.role,
@@ -470,6 +474,7 @@ export async function removeMember(
       .set({ leftAt: now })
       .where(and(eq(leagueMembers.leagueId, leagueId), eq(leagueMembers.userId, targetUserId)));
     await audit(tx, leagueId, actor.id, "member.removed", { userId: targetUserId });
+    await notify(tx, { league: leagueId, type: "member.changed", id: targetUserId });
     return { ok: true } as const;
   });
 }
@@ -568,6 +573,7 @@ export async function transferLeague(
       .where(and(eq(leagueMembers.leagueId, leagueId), eq(leagueMembers.userId, targetUserId)));
     await tx.update(leagues).set({ ownerId: targetUserId }).where(eq(leagues.id, leagueId));
     await audit(tx, leagueId, actor.id, "league.transferred", { from: actor.id, to: targetUserId });
+    await notify(tx, { league: leagueId, type: "member.changed", id: targetUserId });
     return { ok: true } as const;
   });
 }

@@ -14,6 +14,7 @@ import { NotFoundError } from "@/server/errors";
 import { formatOdds } from "@/server/bets/settle";
 import { getBet, type BetView } from "@/server/bets/view";
 import { DELETED_PLAYER, playerNames } from "@/server/leagues";
+import { notify } from "@/server/realtime/notify";
 import { consume, RateLimitedError, rules } from "@/server/rate-limit";
 import {
   chatMessages,
@@ -108,6 +109,7 @@ export async function sendMessage(
           .values(mentioned.map((userId) => ({ messageId: id, userId })));
       }
     }
+    await notify(tx, { league: leagueId, type: "message.new", id });
     return { ok: true, id } as const;
   });
 }
@@ -144,6 +146,7 @@ export async function deleteMessage(
       .update(messages)
       .set({ deletedAt: now, body: null, gifUrl: null, betId: null, data: {} })
       .where(eq(messages.id, id));
+    await notify(tx, { league: leagueId, type: "message.deleted", id });
     return { ok: true } as const;
   });
 }
@@ -170,6 +173,7 @@ export async function toggleLike(actor: { id: string }, leagueId: string, id: nu
           ),
         );
     }
+    await notify(tx, { league: leagueId, type: "reaction.changed", id });
     return { liked: added.length > 0 };
   });
 }
@@ -214,6 +218,7 @@ export async function shareBet(
           .values(mentioned.map((userId) => ({ messageId: row!.id, userId })));
       }
     }
+    await notify(tx, { league: leagueId, type: "message.new", id: row!.id });
     return { ok: true, id: row!.id } as const;
   });
 }

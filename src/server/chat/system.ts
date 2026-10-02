@@ -1,5 +1,6 @@
 import type { getDb } from "@/db/client";
 import { messages } from "@/db/schema";
+import { notify } from "@/server/realtime/notify";
 
 // Écrit un message automatique dans la transaction de l'événement qui le
 // cause : si elle est annulée, le message n'existe pas. Ne dépend que du
@@ -25,13 +26,17 @@ export type SystemEvent =
   | { event: "member_joined"; data: { userId: string } };
 
 export async function postSystemMessage(tx: Tx, leagueId: string, message: SystemEvent, now: Date) {
-  await tx.insert(messages).values({
-    leagueId,
-    userId: null,
-    kind: "system",
-    event: message.event,
-    betId: "betId" in message ? message.betId : null,
-    data: message.data,
-    createdAt: now,
-  });
+  const [row] = await tx
+    .insert(messages)
+    .values({
+      leagueId,
+      userId: null,
+      kind: "system",
+      event: message.event,
+      betId: "betId" in message ? message.betId : null,
+      data: message.data,
+      createdAt: now,
+    })
+    .returning({ id: messages.id });
+  await notify(tx, { league: leagueId, type: "message.new", id: row!.id });
 }

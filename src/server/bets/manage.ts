@@ -1,4 +1,5 @@
 import { and, count, eq, inArray, isNull } from "drizzle-orm";
+import { notify } from "@/server/realtime/notify";
 import { getDb } from "@/db/client";
 import { betOptions, bets, leagueMembers, wagers } from "@/db/schema";
 import { memberOrNotFound } from "@/server/auth/access";
@@ -71,6 +72,7 @@ export async function createBet(
       { event: "bet_opened", betId: row!.id, data: { by: actor.id } },
       now,
     );
+    await notify(tx, { league: leagueId, type: "bet.changed", id: row!.id });
     return { ok: true, betId: row!.id } as const;
   });
 }
@@ -103,6 +105,7 @@ export async function updateBet(
       .where(eq(bets.id, betId));
     await tx.delete(betOptions).where(eq(betOptions.betId, betId));
     await insertOptions(tx, betId, options);
+    await notify(tx, { league: leagueId, type: "bet.changed", id: betId });
     return { ok: true } as const;
   });
 }
@@ -139,6 +142,7 @@ export async function cancelBet(
       { event: "bet_cancelled", betId, data: { by: actor.id, reason } },
       now,
     );
+    await notify(tx, { league: leagueId, type: "bet.changed", id: betId });
     return { ok: true } as const;
   });
 }

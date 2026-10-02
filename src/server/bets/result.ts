@@ -1,4 +1,5 @@
 import { and, count, eq, gt, gte, isNull, lt, ne } from "drizzle-orm";
+import { notify } from "@/server/realtime/notify";
 import { getDb } from "@/db/client";
 import { betOptions, bets, leagues, wagers } from "@/db/schema";
 import { NotFoundError } from "@/server/errors";
@@ -60,6 +61,7 @@ async function cancelForTie(tx: Tx, bet: BetRow, actorId: string, now: Date) {
     .update(bets)
     .set({ cancelledAt: now, cancelledBy: actorId, cancelReason: "tie" })
     .where(eq(bets.id, bet.id));
+  await notify(tx, { league: bet.leagueId, type: "bet.changed", id: bet.id });
   await audit(tx, bet.leagueId, actorId, "bet.cancelled", { betId: bet.id, reason: "tie" });
   await postSystemMessage(
     tx,
@@ -80,6 +82,7 @@ async function applyResult(tx: Tx, bet: BetRow, actorId: string, optionId: strin
     .update(bets)
     .set({ winningOptionId: optionId, resolvedAt: now, resolvedBy: actorId, seed })
     .where(eq(bets.id, bet.id));
+  await notify(tx, { league: bet.leagueId, type: "bet.changed", id: bet.id });
 }
 
 /** Saisir : le créateur, un admin ou l'owner, une fois le pari fermé. */
