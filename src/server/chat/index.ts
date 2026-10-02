@@ -4,6 +4,7 @@ export {
   readMessage,
   readMessages,
   sendMessage,
+  shareBet,
   toggleLike,
   type MessageView,
   type Outgoing,

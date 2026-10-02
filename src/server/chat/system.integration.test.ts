@@ -15,7 +15,9 @@ import { postSystemMessage } from "./system";
 const after = (minutes: number) => new Date(CLOSE.getTime() + minutes * 60_000);
 
 async function systemTexts(user: { id: string }, leagueId: string) {
-  return (await readMessages(user, leagueId)).filter((m) => m.kind === "system").map((m) => m.text);
+  return (await readMessages(user, leagueId, new Date()))
+    .filter((m) => m.kind === "system")
+    .map((m) => m.text);
 }
 
 describe("messages automatiques", () => {

@@ -2,6 +2,7 @@ import { and, asc, count, desc, eq, gt, inArray, isNull, lt, sql } from "drizzle
 import { getDb } from "@/db/client";
 import {
   betOptions,
+  bets as betsTable,
   leagueMembers,
   messageMentions,
   messageReactions,
@@ -11,6 +12,7 @@ import {
 import { memberOrNotFound } from "@/server/auth/access";
 import { NotFoundError } from "@/server/errors";
 import { formatOdds } from "@/server/bets/settle";
+import { getBet, type BetView } from "@/server/bets/view";
 import { DELETED_PLAYER, playerNames } from "@/server/leagues";
 import { consume, RateLimitedError, rules } from "@/server/rate-limit";
 import {
@@ -68,8 +70,6 @@ export async function sendMessage(
   leagueId: string,
   outgoing: Outgoing,
   now: Date,
-  /** Écrit aussi dans la transaction de l'appelant (partage d'un pari). */
-  extra?: (tx: Tx, id: number) => Promise<void>,
 ): Promise<SendResult> {
   await memberOrNotFound(actor.id, leagueId);
 
@@ -108,7 +108,6 @@ export async function sendMessage(
           .values(mentioned.map((userId) => ({ messageId: id, userId })));
       }
     }
-    if (extra) await extra(tx, id);
     return { ok: true, id } as const;
   });
 }
@@ -172,6 +171,50 @@ export async function toggleLike(actor: { id: string }, leagueId: string, id: nu
         );
     }
     return { liked: added.length > 0 };
+  });
+}
+
+/** Partager un pari de la même ligue, avec un texte facultatif. */
+export async function shareBet(
+  actor: { id: string },
+  leagueId: string,
+  betId: unknown,
+  body: unknown,
+  now: Date,
+): Promise<SendResult> {
+  await memberOrNotFound(actor.id, leagueId);
+  if (typeof betId !== "string" || !/^[0-9a-f-]{36}$/i.test(betId)) throw new NotFoundError();
+  const [bet] = await getDb()
+    .select({ id: betsTable.id })
+    .from(betsTable)
+    .where(and(eq(betsTable.id, betId), eq(betsTable.leagueId, leagueId)));
+  if (!bet) throw new NotFoundError();
+  const text = typeof body === "string" ? cleanText(body) : "";
+  if (text.length > MAX_LENGTH)
+    return { ok: false, error: chatMessages.tooLong(text.length - MAX_LENGTH) };
+  const tooFast = await limited(actor.id, now);
+  if (tooFast) return { ok: false, error: tooFast };
+  return getDb().transaction(async (tx) => {
+    const [row] = await tx
+      .insert(messages)
+      .values({
+        leagueId,
+        userId: actor.id,
+        kind: "bet",
+        betId,
+        body: text || null,
+        createdAt: now,
+      })
+      .returning({ id: messages.id });
+    if (text) {
+      const mentioned = await resolveMentions(tx, leagueId, text);
+      if (mentioned.length > 0) {
+        await tx
+          .insert(messageMentions)
+          .values(mentioned.map((userId) => ({ messageId: row!.id, userId })));
+      }
+    }
+    return { ok: true, id: row!.id } as const;
   });
 }
 
@@ -262,6 +305,8 @@ export type MessageView = {
   body: string | null;
   gif: { url: string; width: number | null; height: number | null } | null;
   betId: string | null;
+  /** Carte du pari partagé ou annoncé, selon ce que le lecteur a le droit de voir. */
+  bet: BetView | null;
   /** Phrase d'un message automatique, écrite à la lecture. */
   text: string | null;
   author: { id: string; username: string; image: string | null } | null;
@@ -272,7 +317,12 @@ export type MessageView = {
   likedByMe: boolean;
 };
 
-async function toViews(rows: MessageRow[], me: string): Promise<MessageView[]> {
+async function toViews(
+  rows: MessageRow[],
+  me: string,
+  leagueId: string,
+  now: Date,
+): Promise<MessageView[]> {
   if (rows.length === 0) return [];
   const ids = rows.map((r) => r.id);
   const authorIds = [...new Set(rows.map((r) => r.userId).filter((v): v is string => v !== null))];
@@ -308,6 +358,22 @@ async function toViews(rows: MessageRow[], me: string): Promise<MessageView[]> {
   const likeCount = new Map(likes.map((l) => [l.messageId, l.n]));
   const liked = new Set(mine.map((m) => m.messageId));
   const texts = await systemText(rows);
+  // Cartes : un pari partagé, ou l'annonce d'un nouveau pari. Les autres messages mènent seulement à la page.
+  const cardIds = [
+    ...new Set(
+      rows
+        .filter((r) => r.betId && (r.kind === "bet" || r.event === "bet_opened"))
+        .map((r) => r.betId!),
+    ),
+  ];
+  const cards = new Map<string, BetView>();
+  for (const id of cardIds) {
+    try {
+      cards.set(id, await getBet({ id: me }, leagueId, id, now));
+    } catch {
+      // Pari disparu : pas de carte.
+    }
+  }
 
   return rows.map((r) => {
     const author = r.userId ? byAuthor.get(r.userId) : undefined;
@@ -320,6 +386,7 @@ async function toViews(rows: MessageRow[], me: string): Promise<MessageView[]> {
         ? { url: r.gifUrl, width: data.width ?? null, height: data.height ?? null }
         : null,
       betId: r.betId,
+      bet: r.betId ? (cards.get(r.betId) ?? null) : null,
       text: texts.get(r.id) ?? null,
       author: r.userId
         ? {
@@ -343,6 +410,7 @@ async function toViews(rows: MessageRow[], me: string): Promise<MessageView[]> {
 export async function readMessages(
   actor: { id: string },
   leagueId: string,
+  now: Date,
   page: { before?: number; after?: number } = {},
 ): Promise<MessageView[]> {
   await memberOrNotFound(actor.id, leagueId);
@@ -365,7 +433,7 @@ export async function readMessages(
         .limit(PAGE_SIZE)
     ).reverse();
   }
-  return toViews(rows, actor.id);
+  return toViews(rows, actor.id, leagueId, now);
 }
 
 /** Un message, pour le relire après un signal du flux. Null s'il a disparu. */
@@ -373,6 +441,7 @@ export async function readMessage(
   actor: { id: string },
   leagueId: string,
   id: number,
+  now: Date,
 ): Promise<MessageView | null> {
   await memberOrNotFound(actor.id, leagueId);
   if (!Number.isSafeInteger(id)) return null;
@@ -380,6 +449,6 @@ export async function readMessage(
     .select()
     .from(messages)
     .where(and(eq(messages.id, id), eq(messages.leagueId, leagueId), isNull(messages.deletedAt)));
-  const [view] = await toViews(rows, actor.id);
+  const [view] = await toViews(rows, actor.id, leagueId, now);
   return view ?? null;
 }

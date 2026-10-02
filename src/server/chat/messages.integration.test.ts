@@ -39,7 +39,7 @@ describe("messages", () => {
       true,
     );
     await send(owner, league.id, "  Salut   la\r\n\n\n\nbande  ");
-    const [, last] = await readMessages(owner, league.id);
+    const [, last] = await readMessages(owner, league.id, new Date());
     expect(last?.body).toBe("Salut la\n\nbande");
   });
 
@@ -49,7 +49,7 @@ describe("messages", () => {
     await expect(sendMessage(other.owner, league.id, text("coucou"), now)).rejects.toBeInstanceOf(
       NotFoundError,
     );
-    await expect(readMessages(other.owner, league.id)).rejects.toBeInstanceOf(NotFoundError);
+    await expect(readMessages(other.owner, league.id, now)).rejects.toBeInstanceOf(NotFoundError);
   });
 
   it("30 messages par minute et par compte", async () => {
@@ -71,14 +71,14 @@ describe("messages", () => {
       const at = new Date(now.getTime() + Math.floor(i / 25) * 61_000);
       ids.push(await send(i % 2 ? owner : players[0]!, league.id, `message ${i}`, at));
     }
-    const last = await readMessages(owner, league.id);
-    const middle = await readMessages(owner, league.id, { before: last[0]!.id });
-    const first = await readMessages(owner, league.id, { before: middle[0]!.id });
+    const last = await readMessages(owner, league.id, new Date());
+    const middle = await readMessages(owner, league.id, now, { before: last[0]!.id });
+    const first = await readMessages(owner, league.id, now, { before: middle[0]!.id });
     expect([last.length, middle.length, first.length]).toEqual([50, 50, 20]);
     expect([...first, ...middle, ...last].map((m) => m.id)).toEqual(ids);
-    expect((await readMessages(owner, league.id, { after: ids[99]! })).map((m) => m.id)).toEqual(
-      ids.slice(100),
-    );
+    expect(
+      (await readMessages(owner, league.id, now, { after: ids[99]! })).map((m) => m.id),
+    ).toEqual(ids.slice(100));
   });
 
   it("suppression : les siens ; un admin ou l'owner, ceux des autres ; elle ne laisse pas de trace", async () => {
@@ -90,7 +90,7 @@ describe("messages", () => {
     await expect(deleteMessage(p1, league.id, b, now)).rejects.toBeInstanceOf(NotFoundError);
     await deleteMessage(p1, league.id, a, now);
     await deleteMessage(p2, league.id, b, now);
-    expect(await readMessages(owner, league.id)).toEqual([]);
+    expect(await readMessages(owner, league.id, new Date())).toEqual([]);
     const rows = (await getDb().select().from(messages)).filter((r) => r.kind !== "system");
     expect(rows).toHaveLength(2);
     expect(rows.every((r) => r.body === null && r.deletedAt !== null)).toBe(true);
@@ -112,10 +112,10 @@ describe("messages", () => {
     const id = await send(owner, league.id, "aime-moi");
     expect(await toggleLike(players[0]!, league.id, id)).toEqual({ liked: true });
     expect(await toggleLike(owner, league.id, id)).toEqual({ liked: true });
-    let [view] = await readMessages(players[0]!, league.id);
+    let [view] = await readMessages(players[0]!, league.id, new Date());
     expect(view).toMatchObject({ likes: 2, likedByMe: true });
     expect(await toggleLike(players[0]!, league.id, id)).toEqual({ liked: false });
-    [view] = await readMessages(players[0]!, league.id);
+    [view] = await readMessages(players[0]!, league.id, new Date());
     expect(view).toMatchObject({ likes: 1, likedByMe: false });
   });
 });
@@ -137,7 +137,7 @@ describe("mentions", () => {
       .from(messageMentions)
       .where(eq(messageMentions.messageId, id));
     expect(rows.map((r) => r.userId)).toEqual([here.id]);
-    const [view] = await readMessages(owner, league.id);
+    const [view] = await readMessages(owner, league.id, new Date());
     expect(view?.mentions).toEqual([await name(here.id)]);
   });
 });
@@ -149,7 +149,7 @@ describe("fuites", () => {
     const { league, owner, players } = await leagueWith(1);
     await send(owner, league.id, "Coucou");
     const emails = (await getDb().select({ email: users.email }).from(users)).map((u) => u.email);
-    const text = JSON.stringify(await readMessages(players[0]!, league.id));
+    const text = JSON.stringify(await readMessages(players[0]!, league.id, new Date()));
     for (const email of emails) expect(text).not.toContain(email);
   });
 });
