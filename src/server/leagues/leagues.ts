@@ -4,6 +4,7 @@ import { auditLog, leagueMembers, leagues, users } from "@/db/schema";
 import { fieldErrors, type FieldErrors } from "@/server/auth/validation";
 import { memberOrNotFound, type Role } from "@/server/auth/access";
 import { NotFoundError } from "@/server/errors";
+import { post } from "@/server/ledger";
 import { assertAllowed, RateLimitedError, record, rules } from "@/server/rate-limit";
 import {
   createLeagueSchema,
@@ -106,6 +107,18 @@ async function activeTarget(tx: Tx, leagueId: string, userId: string) {
   return target;
 }
 
+/** Dotation de départ, une seule fois par membre et par ligue. Rien à 0. */
+async function payJoinGrant(tx: Tx, leagueId: string, userId: string, amount: number) {
+  if (amount <= 0) return;
+  await post(tx, {
+    leagueId,
+    userId,
+    delta: amount,
+    reason: "join_grant",
+    uniqueKey: `join:${leagueId}:${userId}`,
+  });
+}
+
 // --- Créer -----------------------------------------------------------------
 
 type CreateField = "name" | "joinGrant" | "weeklyGrant" | "seedAmount";
@@ -126,10 +139,11 @@ export async function createLeague(
     const [league] = await tx
       .insert(leagues)
       .values({ ...parsed.data, ownerId: actor.id, inviteCode: await freeCode(tx) })
-      .returning({ id: leagues.id });
+      .returning({ id: leagues.id, joinGrant: leagues.joinGrant });
     await tx
       .insert(leagueMembers)
       .values({ leagueId: league!.id, userId: actor.id, role: "owner", joinedAt: now });
+    await payJoinGrant(tx, league!.id, actor.id, league!.joinGrant);
     return { ok: true, leagueId: league!.id } as const;
   });
 }
@@ -337,7 +351,12 @@ export async function joinLeague(
 
   return getDb().transaction(async (tx) => {
     await lockUser(tx, actor.id);
-    await tx.select({ id: leagues.id }).from(leagues).where(eq(leagues.id, leagueId)).for("update");
+    const [locked] = await tx
+      .select({ joinGrant: leagues.joinGrant })
+      .from(leagues)
+      .where(eq(leagues.id, leagueId))
+      .for("update");
+    if (!locked) throw new NotFoundError();
     const [existing] = await tx
       .select()
       .from(leagueMembers)
@@ -363,6 +382,8 @@ export async function joinLeague(
       await tx
         .insert(leagueMembers)
         .values({ leagueId, userId: actor.id, role: "player", joinedAt: now });
+      // Dotation : à la première arrivée seulement, au montant de cet instant.
+      await payJoinGrant(tx, leagueId, actor.id, locked.joinGrant);
     }
     return { ok: true, leagueId } as const;
   });

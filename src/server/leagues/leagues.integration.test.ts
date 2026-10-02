@@ -201,7 +201,8 @@ describe("rejoindre", () => {
     await leaveLeague({ id: b.id }, league.id, new Date());
     await joinLeague({ id: b.id }, league.inviteCode, new Date());
     const row = await membership(league.id, b.id);
-    expect(row).toMatchObject({ balance: 42, role: "player", leftAt: null });
+    // Dotation (50) et mouvement (42) retrouvés, sans nouvelle dotation.
+    expect(row).toMatchObject({ balance: 92, role: "player", leftAt: null });
     expect(await getDb().select().from(leagueMembers)).toHaveLength(2);
   });
 
@@ -356,8 +357,8 @@ describe("lecture", () => {
     await joinLeague({ id: b.id }, l1.inviteCode, new Date());
     expect((await listMyLeagues({ id: a.id })).map((l) => l.name)).toEqual(["Une"]);
     expect(await listMyLeagues({ id: b.id })).toEqual([
-      expect.objectContaining({ name: "Deux", members: 1, balance: 0, openBets: 0 }),
-      expect.objectContaining({ name: "Une", members: 2, balance: 0, openBets: 0 }),
+      expect.objectContaining({ name: "Deux", members: 1, balance: 50, openBets: 0 }),
+      expect.objectContaining({ name: "Une", members: 2, balance: 50, openBets: 0 }),
     ]);
   });
 
