@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
+import { enterLeague } from "@/app/(app)/l/[ligue]/enter-league";
 import { LeagueSettings } from "@/components/league/LeagueSettings";
 import { Screen } from "@/components/Screen";
 import { ScreenHeader } from "@/components/ScreenHeader";
-import { requireMember } from "@/server/auth";
 import { getLeague, listMembers } from "@/server/leagues";
 
 export const metadata: Metadata = { title: "Réglages de la ligue · JentApp" };
 
 export default async function LeagueSettingsPage({ params }: PageProps<"/l/[ligue]/reglages">) {
   const { ligue } = await params;
-  const { user, membership } = await requireMember(ligue);
+  const { user, membership } = await enterLeague(ligue);
   const league = await getLeague(user, ligue);
   const isOwner = membership.role === "owner";
   const others = isOwner

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { enterLeague } from "@/app/(app)/l/[ligue]/enter-league";
 import { Screen } from "@/components/Screen";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { ShareInvite } from "@/components/ShareInvite";
@@ -10,7 +11,6 @@ import {
   TicketRow,
   TicketSection,
 } from "@/components/ui";
-import { requireMember } from "@/server/auth";
 import { getLeague } from "@/server/leagues";
 
 export const metadata: Metadata = { title: "Inviter · JentApp" };
@@ -20,7 +20,7 @@ export default async function InvitePage({
   searchParams,
 }: PageProps<"/l/[ligue]/inviter">) {
   const { ligue } = await params;
-  const { user } = await requireMember(ligue);
+  const { user } = await enterLeague(ligue);
   const league = await getLeague(user, ligue);
   const justCreated = (await searchParams).nouvelle === "1";
   const path = `/j/${league.inviteCode}`;

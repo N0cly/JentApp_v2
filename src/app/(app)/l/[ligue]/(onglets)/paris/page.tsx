@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
+import { enterLeague } from "@/app/(app)/l/[ligue]/enter-league";
 import { EmailBanner } from "@/components/EmailBanner";
 import { EmptyState } from "@/components/EmptyState";
 import { LeagueTopBar } from "@/components/LeagueTopBar";
-import { requireMember } from "@/server/auth";
 
 export const metadata: Metadata = { title: "Paris · JentApp" };
 
 export default async function BetsPage({ params, searchParams }: PageProps<"/l/[ligue]/paris">) {
   const { ligue } = await params;
-  const { user } = await requireMember(ligue);
+  const { user } = await enterLeague(ligue);
   const expired = (await searchParams).lien === "expire";
 
   return (

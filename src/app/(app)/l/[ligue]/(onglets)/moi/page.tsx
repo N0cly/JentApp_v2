@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
+import { enterLeague } from "@/app/(app)/l/[ligue]/enter-league";
 import { LeagueTopBar } from "@/components/LeagueTopBar";
 import { Avatar, IconButton, SettingsIcon } from "@/components/ui";
-import { requireMember } from "@/server/auth";
 
 export const metadata: Metadata = { title: "Moi · JentApp" };
 
 export default async function MePage({ params }: PageProps<"/l/[ligue]/moi">) {
   const { ligue } = await params;
-  const { user } = await requireMember(ligue);
+  const { user } = await enterLeague(ligue);
   return (
     <>
       <div className="shrink-0 px-5 pt-3">

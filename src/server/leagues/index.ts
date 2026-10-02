@@ -5,3 +5,4 @@ export {
   MAX_MEMBERS_PER_LEAGUE,
   normalizeCode,
 } from "./rules";
+export { grantWeekly } from "./weekly-grant";

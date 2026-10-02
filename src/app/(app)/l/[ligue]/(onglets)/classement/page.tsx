@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
+import { enterLeague } from "@/app/(app)/l/[ligue]/enter-league";
 import { EmptyState } from "@/components/EmptyState";
 import { LeagueTopBar } from "@/components/LeagueTopBar";
-import { requireMember } from "@/server/auth";
 
 export const metadata: Metadata = { title: "Classement · JentApp" };
 
 export default async function RankingPage({ params }: PageProps<"/l/[ligue]/classement">) {
   const { ligue } = await params;
-  const { user } = await requireMember(ligue);
+  const { user } = await enterLeague(ligue);
   return (
     <>
       <header className="flex shrink-0 flex-col gap-1 px-5 py-3">

@@ -1,16 +1,16 @@
 import type { Metadata } from "next";
+import { enterLeague } from "@/app/(app)/l/[ligue]/enter-league";
 import { MemberList } from "@/components/league/MemberList";
 import { Screen } from "@/components/Screen";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { Button } from "@/components/ui";
-import { requireMember } from "@/server/auth";
 import { getLeague, listMembers } from "@/server/leagues";
 
 export const metadata: Metadata = { title: "Membres · JentApp" };
 
 export default async function MembersPage({ params }: PageProps<"/l/[ligue]/reglages/membres">) {
   const { ligue } = await params;
-  const { user, membership } = await requireMember(ligue);
+  const { user, membership } = await enterLeague(ligue);
   const [league, members] = await Promise.all([getLeague(user, ligue), listMembers(user, ligue)]);
 
   return (
