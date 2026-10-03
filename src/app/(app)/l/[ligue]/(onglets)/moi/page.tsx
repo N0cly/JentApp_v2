@@ -7,20 +7,45 @@ import { StatGrid } from "@/components/stats/StatGrid";
 import { rankLabel } from "@/lib/rank";
 import { getLeague } from "@/server/leagues";
 import { getMyHistory, getProfile } from "@/server/stats";
-import { Avatar, IconButton, SettingsIcon } from "@/components/ui";
+import Link from "next/link";
+import { AchievementList } from "@/components/achievements/AchievementList";
+import { MyCosmetics } from "@/components/shop/MyCosmetics";
+import { myAchievements } from "@/server/achievements";
+import { myCosmetics } from "@/server/shop";
+import { Avatar, IconButton, SegmentedLinks, SettingsIcon, ShopIcon } from "@/components/ui";
+
+type Tab = "historique" | "succes" | "cosmetiques";
 
 export const metadata: Metadata = { title: "Moi · JentApp" };
 
-export default async function MePage({ params }: PageProps<"/l/[ligue]/moi">) {
+export default async function MePage({ params, searchParams }: PageProps<"/l/[ligue]/moi">) {
   const { ligue } = await params;
+  const asked = (await searchParams).onglet;
+  const tab: Tab = asked === "succes" || asked === "cosmetiques" ? asked : "historique";
   const { user } = await enterLeague(ligue);
   const now = new Date();
   // Mon profil, lu comme les autres le lisent : mêmes rang, solde et bilan.
-  const [league, me, history] = await Promise.all([
+  const [league, me] = await Promise.all([
     getLeague(user, ligue),
     getProfile(user, ligue, user.id, now),
-    getMyHistory(user, ligue, 0, now),
   ]);
+  const base = `/l/${ligue}/moi`;
+
+  let content;
+  if (tab === "succes") {
+    const mine = await myAchievements(user, ligue);
+    content = <AchievementList {...mine} leagueName={league.name} />;
+  } else if (tab === "cosmetiques") {
+    const mine = await myCosmetics(user, ligue);
+    content = (
+      <MyCosmetics leagueId={ligue} {...mine} me={{ username: user.username, photo: user.image }} />
+    );
+  } else {
+    const history = await getMyHistory(user, ligue, 0, now);
+    content = (
+      <HistoryList leagueId={ligue} initial={history.items} initialHasMore={history.hasMore} />
+    );
+  }
   return (
     <>
       <div className="shrink-0 px-5 pt-3">
@@ -50,11 +75,34 @@ export default async function MePage({ params }: PageProps<"/l/[ligue]/moi">) {
         </div>
       </header>
       <main className="flex flex-col gap-3 px-5 pb-5">
-        <BalanceCard leagueName={league.name} balance={me.balance} />
+        <BalanceCard
+          leagueName={league.name}
+          balance={me.balance}
+          action={
+            <Link
+              href={`/l/${ligue}/boutique`}
+              className="flex min-h-[44px] items-center gap-2 rounded-md border border-line-strong bg-surface-raised px-3 text-[14px] leading-5 font-bold"
+            >
+              <ShopIcon size={18} />
+              Boutique
+            </Link>
+          }
+        />
         <StatGrid stats={me.stats} />
-        {/* Le Segmented Historique / Succès / Cosmétiques arrive avec M6. */}
-        <h2 className="text-overline pt-2 text-ink-subtle">HISTORIQUE</h2>
-        <HistoryList leagueId={ligue} initial={history.items} initialHasMore={history.hasMore} />
+        <SegmentedLinks
+          label="Vue de Moi"
+          className="shrink-0"
+          options={[
+            { href: base, label: "Historique", active: tab === "historique" },
+            { href: `${base}?onglet=succes`, label: "Succès", active: tab === "succes" },
+            {
+              href: `${base}?onglet=cosmetiques`,
+              label: "Cosmétiques",
+              active: tab === "cosmetiques",
+            },
+          ]}
+        />
+        {content}
       </main>
     </>
   );

@@ -10,7 +10,7 @@ export { IconButton } from "./IconButton";
 export { LeagueBadge } from "./LeagueBadge";
 export { LeagueSwitcher } from "./LeagueSwitcher";
 export { MomentBadge, type Moment } from "./MomentBadge";
-export { Segmented } from "./Segmented";
+export { Segmented, SegmentedLinks } from "./Segmented";
 export { Stamp } from "./Stamp";
 export { TabBar, type Tab } from "./TabBar";
 export { FieldError, TextField } from "./TextField";

@@ -264,7 +264,7 @@ describe("déblocage", () => {
     const p = ctx.players[0]!;
     const bet = await openBet(ctx);
     await stake(ctx, p, bet.betId, bet.options[0]!, 10);
-    expect(await unlockedKeys(ctx.league.id, p.id)).toEqual(["first_ticket", "all_in"]);
+    expect((await unlockedKeys(ctx.league.id, p.id)).sort()).toEqual(["all_in", "first_ticket"]);
     const mine = await myAchievements(p, ctx.league.id);
     expect(mine.items.slice(0, 2).map((i) => !i.hidden && i.name)).toEqual([
       "Premier ticket",

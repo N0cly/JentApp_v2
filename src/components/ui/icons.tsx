@@ -275,3 +275,21 @@ export function HeartIcon(props: IconProps) {
     </Svg>
   );
 }
+
+export function ShopIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M5 8h14l-1 12H6z" />
+      <path d="M9 8a3 3 0 0 1 6 0" />
+    </Svg>
+  );
+}
+
+export function MedalIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <circle cx="12" cy="14" r="5" />
+      <path d="M9 9L7 3h10l-2 6" />
+    </Svg>
+  );
+}

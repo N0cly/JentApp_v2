@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { cx } from "@/lib/cx";
 
 type SegmentedProps<T extends string> = {
@@ -43,5 +44,38 @@ export function Segmented<T extends string>({
         );
       })}
     </div>
+  );
+}
+
+/** Même bascule, quand chaque vue a son adresse (onglets de Moi). */
+export function SegmentedLinks({
+  label,
+  options,
+  className,
+}: {
+  label: string;
+  options: readonly { href: string; label: string; active: boolean }[];
+  className?: string;
+}) {
+  return (
+    <nav
+      aria-label={label}
+      className={cx("grid gap-1 rounded-md bg-surface p-1", className)}
+      style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}
+    >
+      {options.map((option) => (
+        <Link
+          key={option.href}
+          href={option.href}
+          aria-current={option.active ? "true" : undefined}
+          className={cx(
+            "flex min-h-[44px] items-center justify-center rounded-md text-[14px] leading-5 font-semibold",
+            option.active ? "bg-ink text-on-paper" : "bg-surface text-ink-muted",
+          )}
+        >
+          {option.label}
+        </Link>
+      ))}
+    </nav>
   );
 }
