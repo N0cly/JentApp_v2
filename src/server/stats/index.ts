@@ -19,3 +19,4 @@ export {
   type HistoryItem,
   type HistoryOutcome,
 } from "./history";
+export { getProfile, PROFILE_RECENT, type ProfileView } from "./profile";
