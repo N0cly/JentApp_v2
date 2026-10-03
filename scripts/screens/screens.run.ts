@@ -11,7 +11,7 @@ import { PASSWORD } from "./seed";
 import { BASE, OUTPUT } from "./setup";
 
 /** [largeur, hauteur, mode] : téléphone, tablette, paysage, texte agrandi à 200 %. */
-const SIZES = [
+const ALL_SIZES = [
   [320, 568, "portrait"],
   [360, 740, "portrait"],
   [375, 667, "portrait"],
@@ -22,6 +22,10 @@ const SIZES = [
   [844, 390, "paysage"],
   [390, 844, "texte 200 %"],
 ] as const;
+/** `MODES=texte pnpm test:screens` : seulement les tailles dont le mode contient ce mot. */
+const SIZES = process.env.MODES
+  ? ALL_SIZES.filter(([, , mode]) => mode.includes(process.env.MODES!))
+  : ALL_SIZES;
 
 type Account = "full" | "empty" | "none";
 type Route = { name: string; path: string; as: Account; open?: (page: Page) => Promise<void> };
