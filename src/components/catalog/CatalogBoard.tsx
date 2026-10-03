@@ -42,7 +42,7 @@ const types = [
 ] as const;
 
 const ruleLabels: Record<RuleType, string> = {
-  wagers_count: "Paris misés",
+  wagers_count: "Paris joués",
   single_stake: "Mise d'un coup",
   all_in: "Tapis",
   wins_count: "Paris gagnés",

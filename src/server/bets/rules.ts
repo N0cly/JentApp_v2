@@ -4,7 +4,7 @@ import { z } from "zod";
 export const betMessages = {
   insufficient: (missing: number) => `Il te manque ${missing} ${missing > 1 ? "clopes" : "clope"}.`,
   closed: "Trop tard, le pari vient de fermer.",
-  cap: "Tu as déjà 3 paris en cours. Attends qu'un soit réglé.",
+  cap: "Tu as déjà 3 paris en cours. Attends que l'un d'eux soit réglé.",
   question: "Pose une question de 5 à 140 caractères.",
   tooFewOptions: "Il faut au moins 2 options.",
   tooManyOptions: "8 options au plus.",
@@ -14,7 +14,7 @@ export const betMessages = {
   tooFar: "La fermeture doit venir dans les 30 jours.",
   mystery: "Un pari mystère doit s'ouvrir plus tard.",
   tooLateToCorrect: "Trop tard, les gains sont versés.",
-  notOpen: "Ce pari n'accepte pas de mise.",
+  notOpen: "Ce pari n'est pas ouvert aux mises.",
   otherOption: "Tu as déjà misé sur une autre option.",
   amount: "Mise un nombre entier de clopes, 1 au moins.",
   locked: "On ne modifie plus un pari dès la première mise.",

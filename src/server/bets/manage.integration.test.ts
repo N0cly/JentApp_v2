@@ -82,7 +82,7 @@ describe("création", () => {
       expect((await createBet(player, league.id, valid(), now)).ok).toBe(true);
     expect(await createBet(player, league.id, valid(), now)).toEqual({
       ok: false,
-      formError: "Tu as déjà 3 paris en cours. Attends qu'un soit réglé.",
+      formError: "Tu as déjà 3 paris en cours. Attends que l'un d'eux soit réglé.",
     });
     for (let i = 0; i < 5; i++)
       expect((await createBet(admin, league.id, valid(), now)).ok).toBe(true);

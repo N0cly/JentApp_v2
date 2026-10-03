@@ -17,7 +17,7 @@ describe("phrase d'une notification", () => {
         question: "Qui paie ?",
         opensAt: "2026-10-07T21:30:00Z",
       }),
-    ).toBe("Pari programmé : Qui paie ?. Ouverture à 23:30.");
+    ).toBe("Pari programmé, ouverture à 23:30 : Qui paie ?");
     expect(
       t({ type: "bet_opened", betId: "b", question: null, opensAt: "2026-10-12T21:30:00Z" }),
     ).toBe("Pari mystère programmé. Ouverture le 12/10 à 23:30.");
@@ -45,11 +45,11 @@ describe("phrase d'une notification", () => {
       "Pari réglé : tu gagnes 19 clopes sur « Q »",
     );
     expect(t({ type: "bet_settled", betId: "b", question: "Q", outcome: "lost", amount: 8 })).toBe(
-      "Pari réglé : tu perds 8 clopes",
+      "Pari réglé : tu perds 8 clopes sur « Q »",
     );
     expect(
       t({ type: "bet_settled", betId: "b", question: "Q", outcome: "refunded", amount: 4 }),
-    ).toBe("Pari réglé : ta mise de 4 est rendue");
+    ).toBe("Pari réglé : ta mise de 4 est rendue sur « Q »");
     expect(t({ type: "bet_cancelled", betId: "b", question: "Q", amount: 3 })).toBe(
       "Pari annulé : « Q ». Ta mise de 3 est rendue.",
     );

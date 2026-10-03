@@ -141,7 +141,7 @@ describe("mise", () => {
       ),
     ).toEqual({
       ok: false,
-      error: "Ce pari n'accepte pas de mise.",
+      error: "Ce pari n'est pas ouvert aux mises.",
     });
     expect(
       await placeWager(

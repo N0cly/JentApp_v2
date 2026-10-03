@@ -202,7 +202,7 @@ Chat (M4), construits avec les composants existants :
 Classement, Moi et Profil (M5), construits avec les composants existants :
 
 - Ma ligne hors podium (4e et au-delà) : la ligne des autres, avec l'overline « TOI » sous le rang, comme sur le podium ; la carte se place juste dessous.
-- Carte du premier : « Tu mènes la ligue. {n} clopes d'avance sur {pseudo}. » ; s'il y a des paris ouverts, « {n} paris ouverts pour creuser l'écart » et le bouton « Parier ». Seul : « Tu es seul ici. Invite la bande. » et le bouton « Inviter ».
+- Carte du premier : « Tu mènes la ligue. {n} clopes d'avance sur {pseudo}. » ; s'il y a des paris ouverts, « {n} paris ouverts pour creuser l'écart » et le bouton « Parier ». À égalité en tête : « Tu partages la tête avec {pseudo}. » ; à égalité plus bas : « À égalité avec {pseudo} ». Seul : « Personne d'autre ici. Invite la bande. » et le bouton « Inviter ».
 - Podium à un ou deux membres : seules les places occupées, chacune dans sa colonne (deuxième à gauche, premier au centre).
 - Vue « Bilan net » : même écran, valeurs signées en `win` ou `loss`, sans carte.
 - Moi, en attendant Succès et Cosmétiques (M6) : le `Segmented` est remplacé par l'overline « HISTORIQUE », comme « DERNIERS PARIS » du profil. Le lien Boutique reste masqué. L'avatar garde l'anneau par défaut jusqu'à la bordure équipée (M6).
@@ -221,7 +221,7 @@ Boutique, succès et catalogue (M6), construits avec les composants existants :
 - Moi, Succès : débloqués d'abord, puis les autres, dans l'ordre du catalogue ; les cachés non débloqués à la fin. La progression « · {x} sur {n} » et sa barre ne s'affichent que sur un succès verrouillé qui compte.
 - Réglages du compte : la ligne « Catalogue », valeur « super-admin », n'apparaît qu'au super-admin.
 - Catalogue, onglet Succès : mêmes lignes que les cosmétiques (médaille, nom, « {description} · +{récompense} », « · caché » s'il l'est, interrupteur), la note « Un succès désactivé ne se débloque plus ; ceux qui l'ont le gardent. » et le bouton « Ajouter un succès ».
-- Formulaires du catalogue : une feuille, ouverte par une ligne ou par « Ajouter ». Cosmétique : `Segmented` Avatar / Bordure (à la création seulement), Nom, Prix en clopes, Couleur ou Image, Ordre, « Enregistrer ». Succès : des `Chip` pour la règle (Paris misés, Mise d'un coup, Tapis, Paris gagnés, Série, À sec, Paris lancés, Achats ; figée ensuite), Seuil (sauf À sec), Nom, Récompense en clopes, Ordre, la case « Caché », « Enregistrer ».
+- Formulaires du catalogue : une feuille, ouverte par une ligne ou par « Ajouter ». Cosmétique : `Segmented` Avatar / Bordure (à la création seulement), Nom, Prix en clopes, Couleur ou Image, Ordre, « Enregistrer ». Succès : des `Chip` pour la règle (Paris joués, Mise d'un coup, Tapis, Paris gagnés, Série, À sec, Paris lancés, Achats ; figée ensuite), Seuil (sauf À sec), Nom, Récompense en clopes, Ordre, la case « Caché », « Enregistrer ».
 
 Notifications, journal et PWA (M7), construits avec les composants existants :
 

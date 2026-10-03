@@ -127,13 +127,17 @@ function StandingCard({ card, leagueId }: { card: Card; leagueId: string }) {
   let detail: string | null = null;
   let action: { href: string; label: string } | null = null;
   if (card.kind === "alone") {
-    title = "Tu es seul ici. Invite la bande.";
+    title = "Personne d'autre ici. Invite la bande.";
     action = { href: `/l/${leagueId}/inviter`, label: "Inviter" };
   } else {
     title =
       card.kind === "leader"
-        ? `Tu mènes la ligue. ${countOf(card.lead)} d'avance sur ${card.rival}.`
-        : `${countOf(card.gap)} derrière ${card.rival}`;
+        ? card.lead === 0
+          ? `Tu partages la tête avec ${card.rival}.`
+          : `Tu mènes la ligue. ${countOf(card.lead)} d'avance sur ${card.rival}.`
+        : card.gap === 0
+          ? `À égalité avec ${card.rival}`
+          : `${countOf(card.gap)} derrière ${card.rival}`;
     if (card.openBets > 0) {
       const bets = card.openBets === 1 ? "1 pari ouvert" : `${card.openBets} paris ouverts`;
       detail = `${bets} ${card.kind === "leader" ? "pour creuser l'écart" : "pour le doubler"}`;
