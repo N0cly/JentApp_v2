@@ -5,9 +5,25 @@ services:
   app:
     image: ghcr.io/n0cly/jentapp_v2:${JENTAPP_TAG:-latest}
     restart: unless-stopped
+    # Valeurs dans /opt/jentapp/.env (modèle : deploy/.env.example). Le délai de
+    # versement n'est pas transmis : il reste à 10 minutes en production.
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       APP_URL: ${APP_URL}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      EMAIL_FROM: ${EMAIL_FROM}
+      TRUST_PROXY: ${TRUST_PROXY:-true}
+      UPLOADS_DIR: /app/uploads
+      GIPHY_API_KEY: ${GIPHY_API_KEY:-}
+      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
+      VAPID_SUBJECT: ${VAPID_SUBJECT:-}
+      # Suivi d'erreurs (GlitchTip) : vide, désactivé.
+      ERROR_DSN: ${ERROR_DSN:-}
     ports:
       # Seul Nginx, sur la même machine, parle à l'app.
       - "127.0.0.1:3000:3000"
