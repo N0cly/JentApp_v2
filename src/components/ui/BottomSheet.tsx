@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, type ReactNode } from "react";
+import { cx } from "@/lib/cx";
 import { CloseIcon } from "./icons";
 import { IconButton } from "./IconButton";
 
@@ -8,11 +9,19 @@ type BottomSheetProps = {
   open: boolean;
   onClose: () => void;
   title: string;
+  /** Un titre qui est un pseudo se coupe avec des points de suspension ; sinon il passe à la ligne. */
+  truncateTitle?: boolean;
   children: ReactNode;
 };
 
 /** Feuille modale : surface-raised, haut en radius-lg, poignée, bouton fermer. */
-export function BottomSheet({ open, onClose, title, children }: BottomSheetProps) {
+export function BottomSheet({
+  open,
+  onClose,
+  title,
+  truncateTitle = false,
+  children,
+}: BottomSheetProps) {
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
 
@@ -39,10 +48,13 @@ export function BottomSheet({ open, onClose, title, children }: BottomSheetProps
           aria-hidden="true"
           className="h-[4px] w-[36px] self-center rounded-full bg-line-strong"
         />
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
           <h2
             id={titleId}
-            className="text-[24px] leading-[28px] font-extrabold tracking-[-0.01em] [font-stretch:85%]"
+            className={cx(
+              "min-w-0 text-[24px] leading-[28px] font-extrabold tracking-[-0.01em] [font-stretch:85%]",
+              truncateTitle ? "truncate" : "[overflow-wrap:anywhere]",
+            )}
           >
             {title}
           </h2>

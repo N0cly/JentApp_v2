@@ -20,7 +20,12 @@ function ProfileSheet({
   onClose: () => void;
 }) {
   return (
-    <BottomSheet open={profile !== null} onClose={onClose} title={profile?.username ?? ""}>
+    <BottomSheet
+      open={profile !== null}
+      onClose={onClose}
+      title={profile?.username ?? ""}
+      truncateTitle
+    >
       {profile && (
         <>
           <div className="flex items-center gap-3">
