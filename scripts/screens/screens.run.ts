@@ -10,14 +10,17 @@ import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
 import { PASSWORD } from "./seed";
 import { BASE, OUTPUT } from "./setup";
 
+/** [largeur, hauteur, mode] : téléphone, tablette, paysage, texte agrandi à 200 %. */
 const SIZES = [
-  [320, 568],
-  [360, 740],
-  [375, 667],
-  [390, 844],
-  [412, 915],
-  [430, 932],
-  [820, 1180],
+  [320, 568, "portrait"],
+  [360, 740, "portrait"],
+  [375, 667, "portrait"],
+  [390, 844, "portrait"],
+  [412, 915, "portrait"],
+  [430, 932, "portrait"],
+  [820, 1180, "tablette"],
+  [844, 390, "paysage"],
+  [390, 844, "texte 200 %"],
 ] as const;
 
 type Account = "full" | "empty" | "none";
@@ -71,7 +74,7 @@ const ROUTES: Route[] = [
     name: "ticket-de-mise",
     path: `/l/${L}/paris`,
     as: "full",
-    open: tap("main button:has-text('Option numéro 1')"),
+    open: tap("main button:has-text('Option numéro 5')"),
   },
   {
     name: "ligues",
@@ -219,6 +222,20 @@ async function inspect(page: Page, width: number) {
         });
       }
     }
+    // Une feuille ouverte tient dans l'écran, ou défile.
+    for (const dialog of document.querySelectorAll("dialog[open]")) {
+      const r = dialog.getBoundingClientRect();
+      const vh = document.documentElement.clientHeight;
+      const scrolls = ["auto", "scroll"].includes(getComputedStyle(dialog).overflowY);
+      if (r.top < -1 || r.bottom > vh + 1) {
+        out.push({
+          kind: "feuille",
+          detail: `hors de l'écran (${Math.round(r.top)} → ${Math.round(r.bottom)} pour ${vh})`,
+        });
+      } else if (dialog.scrollHeight > dialog.clientHeight + 1 && !scrolls) {
+        out.push({ kind: "feuille", detail: "contenu coupé, sans défilement" });
+      }
+    }
     if (wide) {
       // La colonne de l'app : l'enfant le plus large du corps de page.
       const column = [...document.body.children].sort(
@@ -234,6 +251,25 @@ async function inspect(page: Page, width: number) {
     }
     return out;
   }, width > 480);
+}
+
+/**
+ * Simule le réglage « taille du texte » du téléphone à 200 % : chaque texte
+ * double de taille et d'interligne, la largeur de l'écran ne change pas.
+ */
+async function enlargeText(page: Page) {
+  await page.evaluate(() => {
+    for (const el of document.querySelectorAll<HTMLElement>("body *")) {
+      if (el.dataset.enlarged) continue;
+      const style = getComputedStyle(el);
+      const size = Number.parseFloat(style.fontSize);
+      const line = Number.parseFloat(style.lineHeight);
+      el.dataset.enlarged = "1";
+      el.style.fontSize = `${size * 2}px`;
+      if (!Number.isNaN(line)) el.style.lineHeight = `${line * 2}px`;
+    }
+  });
+  await page.waitForTimeout(200);
 }
 
 let browser: Browser;
@@ -270,8 +306,8 @@ afterAll(async () => {
   );
 });
 
-describe.each(SIZES)("%i × %i", (width, height) => {
-  const size = `${width}x${height}`;
+describe.each(SIZES)("%i × %i, %s", (width, height, mode) => {
+  const size = `${width}x${height}${mode === "texte 200 %" ? "-texte200" : mode === "paysage" ? "-paysage" : ""}`;
   let contexts: Map<Account, BrowserContext>;
 
   beforeAll(async () => {
@@ -283,8 +319,8 @@ describe.each(SIZES)("%i × %i", (width, height) => {
         await browser.newContext({
           viewport: { width, height },
           deviceScaleFactor: 1,
-          hasTouch: true,
-          isMobile: width <= 480,
+          hasTouch: mode !== "tablette",
+          isMobile: mode === "portrait" || mode === "texte 200 %",
           storageState: sessions.get(as),
         }),
       );
@@ -300,8 +336,10 @@ describe.each(SIZES)("%i × %i", (width, height) => {
     try {
       await page.goto(`${BASE}${route.path}`, { waitUntil: "load", timeout: 60_000 });
       await page.waitForTimeout(700);
+      if (mode === "texte 200 %") await enlargeText(page);
       if (route.open) await route.open(page);
-      const found = await inspect(page, width);
+      if (mode === "texte 200 %") await enlargeText(page);
+      const found = await inspect(page, mode === "tablette" ? width : 0);
       await page.screenshot({ path: `${OUTPUT}/${size}/${name}.png`, fullPage: true });
       for (const f of found) problems.push({ size, route: name, ...f });
       expect(found, `${name} à ${size}`).toEqual([]);
