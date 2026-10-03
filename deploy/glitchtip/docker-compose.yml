@@ -1,0 +1,74 @@
+# GlitchTip, suivi d'erreurs de JentApp, sur glitchtip.nocly.fr. Voir docs/DEPLOY.md.
+# D'après le modèle officiel (https://glitchtip.com/documentation/install) :
+# un conteneur tout-en-un (web et worker), sa base Postgres et son cache Valkey.
+name: glitchtip
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
+x-environment: &environment
+  DATABASE_URL: postgres://glitchtip:${POSTGRES_PASSWORD}@postgres:5432/glitchtip
+  VALKEY_URL: redis://valkey:6379
+  SECRET_KEY: ${SECRET_KEY}
+  GLITCHTIP_DOMAIN: ${GLITCHTIP_DOMAIN:-https://glitchtip.nocly.fr}
+  # Noms d'hôte acceptés (protection de Django).
+  ALLOWED_HOSTS: ${ALLOWED_HOSTS:-glitchtip.nocly.fr}
+  DEFAULT_FROM_EMAIL: ${DEFAULT_FROM_EMAIL:-glitchtip@nocly.fr}
+  EMAIL_URL: ${EMAIL_URL:-consolemail://}
+  # Seul le premier compte peut s'inscrire ; les suivants sont invités.
+  ENABLE_USER_REGISTRATION: "False"
+  ENABLE_ORGANIZATION_CREATION: "False"
+  ENABLE_ADMIN: "False"
+  ENABLE_OPENAPI: "False"
+  GLITCHTIP_ENABLE_MCP: "False"
+  GLITCHTIP_ENABLE_DUCKDB: "False"
+  # Ni journaux ni surveillance de disponibilité : seulement les erreurs.
+  GLITCHTIP_ENABLE_LOGS: "False"
+  GLITCHTIP_ENABLE_UPTIME: "False"
+
+services:
+  postgres:
+    image: postgres:18
+    restart: unless-stopped
+    logging: *logging
+    environment:
+      POSTGRES_USER: glitchtip
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: glitchtip
+    volumes:
+      - pg-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U glitchtip -d glitchtip"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  valkey:
+    image: valkey/valkey:9
+    restart: unless-stopped
+    logging: *logging
+
+  web:
+    image: glitchtip/glitchtip:6
+    restart: unless-stopped
+    logging: *logging
+    depends_on:
+      postgres:
+        condition: service_healthy
+      valkey:
+        condition: service_started
+    environment:
+      <<: *environment
+      SERVER_ROLE: all_in_one
+    ports:
+      # Seul Nginx, sur la même machine, parle à GlitchTip.
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - uploads:/code/uploads
+
+volumes:
+  pg-data:
+  uploads:
