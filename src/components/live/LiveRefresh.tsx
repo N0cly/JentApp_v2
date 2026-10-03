@@ -21,7 +21,11 @@ export function LiveRefresh() {
       return;
     }
     clearTimeout(timer.current);
-    timer.current = setTimeout(() => router.refresh(), 300);
+    timer.current = setTimeout(() => {
+      // Onglet caché ou qui se ferme : rien à relire ; au retour, le flux se
+      // rouvre et « resync » relit tout.
+      if (document.visibilityState === "visible") router.refresh();
+    }, 300);
   });
   return null;
 }
