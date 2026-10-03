@@ -29,7 +29,7 @@ export default async function RankingPage({ params }: PageProps<"/l/[ligue]/clas
   return (
     <>
       <header className="flex shrink-0 flex-col gap-1 px-5 py-3">
-        <LeagueTopBar userId={user.id} leagueId={ligue} showBalance />
+        <LeagueTopBar userId={user.id} leagueId={ligue} showBalance showBell />
         <h1 className="text-title">Classement</h1>
       </header>
       <RankingBoard

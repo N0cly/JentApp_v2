@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { atTime } from "./time-format";
+import { atTime, shortWhen } from "./time-format";
 
 describe("atTime", () => {
   const now = new Date("2026-10-07T18:00:00Z");
@@ -24,5 +24,14 @@ describe("dayLabel", () => {
     expect(dayLabel(new Date("2026-10-05T12:00:00Z"), now, tz)).toBe("LUNDI 5 OCTOBRE");
     expect(dayLabel(new Date("2025-12-31T12:00:00Z"), now, tz)).toBe("MERCREDI 31 DÉCEMBRE 2025");
     expect(clockTime(new Date("2026-10-07T19:14:00Z"), tz)).toBe("21:14");
+  });
+});
+
+describe("heure d'une notification", () => {
+  const now = new Date("2026-10-07T18:00:00Z");
+  it("aujourd'hui l'heure, hier « HIER », puis le jour et le mois", () => {
+    expect(shortWhen(new Date("2026-10-07T19:14:00Z"), now, "Europe/Paris")).toBe("21:14");
+    expect(shortWhen(new Date("2026-10-06T19:14:00Z"), now, "Europe/Paris")).toBe("HIER");
+    expect(shortWhen(new Date("2026-10-05T10:00:00Z"), now, "Europe/Paris")).toBe("5 OCT.");
   });
 });

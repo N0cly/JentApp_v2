@@ -26,6 +26,7 @@ export default async function BetsPage({ params, searchParams }: PageProps<"/l/[
           userId={user.id}
           leagueId={ligue}
           showBalance
+          showBell
           action={
             <IconButton label="Nouveau pari" variant="brand" href={`/l/${ligue}/paris/nouveau`}>
               <PlusIcon size={22} />

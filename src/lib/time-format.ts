@@ -58,3 +58,16 @@ export function dayLabel(date: Date, now: Date, timeZone?: string): string {
   }).format(date);
   return label.toUpperCase();
 }
+
+/**
+ * Heure d'une notification (docs/M7.md, choix validé) : « 21:14 » aujourd'hui,
+ * « HIER », puis « 5 OCT. ».
+ */
+export function shortWhen(date: Date, now: Date, timeZone?: string): string {
+  const key = dayKey(date, timeZone);
+  if (key === dayKey(now, timeZone)) return clockTime(date, timeZone);
+  if (key === dayKey(new Date(now.getTime() - 24 * 3600_000), timeZone)) return "HIER";
+  return new Intl.DateTimeFormat("fr-FR", { timeZone, day: "numeric", month: "short" })
+    .format(date)
+    .toUpperCase();
+}

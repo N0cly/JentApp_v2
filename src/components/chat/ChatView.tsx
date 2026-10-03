@@ -42,6 +42,8 @@ type Props = {
   members: Member[];
   gifsEnabled: boolean;
   shareable: Shareable[];
+  /** Message à montrer (lien d'une notification de mention). */
+  focusId?: number;
 };
 
 const PAGE = 50;
@@ -166,6 +168,7 @@ export function ChatView({
   members,
   gifsEnabled,
   shareable,
+  focusId,
 }: Props) {
   const live = useLive();
   const [messages, setMessages] = useState(initial);
@@ -194,6 +197,12 @@ export function ChatView({
     if (stickNext.current) scrollToBottom();
     stickNext.current = false;
   }, [messages, scrollToBottom]);
+
+  // Arrivée par une mention : le message au milieu de l'écran, s'il est chargé.
+  useLayoutEffect(() => {
+    if (focusId === undefined) return;
+    document.getElementById(`message-${focusId}`)?.scrollIntoView({ block: "center" });
+  }, [focusId]);
 
   const refreshOne = useCallback(
     async (id: number, fromSomeoneElse: boolean) => {
@@ -331,7 +340,11 @@ export function ChatView({
       const first = item.messages[0]!;
       const last = item.messages.at(-1)!;
       const bubbles = item.messages.map((m) => (
-        <div key={m.id} className={cx("flex flex-col gap-1", item.mine && "items-end")}>
+        <div
+          key={m.id}
+          id={`message-${m.id}`}
+          className={cx("flex flex-col gap-1", item.mine && "items-end")}
+        >
           <Bubble message={m} mine={item.mine} onOpen={() => setSelected(m)} />
           {m.bet && <ChatBetCard leagueId={leagueId} bet={m.bet} />}
           <LikePill

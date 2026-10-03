@@ -43,6 +43,7 @@ const EVENTS = [
   "bet.changed",
   "balance.changed",
   "member.changed",
+  "notification.new",
   "presence",
   "typing",
   "resync",

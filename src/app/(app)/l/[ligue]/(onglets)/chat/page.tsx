@@ -9,8 +9,9 @@ import { listMembers } from "@/server/leagues";
 
 export const metadata: Metadata = { title: "Chat · JentApp" };
 
-export default async function ChatPage({ params }: PageProps<"/l/[ligue]/chat">) {
+export default async function ChatPage({ params, searchParams }: PageProps<"/l/[ligue]/chat">) {
   const { ligue } = await params;
+  const focus = Number((await searchParams).message);
   const { user, membership } = await enterLeague(ligue);
   const now = new Date();
   const [messages, members, bets] = await Promise.all([
@@ -44,6 +45,7 @@ export default async function ChatPage({ params }: PageProps<"/l/[ligue]/chat">)
         }))}
         gifsEnabled={gifsEnabled()}
         shareable={shareable}
+        focusId={Number.isInteger(focus) && focus > 0 ? focus : undefined}
       />
     </div>
   );

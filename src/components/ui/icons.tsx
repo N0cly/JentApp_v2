@@ -293,3 +293,12 @@ export function MedalIcon(props: IconProps) {
     </Svg>
   );
 }
+
+export function AtIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <circle cx="12" cy="12" r="4" />
+      <path d="M16 12v1.5a2.5 2.5 0 0 0 5 0V12a9 9 0 1 0-4 7.5" />
+    </Svg>
+  );
+}
