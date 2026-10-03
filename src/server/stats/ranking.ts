@@ -1,10 +1,11 @@
 // Classement d'une ligue (docs/M5.md, § Classement). Membres actifs seulement,
 // rangs de 1 à n sans ex æquo.
 
-import { and, count, eq, gt, isNull, lte } from "drizzle-orm";
+import { and, count, eq, gt, isNotNull, isNull, lte, min } from "drizzle-orm";
 import { getDb } from "@/db/client";
 import { bets, leagueMembers, users } from "@/db/schema";
 import { memberOrNotFound, type Role } from "@/server/auth/access";
+import { settleDelayMs } from "@/server/bets/rules";
 import { DELETED_PLAYER } from "@/server/leagues";
 import { leagueStats, NO_STATS, type MemberStats } from "./stats";
 
@@ -122,4 +123,32 @@ export async function getRanking(
   const rows = await leagueRanking(leagueId, sort);
   if (sort !== "fortune") return { rows, card: null };
   return { rows, card: rankingCard(rows, actor.id, await countOpenBets(leagueId, now)) };
+}
+
+/**
+ * Prochain instant où le classement change sans action de personne : un
+ * versement dû (le règlement se fait à la lecture) ou un pari qui s'ouvre ou
+ * se ferme (la carte compte les paris ouverts). Null s'il n'y en a pas.
+ */
+export async function nextRankingChange(leagueId: string, now: Date): Promise<Date | null> {
+  const live = and(eq(bets.leagueId, leagueId), isNull(bets.cancelledAt), isNull(bets.settledAt));
+  const [row] = await getDb()
+    .select({ payout: min(bets.resolvedAt) })
+    .from(bets)
+    .where(and(live, isNotNull(bets.resolvedAt)));
+  const [open] = await getDb()
+    .select({ opens: min(bets.opensAt) })
+    .from(bets)
+    .where(and(live, isNull(bets.resolvedAt), gt(bets.opensAt, now)));
+  const [close] = await getDb()
+    .select({ closes: min(bets.closesAt) })
+    .from(bets)
+    .where(and(live, isNull(bets.resolvedAt), gt(bets.closesAt, now)));
+  const candidates = [
+    row?.payout ? new Date(row.payout.getTime() + settleDelayMs()) : null,
+    open?.opens ?? null,
+    close?.closes ?? null,
+  ].filter((d): d is Date => d !== null);
+  if (candidates.length === 0) return null;
+  return new Date(Math.min(...candidates.map((d) => d.getTime())));
 }

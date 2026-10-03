@@ -8,7 +8,7 @@ import { leaveLeague } from "@/server/leagues";
 import { at, betWithStakes, CLOSE, T0 } from "@/test/bet-scenarios";
 import { leagueWith } from "@/test/bets";
 import { resetDb } from "@/test/db";
-import { countOpenBets, getRanking, leagueRanking } from "./ranking";
+import { countOpenBets, getRanking, leagueRanking, nextRankingChange } from "./ranking";
 import { leagueStats, memberStats } from "./stats";
 
 const after = (minutes: number) => new Date(CLOSE.getTime() + minutes * 60_000);
@@ -276,5 +276,42 @@ describe("cohérence", () => {
     expect(seeds!.total).toBeGreaterThan(0);
     expect(totalNet).toBe(seeds!.total);
     expect(stats.has(s.p2.id)).toBe(true);
+  });
+});
+
+describe("prochain changement du classement", () => {
+  beforeEach(resetDb);
+
+  it("versement dû, ouverture ou fermeture la plus proche", async () => {
+    const ctx = await leagueWith(2);
+    const [p1, p2] = [ctx.players[0]!, ctx.players[1]!];
+    const id = ctx.league.id;
+    expect(await nextRankingChange(id, T0)).toBeNull();
+
+    const bet = await betWithStakes(id, ctx.owner, [
+      [p1, 0, 2],
+      [p2, 1, 2],
+    ]);
+    // Ouvert : sa fermeture.
+    expect(await nextRankingChange(id, at(5))).toEqual(CLOSE);
+    await createBet(
+      ctx.owner,
+      id,
+      {
+        question: "Plus tard ?",
+        options: ["A", "B"],
+        moment: "NIGHT",
+        opensAt: at(60).toISOString(),
+        closesAt: after(300).toISOString(),
+      },
+      T0,
+    );
+    // Programmé : son ouverture vient avant.
+    expect(await nextRankingChange(id, at(5))).toEqual(at(60));
+    // Saisi : le versement, 10 minutes après.
+    await resolveBet(ctx.owner, id, bet.betId, { optionId: bet.options[0]! }, after(1));
+    expect(await nextRankingChange(id, after(2))).toEqual(after(11));
+    await settleDue(id, after(12));
+    expect(await nextRankingChange(id, after(12))).toEqual(after(300));
   });
 });

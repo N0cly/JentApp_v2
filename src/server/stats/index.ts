@@ -1,5 +1,6 @@
 export {
   countOpenBets,
+  nextRankingChange,
   getRanking,
   leagueRanking,
   rankingCard,
