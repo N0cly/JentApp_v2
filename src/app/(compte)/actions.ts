@@ -46,7 +46,9 @@ export async function signUpAction(_: FormState, form: FormData): Promise<FormSt
   // Présentation d'abord, puis l'invitation si on venait d'un lien.
   const next = safeNext(form.get("next"));
   redirect(
-    next ? `/bienvenue/presentation?suite=${encodeURIComponent(next)}` : "/bienvenue/presentation",
+    next
+      ? `/bienvenue/presentation?parcours=1&suite=${encodeURIComponent(next)}`
+      : "/bienvenue/presentation?parcours=1",
   );
 }
 

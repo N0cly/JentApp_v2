@@ -39,14 +39,19 @@ export default async function PresentationPage({
   const step = steps[index];
   if (!step) notFound();
 
-  // Après la présentation : les notifications, puis l'invitation si on venait
-  // d'un lien, sinon l'accueil.
+  // Après la présentation : installer l'app, les notifications, puis
+  // l'invitation si on venait d'un lien, sinon l'accueil.
+  // « Revoir la présentation » (Aide) ramène simplement d'où l'on vient.
   const suite = safeNext(params.suite) ?? "/";
-  const after = `/notifications/activer?parcours=1&suite=${encodeURIComponent(suite)}`;
+  const onboarding = params.parcours === "1";
+  const after = onboarding ? `/installer?parcours=1&suite=${encodeURIComponent(suite)}` : suite;
   const isLast = index === steps.length - 1;
-  const nextHref = isLast
-    ? after
-    : `/bienvenue/presentation?etape=${index + 2}${params.suite ? `&suite=${encodeURIComponent(suite)}` : ""}`;
+  const query = new URLSearchParams({
+    etape: String(index + 2),
+    ...(params.suite ? { suite } : {}),
+    ...(onboarding ? { parcours: "1" } : {}),
+  });
+  const nextHref = isLast ? after : `/bienvenue/presentation?${query}`;
 
   return (
     <Screen>

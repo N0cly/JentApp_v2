@@ -21,6 +21,7 @@ export default async function HelpPage({ searchParams }: PageProps<"/compte/aide
             label="Revoir la présentation"
             href={`/bienvenue/presentation?suite=${encodeURIComponent(back)}`}
           />
+          <ListRow label="Installer l'app" href={`/installer?suite=${encodeURIComponent(back)}`} />
         </ListGroup>
         <SectionTitle>LÉGAL</SectionTitle>
         <ListGroup>
