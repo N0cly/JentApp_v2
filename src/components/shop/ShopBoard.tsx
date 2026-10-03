@@ -179,7 +179,7 @@ export function ShopBoard({
       <BottomSheet
         open={buying !== null}
         onClose={() => setBuying(null)}
-        title={buying ? `Acheter ${buying.name} pour ${countOf(buying.price)} ?` : ""}
+        title={buying ? `Acheter ${buying.name} pour ${countOf(buying.price)} ?` : ""}
       >
         {buying && (
           <>

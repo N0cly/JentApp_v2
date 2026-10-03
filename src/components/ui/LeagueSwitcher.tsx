@@ -13,7 +13,7 @@ export function LeagueSwitcher({ name, onClick }: LeagueSwitcherProps) {
     <button
       type="button"
       onClick={onClick}
-      aria-label={`Changer de ligue. Ligue active : ${name}`}
+      aria-label={`Changer de ligue. Ligue active : ${name}`}
       aria-haspopup="dialog"
       className="flex min-h-[44px] items-center gap-2 rounded-full border border-line-strong bg-surface pr-3 pl-2"
     >

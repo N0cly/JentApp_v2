@@ -31,7 +31,7 @@ export function confirmationEmail({ pseudo, link }: { pseudo: string; link: stri
     "Confirme ton email JentApp",
     [
       `Salut ${pseudo},`,
-      "Confirme ton email pour sécuriser ton compte JentApp :",
+      "Confirme ton email pour sécuriser ton compte JentApp :",
       link,
       "Le lien est valable 24 heures. Si tu n'as pas créé de compte, ignore ce message.",
     ],
@@ -44,9 +44,9 @@ export function resetPasswordEmail({ pseudo, link }: { pseudo: string; link: str
     "Choisis un nouveau mot de passe JentApp",
     [
       `Salut ${pseudo},`,
-      "Choisis un nouveau mot de passe ici :",
+      "Choisis un nouveau mot de passe ici :",
       link,
-      "Le lien est valable 1 heure et ne sert qu'une fois. Si tu n'as rien demandé, ignore ce message : ton mot de passe ne change pas.",
+      "Le lien est valable 1 heure et ne sert qu'une fois. Si tu n'as rien demandé, ignore ce message : ton mot de passe ne change pas.",
     ],
     link,
   );

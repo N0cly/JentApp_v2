@@ -1,7 +1,7 @@
 // Exemples des illustrations de la présentation, repris des maquettes.
 // Ce sont des images fixes (aria-hidden), pas des données : rien d'autre ne les lit.
 export const examples = {
-  question: "Qui s'endort en premier ce soir ?",
+  question: "Qui s'endort en premier ce soir ?",
   countdown: "01:42:10",
   options: [
     { label: "Paco_Le_Fou", myStake: undefined },

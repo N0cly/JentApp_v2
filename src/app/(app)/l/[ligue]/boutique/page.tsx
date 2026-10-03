@@ -24,7 +24,7 @@ export default async function ShopPage({ params }: PageProps<"/l/[ligue]/boutiqu
         title="Boutique"
         action={
           <span
-            aria-label={`Solde : ${shop.balance} ${shop.balance > 1 ? "clopes" : "clope"}`}
+            aria-label={`Solde : ${shop.balance} ${shop.balance > 1 ? "clopes" : "clope"}`}
             className="mr-2 flex min-h-[44px] items-center gap-1 rounded-full border border-line-strong bg-surface px-4 font-mono text-[15px] font-medium"
           >
             {shop.balance}

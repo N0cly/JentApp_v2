@@ -29,7 +29,7 @@ export function PhotoRow({ username, image }: { username: string; image: string 
             if (!file) return;
             // Contrôle avant l'envoi : le serveur refuse aussi au-delà.
             if (file.size > MAX_BYTES) {
-              setLocalError("Photo trop lourde : 5 Mo au plus.");
+              setLocalError("Photo trop lourde : 5 Mo au plus.");
               e.target.value = "";
               return;
             }

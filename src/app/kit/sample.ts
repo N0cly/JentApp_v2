@@ -7,7 +7,7 @@ export const sample = {
     { name: "Coloc", members: 4, balance: 120, open: "1 pari ouvert", active: false },
     { name: "Foot du jeudi", members: 11, balance: 35, open: "rien d'ouvert", active: false },
   ],
-  question: "Qui s'endort en premier ce soir ?",
+  question: "Qui s'endort en premier ce soir ?",
   creator: "Paco_Le_Fou",
   options: ["Paco_Le_Fou", "Mister_Clope", "La_Dèche"],
   pot: 35,

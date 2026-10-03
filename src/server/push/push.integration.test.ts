@@ -87,7 +87,7 @@ describe("envoi", () => {
     expect(await pushNotification((await lastNotification(p.id)).id, service.send, T0)).toBe(1);
     expect(service.sent[0]!.message).toEqual({
       title: "Bande",
-      body: "Tournée générale : +10 clopes pour tout le monde",
+      body: "Tournée générale : +10 clopes pour tout le monde",
       url: `/l/${ctx.league.id}/paris`,
       tag: null,
     });
@@ -100,7 +100,7 @@ describe("envoi", () => {
     const created = await createBet(
       ctx.owner,
       ctx.league.id,
-      { question: "Qui ?", options: ["A", "B"], moment: "NIGHT", closesAt: CLOSE.toISOString() },
+      { question: "Qui ?", options: ["A", "B"], moment: "NIGHT", closesAt: CLOSE.toISOString() },
       T0,
     );
     if (!created.ok) throw new Error("pari");
@@ -151,7 +151,7 @@ describe("envoi", () => {
     const created = await createBet(
       ctx.owner,
       ctx.league.id,
-      { question: "Qui ?", options: ["A", "B"], moment: "NIGHT", closesAt: CLOSE.toISOString() },
+      { question: "Qui ?", options: ["A", "B"], moment: "NIGHT", closesAt: CLOSE.toISOString() },
       T0,
     );
     if (!created.ok) throw new Error("pari");
@@ -208,7 +208,7 @@ describe("après validation seulement", () => {
     expect(await waitFor(() => service.sent.length > 0)).toBe(true);
     await new Promise((r) => setTimeout(r, 200));
     expect(service.sent.map((s) => s.message.body)).toEqual([
-      "Tournée générale : +10 clopes pour tout le monde",
+      "Tournée générale : +10 clopes pour tout le monde",
     ]);
   });
 });

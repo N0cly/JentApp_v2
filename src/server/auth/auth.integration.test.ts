@@ -59,7 +59,7 @@ describe("inscription", () => {
     expect(result).toEqual({
       ok: false,
       fieldErrors: {
-        username: "3 à 20 caractères : lettres, chiffres, _ et -.",
+        username: "3 à 20 caractères : lettres, chiffres, _ et -.",
         email: "Cet email n'a pas l'air valide.",
         password: "8 caractères minimum. Il en manque 3.",
         terms: "Coche la case pour continuer.",

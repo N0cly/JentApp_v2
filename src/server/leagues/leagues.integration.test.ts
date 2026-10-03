@@ -173,7 +173,7 @@ describe("rejoindre", () => {
     const late = await createUser();
     expect(await joinLeague({ id: late.id }, league.inviteCode, new Date())).toEqual({
       ok: false,
-      formError: "Cette ligue est complète : 50 membres.",
+      formError: "Cette ligue est complète : 50 membres.",
     });
   });
 

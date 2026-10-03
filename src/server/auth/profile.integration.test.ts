@@ -33,7 +33,7 @@ describe("compte", () => {
     await account("Bravo", "b@exemple.fr");
     expect(await changeUsername(a.user.id, { username: "x" })).toEqual({
       ok: false,
-      fieldErrors: { username: "3 à 20 caractères : lettres, chiffres, _ et -." },
+      fieldErrors: { username: "3 à 20 caractères : lettres, chiffres, _ et -." },
     });
     expect(await changeUsername(a.user.id, { username: "BRAVO" })).toEqual({
       ok: false,

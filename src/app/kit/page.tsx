@@ -285,7 +285,7 @@ export default function KitPage() {
 
         <Section name="TabBar">
           <span className="text-caption text-ink-subtle">
-            En bas de l&apos;écran, onglet actif : Paris.
+            En bas de l&apos;écran, onglet actif : Paris.
           </span>
         </Section>
       </main>

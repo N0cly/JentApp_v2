@@ -298,7 +298,7 @@ export function CatalogBoard({
             ))}
           </Rows>
           <p className="text-caption text-ink-subtle">
-            Un cosmétique désactivé disparaît de la boutique ; ceux qui le possèdent le gardent.
+            Un cosmétique désactivé disparaît de la boutique ; ceux qui le possèdent le gardent.
           </p>
           <div className="grow" />
           <Button onClick={() => setEditCosmetic("new")}>Ajouter un cosmétique</Button>
@@ -333,7 +333,7 @@ export function CatalogBoard({
             ))}
           </Rows>
           <p className="text-caption text-ink-subtle">
-            Un succès désactivé ne se débloque plus ; ceux qui l&apos;ont le gardent.
+            Un succès désactivé ne se débloque plus ; ceux qui l&apos;ont le gardent.
           </p>
           <div className="grow" />
           <Button onClick={() => setEditAchievement("new")}>Ajouter un succès</Button>

@@ -41,7 +41,7 @@ export function ResultForm({
 
   return (
     <>
-      <h2 className="text-overline text-ink-subtle">QUELLE OPTION A GAGNÉ ?</h2>
+      <h2 className="text-overline text-ink-subtle">QUELLE OPTION A GAGNÉ ?</h2>
       <div className="flex flex-col gap-2">
         {options.map((o) => (
           <BetOption
@@ -71,7 +71,7 @@ export function ResultForm({
         disabled={!chosen || pending}
         onClick={() => chosen && submit({ optionId: chosen.id })}
       >
-        {chosen ? `Valider : ${chosen.label}` : "Choisis l'option gagnante"}
+        {chosen ? `Valider : ${chosen.label}` : "Choisis l'option gagnante"}
       </Button>
       <Button
         variant="discreet"
@@ -79,7 +79,7 @@ export function ResultForm({
         disabled={pending}
         onClick={() => submit({ cancel: true })}
       >
-        Égalité ou erreur : annuler et rendre les mises
+        Égalité ou erreur : annuler et rendre les mises
       </Button>
     </>
   );

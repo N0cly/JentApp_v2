@@ -47,26 +47,26 @@ export function notificationText(
 ): string {
   switch (payload.type) {
     case "bet_opened": {
-      if (!payload.opensAt) return `Nouveau pari : ${frenchSpacing(payload.question ?? "")}`;
+      if (!payload.opensAt) return `Nouveau pari : ${frenchSpacing(payload.question ?? "")}`;
       const when = atTime(new Date(payload.opensAt), now, timeZone);
       return payload.question === null
         ? `Pari mystère programmé. Ouverture ${when}.`
-        : `Pari programmé, ouverture ${when} : ${frenchSpacing(payload.question)}`;
+        : `Pari programmé, ouverture ${when} : ${frenchSpacing(payload.question)}`;
     }
     case "bet_resolved":
-      return `${payload.correction ? "Résultat corrigé" : "Résultat saisi"} sur ${quoted(payload.question)} : ${payload.option}. Versement dans ${minutes(payload.delayMinutes)}.`;
+      return `${payload.correction ? "Résultat corrigé" : "Résultat saisi"} sur ${quoted(payload.question)} : ${payload.option}. Versement dans ${minutes(payload.delayMinutes)}.`;
     case "bet_settled":
       if (payload.outcome === "won")
-        return `Pari réglé : tu gagnes ${clopes(payload.amount)} sur ${quoted(payload.question)}`;
+        return `Pari réglé : tu gagnes ${clopes(payload.amount)} sur ${quoted(payload.question)}`;
       if (payload.outcome === "lost")
-        return `Pari réglé : tu perds ${clopes(payload.amount)} sur ${quoted(payload.question)}`;
-      return `Pari réglé : ta mise de ${payload.amount} est rendue sur ${quoted(payload.question)}`;
+        return `Pari réglé : tu perds ${clopes(payload.amount)} sur ${quoted(payload.question)}`;
+      return `Pari réglé : ta mise de ${payload.amount} est rendue sur ${quoted(payload.question)}`;
     case "bet_cancelled":
-      return `Pari annulé : ${quoted(payload.question)}. Ta mise de ${payload.amount} est rendue.`;
+      return `Pari annulé : ${quoted(payload.question)}. Ta mise de ${payload.amount} est rendue.`;
     case "mention":
       return `${payload.author} t'a mentionné dans le chat`;
     case "round":
-      return `Tournée générale : +${clopes(payload.amount)} pour tout le monde`;
+      return `Tournée générale : +${clopes(payload.amount)} pour tout le monde`;
   }
 }
 

@@ -7,7 +7,7 @@ export const MAX_MEMBERS_PER_LEAGUE = 50;
 // Messages : docs/M1.md, § Messages, et voix de docs/design.md pour les autres.
 export const leagueMessages = {
   codeUnknown: "Ce code ne correspond à aucune ligue.",
-  leagueFull: "Cette ligue est complète : 50 membres.",
+  leagueFull: "Cette ligue est complète : 50 membres.",
   tooManyLeagues: "Tu es déjà dans 10 ligues. Quittes-en une pour en rejoindre une autre.",
   nameLength: "2 à 30 caractères.",
   joinGrantRange: "Un nombre entier entre 0 et 200.",

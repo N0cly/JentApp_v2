@@ -139,7 +139,7 @@ export function LeagueSheetDemo() {
           ))}
         </div>
         <p className="text-caption text-ink-muted">
-          Un solde par ligue : tes clopes ne passent pas d&apos;une ligue à l&apos;autre.
+          Un solde par ligue : tes clopes ne passent pas d&apos;une ligue à l&apos;autre.
         </p>
         <div className="grid grid-cols-2 gap-2">
           <Button variant="secondary">Rejoindre</Button>

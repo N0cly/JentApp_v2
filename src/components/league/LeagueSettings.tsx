@@ -175,7 +175,7 @@ function LeaveSheet({
     <BottomSheet open={open} onClose={onClose} title="Quitter la ligue">
       {state.formError && <FormMessage>{state.formError}</FormMessage>}
       <p className="text-body text-ink-muted">
-        Tu quittes {league.name}. Ton solde est gardé : tu le retrouves si tu reviens avec un code.
+        Tu quittes {league.name}. Ton solde est gardé : tu le retrouves si tu reviens avec un code.
       </p>
       <Button
         variant="danger"

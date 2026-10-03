@@ -32,7 +32,7 @@ export function BetActions({
         </Button>
       )}
       <BottomSheet open={open} onClose={() => setOpen(false)} title="Annuler le pari">
-        <p className="text-body text-ink-muted">Annuler ce pari ? Toutes les mises sont rendues.</p>
+        <p className="text-body text-ink-muted">Annuler ce pari ? Toutes les mises sont rendues.</p>
         <Button
           variant="danger"
           disabled={pending}

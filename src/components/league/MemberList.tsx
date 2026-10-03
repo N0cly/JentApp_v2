@@ -54,7 +54,7 @@ export function MemberList({
                 {manageable ? (
                   <button
                     type="button"
-                    aria-label={`Rôle de ${m.username} : ${roleLabels[m.role]}`}
+                    aria-label={`Rôle de ${m.username} : ${roleLabels[m.role]}`}
                     disabled={pending}
                     onClick={() =>
                       start(() =>
@@ -86,7 +86,7 @@ export function MemberList({
       </ListGroup>
       {isOwner && (
         <p className="text-caption text-ink-subtle">
-          Appuie sur un rôle pour le changer. Un seul owner par ligue ; les trois points servent à
+          Appuie sur un rôle pour le changer. Un seul owner par ligue ; les trois points servent à
           exclure.
         </p>
       )}
@@ -99,7 +99,7 @@ export function MemberList({
           <>
             <p className="text-body text-ink-muted">
               {removing.username} quitte {leagueName} et garde son solde. Le code actuel permet de
-              revenir : pour l&apos;empêcher, régénère le code dans les réglages.
+              revenir : pour l&apos;empêcher, régénère le code dans les réglages.
             </p>
             <Button
               variant="danger"

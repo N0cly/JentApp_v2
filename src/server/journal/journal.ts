@@ -51,16 +51,16 @@ export function journalSentence(
       if (bet?.hiddenUntilOpen && now < bet.opensAt) return "a créé un pari mystère";
       return `a créé le pari ${question}`;
     case "bet.resolved":
-      return `a saisi le résultat de ${question} : ${option}`;
+      return `a saisi le résultat de ${question} : ${option}`;
     case "bet.corrected":
-      return `a corrigé le résultat de ${question} : ${option}`;
+      return `a corrigé le résultat de ${question} : ${option}`;
     case "bet.cancelled":
       if (details.reason === "expired")
         return `Le pari ${question} est annulé, sans résultat depuis 7 jours`;
-      if (details.reason === "tie") return `a annulé le pari ${question} : égalité`;
+      if (details.reason === "tie") return `a annulé le pari ${question} : égalité`;
       return `a annulé le pari ${question}`;
     case "round.offered":
-      return `a offert une tournée générale : +${Number(details.amount) || 0} pour tous`;
+      return `a offert une tournée générale : +${Number(details.amount) || 0} pour tous`;
     case "settings.changed": {
       const [key, change] = Object.entries(details)[0] ?? [];
       const { from, to } = (change ?? {}) as { from?: unknown; to?: unknown };

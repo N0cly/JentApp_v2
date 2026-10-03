@@ -14,7 +14,7 @@ export function BalancePill({
   return (
     <Link
       href={`/l/${leagueId}/moi`}
-      aria-label={`Solde dans ${leagueName} : ${balance} ${balance > 1 ? "clopes" : "clope"}`}
+      aria-label={`Solde dans ${leagueName} : ${balance} ${balance > 1 ? "clopes" : "clope"}`}
       className="flex min-h-[44px] items-center gap-1 rounded-full border border-line-strong bg-surface px-4 font-mono text-[15px] font-medium"
     >
       {balance}

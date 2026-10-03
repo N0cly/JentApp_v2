@@ -14,8 +14,8 @@ export const AVATAR_PATH = "/avatars/";
 const FILE_NAME = /^[0-9a-f-]{36}\.webp$/;
 
 export const photoMessages = {
-  tooLarge: "Photo trop lourde : 5 Mo au plus.",
-  badFormat: "Format refusé : JPEG, PNG ou WebP.",
+  tooLarge: "Photo trop lourde : 5 Mo au plus.",
+  badFormat: "Format refusé : JPEG, PNG ou WebP.",
 } as const;
 
 function avatarsDir(): string {

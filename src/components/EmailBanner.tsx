@@ -14,7 +14,7 @@ export function EmailBanner({ email, expired = false }: { email: string; expired
       ? `Un nouveau lien est parti à ${email}`
       : expired
         ? "Ce lien n'est plus valable. Demande-en un nouveau."
-        : `Confirme ton email : un lien est parti à ${email}`;
+        : `Confirme ton email : un lien est parti à ${email}`;
 
   return (
     <form action={action} className="flex items-center gap-3 rounded-md bg-surface px-4 py-2">

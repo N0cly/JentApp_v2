@@ -12,7 +12,7 @@ describe("emails", () => {
     const email = confirmationEmail({ pseudo: "Nocly", link });
     expect(email.subject).toBe("Confirme ton email JentApp");
     expect(email.text).toBe(
-      `Salut Nocly,\n\nConfirme ton email pour sécuriser ton compte JentApp :\n\n${link}\n\nLe lien est valable 24 heures. Si tu n'as pas créé de compte, ignore ce message.\n`,
+      `Salut Nocly,\n\nConfirme ton email pour sécuriser ton compte JentApp :\n\n${link}\n\nLe lien est valable 24 heures. Si tu n'as pas créé de compte, ignore ce message.\n`,
     );
     expect(email.html).toContain(`<a href="${link.replaceAll("&", "&amp;")}">`);
   });

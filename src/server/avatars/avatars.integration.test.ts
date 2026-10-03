@@ -43,11 +43,11 @@ describe("photo de profil", () => {
     const user = await createUser();
     expect(await saveProfilePhoto(user.id, await image("gif"))).toEqual({
       ok: false,
-      error: "Format refusé : JPEG, PNG ou WebP.",
+      error: "Format refusé : JPEG, PNG ou WebP.",
     });
     expect(await saveProfilePhoto(user.id, Buffer.from("pas une image"))).toEqual({
       ok: false,
-      error: "Format refusé : JPEG, PNG ou WebP.",
+      error: "Format refusé : JPEG, PNG ou WebP.",
     });
   });
 
@@ -55,7 +55,7 @@ describe("photo de profil", () => {
     const user = await createUser();
     expect(await saveProfilePhoto(user.id, new Uint8Array(MAX_PHOTO_BYTES + 1))).toEqual({
       ok: false,
-      error: "Photo trop lourde : 5 Mo au plus.",
+      error: "Photo trop lourde : 5 Mo au plus.",
     });
   });
 

@@ -189,7 +189,7 @@ function BetCard({
       {view.state === "resolved" && (
         <StatusRow
           href={href}
-          title={`Résultat saisi : ${optionLabel(view, view.winningOptionId)}`}
+          title={`Résultat saisi : ${optionLabel(view, view.winningOptionId)}`}
           subtitle={`par ${view.resolvedBy} · corrigeable`}
           right={<MyStake view={view} />}
         />
@@ -199,7 +199,7 @@ function BetCard({
           href={href}
           title="Réglé"
           subtitle={
-            view.refund ? "mises rendues" : `Résultat : ${optionLabel(view, view.winningOptionId)}`
+            view.refund ? "mises rendues" : `Résultat : ${optionLabel(view, view.winningOptionId)}`
           }
           right={
             view.myWager &&

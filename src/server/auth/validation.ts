@@ -2,7 +2,7 @@ import { z } from "zod";
 
 // Messages : docs/M1.md, § Messages.
 export const messages = {
-  usernameInvalid: "3 à 20 caractères : lettres, chiffres, _ et -.",
+  usernameInvalid: "3 à 20 caractères : lettres, chiffres, _ et -.",
   usernameTaken: "Ce pseudo est déjà pris.",
   emailInvalid: "Cet email n'a pas l'air valide.",
   emailTaken: "Un compte existe déjà avec cet email.",

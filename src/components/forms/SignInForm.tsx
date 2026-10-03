@@ -44,14 +44,14 @@ export function SignInForm({ next }: { next: string | null }) {
         href="/mot-de-passe-oublie"
         className="flex min-h-[44px] items-center self-end text-[14px] font-semibold text-ink-muted"
       >
-        Mot de passe oublié ?
+        Mot de passe oublié ?
       </Link>
       <div className="grow" />
       <Button type="submit" disabled={pending}>
         Se connecter
       </Button>
       <p className="flex min-h-[44px] items-center justify-center gap-1 text-[14px] text-ink-muted">
-        Pas encore de compte ?
+        Pas encore de compte ?
         <Link href={signUpHref} className="flex min-h-[44px] items-center font-semibold text-brand">
           Créer un compte
         </Link>

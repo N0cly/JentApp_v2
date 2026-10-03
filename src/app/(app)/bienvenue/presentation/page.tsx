@@ -15,12 +15,12 @@ export const metadata: Metadata = { title: "Présentation · JentApp" };
 const steps = [
   {
     title: "Mise tes clopes sur la soirée",
-    text: "Quelqu'un lance une question, tu choisis une option, tu mises. Les clopes sont fictives : rien à acheter, rien à retirer.",
+    text: "Quelqu'un lance une question, tu choisis une option, tu mises. Les clopes sont fictives : rien à acheter, rien à retirer.",
     Illustration: BetIllustration,
   },
   {
     title: "Les gagnants se partagent le pot",
-    text: "Pas de cote fixée à l'avance : toutes les mises vont dans un pot, partagé au prorata entre ceux qui ont vu juste.",
+    text: "Pas de cote fixée à l'avance : toutes les mises vont dans un pot, partagé au prorata entre ceux qui ont vu juste.",
     Illustration: PotIllustration,
   },
   {
