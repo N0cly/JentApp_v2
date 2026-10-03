@@ -44,10 +44,10 @@ export function ListRow({
   const showChevron = chevron ?? interactive;
   const content = (
     <>
-      <span className="flex flex-col">
+      <span className="flex min-w-0 flex-col">
         <span
           className={cx(
-            "text-[15px] leading-5 font-semibold",
+            "truncate text-[15px] leading-5 font-semibold",
             tone === "loss" ? "text-loss" : "text-ink",
           )}
         >
@@ -57,13 +57,14 @@ export function ListRow({
       </span>
       <span
         className={cx(
-          "flex shrink-0 items-center gap-1 text-[14px] text-ink-muted",
+          "flex min-w-0 items-center gap-1 text-[14px] text-ink-muted",
           mono && "font-mono font-medium",
         )}
       >
-        {value}
+        {/* Pseudo, email, nom de ligue : coupés plutôt que poussés hors de l'écran. */}
+        {value !== undefined && value !== null && <span className="truncate">{value}</span>}
         {showChevron && (
-          <span className="flex text-ink-subtle">
+          <span className="flex shrink-0 text-ink-subtle">
             <ChevronRightIcon size={16} />
           </span>
         )}
