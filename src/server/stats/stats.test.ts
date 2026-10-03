@@ -4,6 +4,8 @@ import { computeStats, NO_STATS, successRate } from "./stats";
 
 const stake = (amount: number, payout: number, won: boolean, refund = false) => ({
   userId: "u",
+  betId: "b",
+  settledAt: new Date(0),
   amount,
   payout,
   won,

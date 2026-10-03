@@ -6,6 +6,7 @@ import { cosmetics, leagueMembers, memberCosmetics } from "@/db/schema";
 import { isUuid, memberOrNotFound } from "@/server/auth/access";
 import { NotFoundError } from "@/server/errors";
 import { InsufficientBalanceError, post, type Tx } from "@/server/ledger";
+import { evaluateAchievements } from "@/server/achievements/evaluate";
 import { notify } from "@/server/realtime/notify";
 
 export type CosmeticType = "avatar" | "border";
@@ -106,6 +107,7 @@ export async function purchase(
         .set({ [wornKey[fresh.type]]: cosmeticId })
         .where(memberWhere(leagueId, actor.id));
       await notify(tx, { league: leagueId, type: "member.changed", user: actor.id });
+      await evaluateAchievements(tx, leagueId, actor.id, { kind: "purchase" });
       const [after] = await tx
         .select({ balance: leagueMembers.balance })
         .from(leagueMembers)

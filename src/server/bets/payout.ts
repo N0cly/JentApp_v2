@@ -3,6 +3,7 @@ import { notify } from "@/server/realtime/notify";
 import { getDb } from "@/db/client";
 import { bets, wagers } from "@/db/schema";
 import { inLockOrder, post } from "@/server/ledger";
+import { evaluateAchievements } from "@/server/achievements/evaluate";
 import { postSystemMessage } from "@/server/chat/system";
 import { audit, refundAll, type BetRow, type Tx } from "./internal";
 import { EXPIRY_MS, settleDelayMs } from "./rules";
@@ -55,6 +56,14 @@ async function lockFresh(tx: Tx, betId: string): Promise<BetRow | null> {
   return bet ?? null;
 }
 
+/** Succès d'après versement : chaque parieur, puis le créateur du pari. */
+async function evaluateAfterPayout(tx: Tx, bet: BetRow, stakes: { userId: string }[]) {
+  for (const { userId } of inLockOrder(stakes)) {
+    await evaluateAchievements(tx, bet.leagueId, userId, { kind: "payout", betId: bet.id });
+  }
+  await evaluateAchievements(tx, bet.leagueId, bet.createdBy, { kind: "created" });
+}
+
 /** Verse un pari : un mouvement par joueur, payout rempli, settled_at = now. */
 async function settleOne(betId: string, now: Date): Promise<boolean> {
   return getDb().transaction(async (tx) => {
@@ -79,6 +88,7 @@ async function settleOne(betId: string, now: Date): Promise<boolean> {
       await refundAll(tx, bet);
       // Rien en face : la cagnotte n'est pas versée.
       await tx.update(bets).set({ settledAt: now, seed: 0 }).where(eq(bets.id, betId));
+      await evaluateAfterPayout(tx, bet, stakes);
       await notify(tx, { league: bet.leagueId, type: "bet.changed", id: betId });
       await postSystemMessage(
         tx,
@@ -112,6 +122,7 @@ async function settleOne(betId: string, now: Date): Promise<boolean> {
         .where(and(eq(wagers.betId, betId), eq(wagers.userId, userId)));
     }
     await tx.update(bets).set({ settledAt: now }).where(eq(bets.id, betId));
+    await evaluateAfterPayout(tx, bet, stakes);
     await notify(tx, { league: bet.leagueId, type: "bet.changed", id: betId });
     await postSystemMessage(
       tx,

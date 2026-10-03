@@ -6,6 +6,7 @@ import { betOptions, leagueMembers, wagers } from "@/db/schema";
 import { isUuid } from "@/server/auth/access";
 import { NotFoundError } from "@/server/errors";
 import { InsufficientBalanceError, post } from "@/server/ledger";
+import { evaluateAchievements } from "@/server/achievements/evaluate";
 import { lockBet } from "./internal";
 import { betMessages } from "./rules";
 import { betState } from "./state";
@@ -80,7 +81,17 @@ export async function placeWager(
         })
         .returning({ amount: wagers.amount });
       await notify(tx, { league: leagueId, type: "bet.changed", id: betId });
-      return { ok: true, stake: row!.amount, balance } as const;
+      const rewarded = await evaluateAchievements(tx, leagueId, actor.id, {
+        kind: "wager",
+        amount: amount.data,
+        balance,
+      });
+      if (rewarded.length === 0) return { ok: true, stake: row!.amount, balance } as const;
+      const [after] = await tx
+        .select({ balance: leagueMembers.balance })
+        .from(leagueMembers)
+        .where(and(eq(leagueMembers.leagueId, leagueId), eq(leagueMembers.userId, actor.id)));
+      return { ok: true, stake: row!.amount, balance: after?.balance ?? balance } as const;
     });
   } catch (error) {
     if (!(error instanceof InsufficientBalanceError)) throw error;
