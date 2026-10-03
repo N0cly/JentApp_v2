@@ -43,6 +43,13 @@
       "when": 1790989136461,
       "tag": "0005_shop_and_achievements",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791031805776,
+      "tag": "0006_notifications",
+      "breakpoints": true
     }
   ]
 }

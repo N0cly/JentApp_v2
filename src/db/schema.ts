@@ -127,6 +127,7 @@ export const leagues = pgTable(
 );
 
 export const leagueRole = pgEnum("league_role", ["player", "admin", "owner"]);
+export const notifyLevel = pgEnum("notify_level", ["all", "results_mentions", "none"]);
 
 export const leagueMembers = pgTable(
   "league_members",
@@ -142,6 +143,8 @@ export const leagueMembers = pgTable(
     balance: integer("balance").notNull().default(0),
     joinedAt: timestamp("joined_at", { withTimezone: true }).notNull().defaultNow(),
     leftAt: timestamp("left_at", { withTimezone: true }),
+    // Notifications de cette ligue (M7) : tout, résultats et mentions, ou rien.
+    notifyLevel: notifyLevel("notify_level").notNull().default("all"),
     // Apparence dans la ligue (M6) : vide = la photo du compte, sans bordure.
     avatarCosmeticId: uuid("avatar_cosmetic_id").references((): AnyPgColumn => cosmetics.id),
     borderCosmeticId: uuid("border_cosmetic_id").references((): AnyPgColumn => cosmetics.id),
@@ -452,3 +455,44 @@ export const memberAchievements = pgTable(
   },
   (t) => [primaryKey({ columns: [t.leagueId, t.userId, t.achievementId] })],
 );
+
+// --- Notifications (M7) -----------------------------------------------------
+
+export const notificationType = pgEnum("notification_type", [
+  "bet_opened",
+  "bet_resolved",
+  "bet_settled",
+  "bet_cancelled",
+  "mention",
+  "round",
+]);
+
+export const notifications = pgTable(
+  "notifications",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id),
+    leagueId: uuid("league_id")
+      .notNull()
+      .references(() => leagues.id, { onDelete: "cascade" }),
+    type: notificationType("type").notNull(),
+    // Identifiants et libellés pour écrire la phrase et le lien à la lecture.
+    payload: jsonb("payload").notNull(),
+    readAt: timestamp("read_at", { withTimezone: true }),
+    createdAt: createdAt(),
+  },
+  (t) => [index("notifications_user_created_idx").on(t.userId, t.createdAt)],
+);
+
+export const pushSubscriptions = pgTable("push_subscriptions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id),
+  endpoint: text("endpoint").notNull().unique(),
+  p256dh: text("p256dh").notNull(),
+  auth: text("auth").notNull(),
+  createdAt: createdAt(),
+});
