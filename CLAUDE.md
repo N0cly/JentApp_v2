@@ -88,4 +88,4 @@ docker compose up   app + Postgres en local
 
 ## Jalon en cours
 
-M5 — Classement et profil (`docs/M5.md`). Mettre cette section à jour à chaque changement de jalon.
+M6 — Boutique et succès (`docs/M6.md`). Mettre cette section à jour à chaque changement de jalon.
