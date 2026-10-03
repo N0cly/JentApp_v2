@@ -18,7 +18,7 @@ export function InvitePreviewTicket({
     <Ticket behind="bg" className="shrink-0">
       <TicketSection>
         <TicketOverline end={`CODE ${code}`}>INVITATION</TicketOverline>
-        <div className="mb-1 text-[24px] leading-[28px] font-extrabold tracking-[-0.01em] [font-stretch:85%]">
+        <div className="mb-1 text-[24px] leading-[28px] font-extrabold tracking-[-0.01em] [overflow-wrap:anywhere] [font-stretch:85%]">
           {name}
         </div>
         <TicketRow label="Membres">{members}</TicketRow>
@@ -27,7 +27,7 @@ export function InvitePreviewTicket({
       <TicketCut />
       <TicketSection>
         <TicketRow label="Dotation de départ">
-          <span className="text-[20px] leading-6">{joinGrant} clopes</span>
+          <span className="text-[20px] leading-6 whitespace-nowrap">{joinGrant} clopes</span>
         </TicketRow>
       </TicketSection>
     </Ticket>

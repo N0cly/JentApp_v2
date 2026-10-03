@@ -37,9 +37,9 @@ export function TicketSection({ children }: { children: ReactNode }) {
 /** Mention du ticket, en overline, éventuellement à deux colonnes. */
 export function TicketOverline({ children, end }: { children: ReactNode; end?: ReactNode }) {
   return (
-    <div className="text-overline flex justify-between text-on-paper-muted">
-      <span>{children}</span>
-      {end && <span>{end}</span>}
+    <div className="text-overline flex justify-between gap-2 text-on-paper-muted">
+      <span className="shrink-0">{children}</span>
+      {end && <span className="min-w-0 truncate">{end}</span>}
     </div>
   );
 }
@@ -57,10 +57,12 @@ type TicketRowProps = {
 
 export function TicketRow({ label, children, outcome }: TicketRowProps) {
   return (
-    <div className="flex items-baseline justify-between font-mono text-[14px] leading-5 font-medium">
-      <span className="text-on-paper-muted">{label}</span>
+    <div className="flex items-baseline justify-between gap-3 font-mono text-[14px] leading-5 font-medium">
+      <span className="shrink-0 text-on-paper-muted">{label}</span>
+      {/* Un montant reste d'un tenant ; un pseudo long passe à la ligne. */}
       <span
         className={cx(
+          "min-w-0 text-right [overflow-wrap:anywhere]",
           outcome && "text-[28px] leading-8",
           outcome === "win" && "text-on-paper-win",
           outcome === "loss" && "text-on-paper-loss",
