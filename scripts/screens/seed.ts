@@ -142,7 +142,7 @@ export async function seedExtreme(): Promise<Seeded> {
   await credit(main, x.id, 12_000);
   await credit(main, y.id, 9_000);
   await credit(main, z.id, 9_000);
-  for (const u of others.slice(3)) await credit(main, u.id, Math.floor(Math.random() * 3000));
+  for (const u of others.slice(3)) await credit(main, u.id, 1 + Math.floor(Math.random() * 3000));
 
   // Pari réglé : gain à quatre chiffres pour X, bilan négatif à quatre chiffres pour Y.
   const settled = await bet(x, main, QUESTION, OPTIONS, minutes(-240), minutes(-180));
