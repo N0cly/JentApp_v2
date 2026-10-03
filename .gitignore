@@ -26,3 +26,5 @@ pnpm-debug.log*
 
 # tests
 /coverage
+# captures et rapport de `pnpm test:screens`
+/screens-output

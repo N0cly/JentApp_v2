@@ -21,7 +21,8 @@
     "test": "vitest run",
     "ledger:check": "node --env-file-if-exists=.env scripts/ledger-check.ts",
     "admin:grant": "node --env-file-if-exists=.env scripts/admin-grant.ts",
-    "vapid:generate": "node scripts/vapid-generate.ts"
+    "vapid:generate": "node scripts/vapid-generate.ts",
+    "test:screens": "vitest run --config scripts/screens/vitest.config.ts"
   },
   "dependencies": {
     "better-auth": "1.7.7",
@@ -47,6 +48,7 @@
     "eslint": "^9.39.5",
     "eslint-config-next": "16.3.8",
     "eslint-config-prettier": "^10.1.8",
+    "playwright": "1.63.0",
     "prettier": "^3.9.9",
     "tailwindcss": "4.3.3",
     "typescript": "6.0.3",
