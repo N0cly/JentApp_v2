@@ -9,6 +9,7 @@ import {
 } from "@/app/(app)/notifications/actions";
 import {
   AtIcon,
+  BellIcon,
   Button,
   CheckIcon,
   ClockIcon,
@@ -28,6 +29,7 @@ const icons: Record<NotificationType, (props: { size: number }) => ReactNode> = 
   round: GiftIcon,
   bet_settled: CheckIcon,
   bet_cancelled: CloseIcon,
+  announcement: BellIcon,
 };
 
 const subscribe = () => () => {};

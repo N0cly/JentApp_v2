@@ -13,7 +13,9 @@ const KEEP_MS = 30 * 24 * 3600_000;
 
 export type NotificationView = {
   id: string;
-  leagueId: string;
+  /** Vide pour une annonce. */
+  leagueId: string | null;
+  /** Le nom de la ligue, ou « JentApp » pour une annonce. */
   leagueName: string;
   payload: NotificationPayload;
   read: boolean;
@@ -42,13 +44,13 @@ export async function listNotifications(
     .select({
       id: notifications.id,
       leagueId: notifications.leagueId,
-      leagueName: leagues.name,
+      leagueName: sql<string>`coalesce(${leagues.name}, 'JentApp')`,
       payload: notifications.payload,
       readAt: notifications.readAt,
       createdAt: notifications.createdAt,
     })
     .from(notifications)
-    .innerJoin(leagues, eq(leagues.id, notifications.leagueId))
+    .leftJoin(leagues, eq(leagues.id, notifications.leagueId))
     .where(eq(notifications.userId, actor.id))
     .orderBy(desc(notifications.createdAt), desc(notifications.id))
     .limit(CENTER_PAGE_SIZE + 1)
@@ -71,7 +73,7 @@ export async function markRead(
   actor: { id: string },
   id: string,
   now: Date,
-): Promise<{ leagueId: string; payload: NotificationPayload }> {
+): Promise<{ leagueId: string | null; payload: NotificationPayload }> {
   if (!isUuid(id)) throw new NotFoundError();
   const [row] = await getDb()
     .update(notifications)

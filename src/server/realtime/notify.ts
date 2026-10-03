@@ -16,7 +16,8 @@ export type EventType =
   | "notification.new";
 
 export type Envelope = {
-  league: string;
+  /** Absente pour une annonce, qui ne tient à aucune ligue. */
+  league?: string;
   type: EventType;
   id?: string | number;
   /** Destinataire unique (balance.changed, notification.new). */

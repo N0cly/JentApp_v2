@@ -73,4 +73,11 @@ describe("phrase d'une notification", () => {
     );
     expect(notificationTag({ type: "round", amount: 1 })).toBeNull();
   });
+
+  it("annonce : son texte tel quel, le centre pour lien, sans étiquette", () => {
+    const payload = { type: "announcement", message: "Coupure à 23 h : 10 min" } as const;
+    expect(notificationText(payload, new Date())).toBe("Coupure à 23 h : 10 min");
+    expect(notificationHref(null, payload)).toBe("/notifications");
+    expect(notificationTag(payload)).toBeNull();
+  });
 });

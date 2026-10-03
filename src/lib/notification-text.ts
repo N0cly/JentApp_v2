@@ -31,7 +31,9 @@ export type NotificationPayload =
     }
   | { type: "bet_cancelled"; betId: string; question: string; amount: number }
   | { type: "mention"; messageId: number; author: string }
-  | { type: "round"; amount: number };
+  | { type: "round"; amount: number }
+  /** Annonce à tous les joueurs (docs/ANNONCE.md), sans ligue : son texte tel quel. */
+  | { type: "announcement"; message: string };
 
 export type NotificationType = NotificationPayload["type"];
 
@@ -67,12 +69,16 @@ export function notificationText(
       return `${payload.author} t'a mentionné dans le chat`;
     case "round":
       return `Tournée générale : +${clopes(payload.amount)} pour tout le monde`;
+    case "announcement":
+      return payload.message;
   }
 }
 
-/** Où mène la notification : le pari, ou le chat sur le message. */
-export function notificationHref(leagueId: string, payload: NotificationPayload): string {
+/** Où mène la notification : le pari, le chat sur le message, ou le centre pour une annonce. */
+export function notificationHref(leagueId: string | null, payload: NotificationPayload): string {
   switch (payload.type) {
+    case "announcement":
+      return "/notifications";
     case "mention":
       return `/l/${leagueId}/chat?message=${payload.messageId}`;
     case "round":

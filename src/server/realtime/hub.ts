@@ -74,6 +74,7 @@ export function dispatch(envelope: Envelope) {
     for (const sub of allSubscribers()) if (sub.userId === envelope.user) sub.send(envelope);
     return;
   }
+  if (!envelope.league) return;
   for (const sub of subscribersOf(envelope.league)) {
     if (envelope.user && envelope.type === "balance.changed" && sub.userId !== envelope.user)
       continue;

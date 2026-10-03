@@ -25,6 +25,7 @@ const PUSHED = new Set<NotificationPayload["type"]>([
   "bet_cancelled",
   "mention",
   "round",
+  "announcement",
 ]);
 
 export type BrowserSubscription = {
@@ -125,7 +126,7 @@ export async function pushNotification(
       payload: notifications.payload,
     })
     .from(notifications)
-    .innerJoin(leagues, eq(leagues.id, notifications.leagueId))
+    .leftJoin(leagues, eq(leagues.id, notifications.leagueId))
     .where(eq(notifications.id, notificationId));
   if (!row) return 0;
   const payload = row.payload as NotificationPayload;
@@ -137,7 +138,8 @@ export async function pushNotification(
     .from(pushSubscriptions)
     .where(eq(pushSubscriptions.userId, row.userId));
   const message: PushMessage = {
-    title: row.leagueName,
+    // Une annonce, sans ligue, porte le nom de l'app.
+    title: row.leagueName ?? "JentApp",
     body: notificationText(payload, now, PUSH_TIME_ZONE),
     url: notificationHref(row.leagueId, payload),
     tag: notificationTag(payload),
