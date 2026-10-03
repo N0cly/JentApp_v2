@@ -9,6 +9,8 @@ export default function manifest(): MetadataRoute.Manifest {
     lang: "fr",
     start_url: "/",
     display: "standalone",
+    // Pensée pour le portrait ; l'app reste utilisable si le téléphone tourne quand même.
+    orientation: "portrait",
     background_color: colorToken("bg"),
     theme_color: colorToken("bg"),
     icons: [
