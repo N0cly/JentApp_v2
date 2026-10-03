@@ -13,7 +13,11 @@ RUN pnpm install --frozen-lockfile
 FROM base AS build
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-ENV NEXT_TELEMETRY_DISABLED=1
+# Identifiant du build : la CI passe le SHA du commit. Il nomme le cache du
+# service worker, qui suit ainsi le déploiement et non l'heure du build.
+ARG BUILD_ID=""
+ENV NEXT_TELEMETRY_DISABLED=1 \
+    BUILD_ID=${BUILD_ID}
 RUN pnpm build
 
 # Exécution, en utilisateur non root
