@@ -38,6 +38,23 @@ describe("suivi d'erreurs", () => {
     }
   });
 
+  it("ni paramètres SQL ni variables locales", () => {
+    const out = scrubEvent(
+      event({
+        exception: {
+          values: [
+            {
+              type: "Error",
+              value: "Failed query: select 1\nparams: jeton-secret",
+              stacktrace: { frames: [{ filename: "a.js", vars: { token: "jeton-secret" } }] },
+            },
+          ],
+        },
+      }),
+    )!;
+    expect(JSON.stringify(out)).not.toContain("jeton-secret");
+  });
+
   it("les interruptions du client ne remontent pas", () => {
     const abort = event({
       exception: { values: [{ type: "Error", value: "The destination stream closed early." }] },

@@ -11,7 +11,15 @@ export const CLIENT_ABORT_MESSAGES = [
 ];
 
 const EMAIL = /[^\s@<>"'()]+@[^\s@<>"'()]+\.[^\s@<>"'()]+/g;
-const scrubText = (text: string | undefined) => text?.replace(EMAIL, "[email]");
+/** Drizzle recopie les paramètres d'une requête en échec : jetons, emails… */
+const QUERY_PARAMS = /\n?\s*params: .*/g;
+
+/** Retire d'un texte les emails et les paramètres de requête SQL. */
+export function scrubText(text: string): string;
+export function scrubText(text: string | undefined): string | undefined;
+export function scrubText(text: string | undefined) {
+  return text?.replace(QUERY_PARAMS, "").replace(EMAIL, "[email]");
+}
 
 /** Options communes : erreurs seulement, sans traces de performance ni données collectées. */
 export const reportOptions: Pick<BrowserOptions, "ignoreErrors" | "dataCollection"> = {
@@ -41,6 +49,15 @@ export function scrubEvent(event: ErrorEvent): ErrorEvent | null {
   delete event.breadcrumbs;
   delete event.extra;
   event.message = scrubText(event.message);
-  for (const value of event.exception?.values ?? []) value.value = scrubText(value.value);
+  for (const value of event.exception?.values ?? []) {
+    value.value = scrubText(value.value);
+    // Variables locales et lignes de code autour de l'erreur : jamais envoyées.
+    for (const frame of value.stacktrace?.frames ?? []) {
+      delete frame.vars;
+      delete frame.pre_context;
+      delete frame.context_line;
+      delete frame.post_context;
+    }
+  }
   return event;
 }
