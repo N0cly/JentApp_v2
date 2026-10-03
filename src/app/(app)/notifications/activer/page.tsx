@@ -34,7 +34,7 @@ export default async function EnableNotificationsPage({
         <div className="flex size-[88px] shrink-0 items-center justify-center rounded-full bg-brand-soft text-brand">
           <BellIcon size={40} />
         </div>
-        <h1 className="text-title">Sois prévenu quand ça se joue</h1>
+        <h1 className="text-title">Ne rate rien quand ça se joue</h1>
         <p className="text-body text-ink-muted">
           Trois moments où une notification t&apos;évite de rater le coche.
         </p>
