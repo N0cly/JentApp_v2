@@ -10,3 +10,12 @@ export {
   type RankingView,
 } from "./ranking";
 export { computeStats, memberStats, NO_STATS, successRate, type MemberStats } from "./stats";
+export {
+  getMyHistory,
+  HISTORY_PAGE_SIZE,
+  lastSettled,
+  memberHistory,
+  type CancelReason,
+  type HistoryItem,
+  type HistoryOutcome,
+} from "./history";
