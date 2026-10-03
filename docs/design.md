@@ -211,4 +211,16 @@ Classement, Moi et Profil (M5), construits avec les composants existants :
 - Profil sans pari réglé : ni « DERNIERS PARIS » ni lignes. Les lignes du profil ne mènent nulle part, comme sur la page de référence ; sur la feuille, le rond neutre passe en `surface`.
 - Auteur d'un message du chat : un appui sur son avatar ou son pseudo ouvre son profil ; parti ou supprimé, rien ne se passe.
 
+Boutique, succès et catalogue (M6), construits avec les composants existants :
+
+- Apparence : l'avatar porté, sinon la photo, sinon l'initiale ; l'anneau prend la couleur de la bordure portée, sinon l'anneau par défaut. Personne ne porte de bordure tant qu'il n'en choisit pas une. Sur le podium, l'anneau est celui de la bordure portée ; l'épaisseur reste celle de la place (3 px pour le premier).
+- Aperçus : une bordure s'affiche autour de mon image (ou de mon initiale), un avatar avec l'anneau par défaut, en 3 px.
+- Boutique : elle s'ouvre sur Avatars s'il y en a en vente, sinon sur Bordures. Onglet vide : « Aucun avatar en vente pour l'instant. » (« Aucune bordure en vente pour l'instant. » pour l'autre onglet).
+- Confirmation d'achat : feuille « Acheter {nom} pour {prix} clopes ? », l'aperçu et « Solde après achat » avec le montant, bouton primaire « Acheter ». Un refus s'affiche en message de formulaire dans la feuille.
+- Moi, Cosmétiques : « Sans bordure » est la première carte de BORDURES, comme « Ta photo » dans AVATARS ; la carte pointillée « Boutique » ne figure que sous AVATARS.
+- Moi, Succès : débloqués d'abord, puis les autres, dans l'ordre du catalogue ; les cachés non débloqués à la fin. La progression « · {x} sur {n} » et sa barre ne s'affichent que sur un succès verrouillé qui compte.
+- Réglages du compte : la ligne « Catalogue », valeur « super-admin », n'apparaît qu'au super-admin.
+- Catalogue, onglet Succès : mêmes lignes que les cosmétiques (médaille, nom, « {description} · +{récompense} », « · caché » s'il l'est, interrupteur), la note « Un succès désactivé ne se débloque plus ; ceux qui l'ont le gardent. » et le bouton « Ajouter un succès ».
+- Formulaires du catalogue : une feuille, ouverte par une ligne ou par « Ajouter ». Cosmétique : `Segmented` Avatar / Bordure (à la création seulement), Nom, Prix en clopes, Couleur ou Image, Ordre, « Enregistrer ». Succès : des `Chip` pour la règle (Paris misés, Mise d'un coup, Tapis, Paris gagnés, Série, À sec, Paris lancés, Achats ; figée ensuite), Seuil (sauf À sec), Nom, Récompense en clopes, Ordre, la case « Caché », « Enregistrer ».
+
 Si un cas ne rentre dans aucune de ces lignes, s'arrêter et demander.
