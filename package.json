@@ -25,6 +25,7 @@
     "test:screens": "vitest run --config scripts/screens/vitest.config.ts"
   },
   "dependencies": {
+    "@sentry/nextjs": "11.2.0",
     "better-auth": "1.7.7",
     "drizzle-orm": "0.45.3",
     "marked": "^18.0.14",

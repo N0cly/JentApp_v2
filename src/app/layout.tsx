@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { ErrorReporting } from "@/components/monitoring/ErrorReporting";
 import { ServiceWorker } from "@/components/pwa/ServiceWorker";
 import { colorToken } from "@/lib/tokens";
 import { display, mono } from "./fonts";
@@ -22,6 +23,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body>
         {children}
         <ServiceWorker />
+        <ErrorReporting dsn={process.env.ERROR_DSN?.trim() || null} />
       </body>
     </html>
   );

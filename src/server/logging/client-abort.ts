@@ -4,14 +4,13 @@
 // du client (AbortError), mais ne reconnaît pas ce message-là et l'écrit comme
 // une erreur. Ce n'en est pas une : on l'écarte des journaux, lui seul.
 
-export const CLIENT_ABORT_MESSAGES = new Set([
-  "The destination stream closed early.",
-  "The destination stream errored while writing data.",
-]);
+import { CLIENT_ABORT_MESSAGES } from "@/lib/error-report";
+
+const ABORTS = new Set(CLIENT_ABORT_MESSAGES);
 
 /** Vrai si la ligne de journal ne porte qu'une interruption du client. */
 export function isClientAbortLog(args: unknown[]): boolean {
-  return args.some((arg) => arg instanceof Error && CLIENT_ABORT_MESSAGES.has(arg.message));
+  return args.some((arg) => arg instanceof Error && ABORTS.has(arg.message));
 }
 
 let installed = false;

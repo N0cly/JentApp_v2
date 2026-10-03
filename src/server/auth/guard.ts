@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { NotFoundError } from "@/server/errors";
+import { identifyPlayer } from "@/server/monitoring";
 import { getSessionUser, type SessionUser } from "./accounts";
 import { memberOrNotFound, type Membership, type Role } from "./access";
 
@@ -12,6 +13,7 @@ export async function requireUser(nextPath?: string): Promise<SessionUser> {
   if (!user) {
     redirect(nextPath ? `/connexion?next=${encodeURIComponent(nextPath)}` : "/connexion");
   }
+  identifyPlayer(user.id);
   return user;
 }
 
