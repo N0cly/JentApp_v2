@@ -166,6 +166,8 @@ export type ShopItem = CosmeticView & {
   /** Porté, possédé (à porter), ou à acheter avec ce qu'il manque. */
   status: "worn" | "owned" | "buy";
   missing: number;
+  /** Solde après achat, quand il est possible (feuille de confirmation). */
+  balanceAfter: number | null;
 };
 
 const view = (c: typeof cosmetics.$inferSelect): CosmeticView => ({
@@ -216,6 +218,8 @@ export async function shopView(
         ...view(c),
         status: worn ? "worn" : owned ? "owned" : "buy",
         missing: worn || owned ? 0 : Math.max(0, c.price - member.balance),
+        balanceAfter:
+          !worn && !owned && c.price <= member.balance ? member.balance - c.price : null,
       };
     }),
   };

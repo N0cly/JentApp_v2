@@ -9,3 +9,4 @@ export {
   type ShopItem,
   type ShopResult,
 } from "./shop";
+export { appearanceOf, appearances, resolveAppearance, type Appearance } from "./appearance";
