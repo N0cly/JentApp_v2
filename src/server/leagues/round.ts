@@ -5,6 +5,7 @@ import { auditLog, leagueMembers, leagues } from "@/db/schema";
 import { isUuid, memberOrNotFound } from "@/server/auth/access";
 import { NotFoundError } from "@/server/errors";
 import { postSystemMessage } from "@/server/chat/system";
+import { notify } from "@/server/realtime/notify";
 import { inLockOrder, post } from "@/server/ledger";
 
 export const ROUND_MIN = 1;
@@ -79,6 +80,8 @@ export async function offerRound(
         { event: "round", data: { by: actor.id, amount: amount.data } },
         now,
       );
+      // Tous les soldes bougent : le classement des autres se relit.
+      await notify(tx, { league: leagueId, type: "member.changed" });
     }
     return {
       ok: true,

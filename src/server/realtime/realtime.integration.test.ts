@@ -1,6 +1,8 @@
+import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { getDb } from "@/db/client";
 import { sendMessage } from "@/server/chat";
+import { offerRound } from "@/server/leagues";
 import { post } from "@/server/ledger";
 import { leagueWith } from "@/test/bets";
 import { resetDb } from "@/test/db";
@@ -62,6 +64,20 @@ describe("diffusion", () => {
     expect(await waitFor(() => events.some((e) => "id" in e && e.id === "valide"))).toBe(true);
     await pause(200);
     expect(events.some((e) => "id" in e && e.id === "annule")).toBe(false);
+    removeSubscriber(sub);
+  });
+
+  it("une tournée générale émet member.changed", async () => {
+    const { league, owner, players } = await leagueWith(1);
+    const { sub, events } = subscriber(league.id, players[0]!.id);
+    const result = await offerRound(
+      owner,
+      league.id,
+      { amount: 10, roundId: randomUUID() },
+      new Date(),
+    );
+    expect(result.ok).toBe(true);
+    expect(await waitFor(() => events.some((e) => e.type === "member.changed"))).toBe(true);
     removeSubscriber(sub);
   });
 
