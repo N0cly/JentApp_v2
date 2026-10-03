@@ -7,6 +7,7 @@ Ce document déroule la partie B de `docs/PROD.md`, commande par commande. Il su
 | `/opt/jentapp/` | `docker-compose.yml`, `.env`, `deploy.sh`, `announce.sh`, `backup/` |
 | `/opt/glitchtip/` | `docker-compose.yml`, `.env` |
 | `/etc/nginx/sites-available/` | `jentapp.conf`, `glitchtip.conf` |
+| `/var/www/jentapp/` | `maintenance.html`, servie quand l'app ne répond pas |
 | `/etc/systemd/system/` | `jentapp-backup.service`, `jentapp-backup.timer` |
 | `/var/backups/jentapp/` | Sauvegardes, 14 jours |
 
@@ -49,7 +50,7 @@ ssh <vps> 'sudo mkdir -p /opt/jentapp/backup /opt/glitchtip && sudo chown -R "$U
 scp deploy/docker-compose.yml deploy/.env.example deploy/deploy.sh deploy/announce.sh <vps>:/opt/jentapp/
 scp deploy/backup/* <vps>:/opt/jentapp/backup/
 scp deploy/glitchtip/docker-compose.yml deploy/glitchtip/.env.example <vps>:/opt/glitchtip/
-scp deploy/nginx/jentapp.conf deploy/nginx/glitchtip.conf <vps>:/tmp/
+scp deploy/nginx/jentapp.conf deploy/nginx/glitchtip.conf deploy/nginx/maintenance.html <vps>:/tmp/
 ssh <vps> 'chmod +x /opt/jentapp/deploy.sh /opt/jentapp/announce.sh /opt/jentapp/backup/*.sh'
 ```
 
@@ -175,12 +176,15 @@ sudo ln -sf /etc/nginx/sites-available/jentapp.conf /etc/nginx/sites-enabled/jen
 sudo nginx -t && sudo systemctl reload nginx
 sudo certbot certonly --webroot -w /var/www/certbot -d jentapp.nocly.fr
 
+sudo install -D -m 644 /tmp/maintenance.html /var/www/jentapp/maintenance.html
 sudo cp /tmp/jentapp.conf /etc/nginx/sites-available/jentapp.conf
 sudo nginx -t && sudo systemctl reload nginx
 sudo certbot renew --dry-run
 ```
 
-La conf autorise les envois jusqu'à 6 Mo (photos), sert `/sw.js` sans cache et ajoute les en-têtes de sécurité.
+La conf autorise les envois jusqu'à 6 Mo (photos), sert `/sw.js` sans cache et ajoute les en-têtes de sécurité. Quand l'app ne répond pas (502, 503, 504), par exemple pendant qu'un déploiement redémarre le conteneur, Nginx sert `/var/www/jentapp/maintenance.html` : « JentApp revient dans un instant. » Les erreurs renvoyées par l'app elle-même passent telles quelles.
+
+Vérifier la page, après le premier déploiement : dans `/opt/jentapp`, `docker compose stop app`, ouvrir `https://jentapp.nocly.fr`, puis `docker compose start app`.
 
 ## 7. Premier déploiement
 
