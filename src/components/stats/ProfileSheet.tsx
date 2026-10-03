@@ -24,7 +24,12 @@ function ProfileSheet({
       {profile && (
         <>
           <div className="flex items-center gap-3">
-            <Avatar name={profile.username} src={profile.image} size={64} />
+            <Avatar
+              name={profile.username}
+              src={profile.image}
+              ring={profile.ring ?? undefined}
+              size={64}
+            />
             <div className="flex flex-col items-start gap-2">
               <RoleBadge role={profile.role} />
               <span className="flex items-center gap-2 text-[14px] leading-5 text-ink-muted">

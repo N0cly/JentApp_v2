@@ -1,4 +1,5 @@
 import { and, asc, count, eq, inArray, isNull, sql } from "drizzle-orm";
+import { appearances, NO_APPEARANCE } from "@/server/shop/appearance";
 import { z } from "zod";
 import { getDb } from "@/db/client";
 import { auditLog, leagueMembers, leagues, users } from "@/db/schema";
@@ -233,18 +234,19 @@ export type MemberView = {
   userId: string;
   username: string;
   image: string | null;
+  /** Bordure portée dans la ligue. */
+  ring: string | null;
   role: Role;
   joinedAt: Date;
 };
 
-/** Membres actifs : pseudo, avatar, rôle. Jamais d'email. */
+/** Membres actifs : pseudo, apparence, rôle. Jamais d'email. */
 export async function listMembers(actor: Actor, leagueId: string): Promise<MemberView[]> {
   await memberOrNotFound(actor.id, leagueId);
   const rows = await getDb()
     .select({
       userId: leagueMembers.userId,
       username: users.name,
-      image: users.image,
       role: leagueMembers.role,
       joinedAt: leagueMembers.joinedAt,
     })
@@ -252,7 +254,15 @@ export async function listMembers(actor: Actor, leagueId: string): Promise<Membe
     .innerJoin(users, eq(users.id, leagueMembers.userId))
     .where(and(eq(leagueMembers.leagueId, leagueId), isNull(leagueMembers.leftAt)))
     .orderBy(asc(leagueMembers.joinedAt));
-  return rows.map((r) => ({ ...r, username: r.username ?? DELETED_PLAYER }));
+  const looks = await appearances(
+    leagueId,
+    rows.map((r) => r.userId),
+  );
+  return rows.map((r) => ({
+    ...r,
+    username: r.username ?? DELETED_PLAYER,
+    ...(looks.get(r.userId) ?? NO_APPEARANCE),
+  }));
 }
 
 /** Pseudos à afficher pour des joueurs, y compris ceux qui ont supprimé leur compte. */

@@ -1,4 +1,5 @@
 import { and, asc, count, desc, eq, gt, inArray, isNull, lt, sql } from "drizzle-orm";
+import { appearances, NO_APPEARANCE } from "@/server/shop/appearance";
 import { getDb } from "@/db/client";
 import {
   betOptions,
@@ -314,7 +315,7 @@ export type MessageView = {
   bet: BetView | null;
   /** Phrase d'un message automatique, écrite à la lecture. */
   text: string | null;
-  author: { id: string; username: string; image: string | null } | null;
+  author: { id: string; username: string; image: string | null; ring: string | null } | null;
   /** Pseudos mentionnés, pour les mettre en évidence. */
   mentions: string[];
   createdAt: Date;
@@ -331,13 +332,14 @@ async function toViews(
   if (rows.length === 0) return [];
   const ids = rows.map((r) => r.id);
   const authorIds = [...new Set(rows.map((r) => r.userId).filter((v): v is string => v !== null))];
-  const [authors, likes, mine, mentions] = await Promise.all([
+  const [authors, looks, likes, mine, mentions] = await Promise.all([
     authorIds.length
       ? getDb()
-          .select({ id: users.id, username: users.name, image: users.image })
+          .select({ id: users.id, username: users.name })
           .from(users)
           .where(inArray(users.id, authorIds))
       : [],
+    appearances(leagueId, authorIds),
     getDb()
       .select({ messageId: messageReactions.messageId, n: count() })
       .from(messageReactions)
@@ -397,7 +399,7 @@ async function toViews(
         ? {
             id: r.userId,
             username: author?.username ?? DELETED_PLAYER,
-            image: author?.image ?? null,
+            ...(looks.get(r.userId) ?? NO_APPEARANCE),
           }
         : null,
       mentions: mentions.filter((m) => m.messageId === r.id && m.username).map((m) => m.username!),

@@ -13,6 +13,7 @@ export type ProfileView = {
   userId: string;
   username: string;
   image: string | null;
+  ring: string | null;
   role: Role;
   /** Rang de la vue Fortune. */
   rank: number;
@@ -43,6 +44,7 @@ export async function getProfile(
     userId: row.userId,
     username: row.username,
     image: row.image,
+    ring: row.ring,
     role: row.role,
     rank: row.rank,
     balance: row.balance,

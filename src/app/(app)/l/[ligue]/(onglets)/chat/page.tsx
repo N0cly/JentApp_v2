@@ -36,7 +36,12 @@ export default async function ChatPage({ params }: PageProps<"/l/[ligue]/chat">)
         me={{ id: user.id, username: user.username }}
         isManager={membership.role !== "player"}
         initial={messages}
-        members={members.map((m) => ({ id: m.userId, username: m.username }))}
+        members={members.map((m) => ({
+          id: m.userId,
+          username: m.username,
+          image: m.image,
+          ring: m.ring,
+        }))}
         gifsEnabled={gifsEnabled()}
         shareable={shareable}
       />

@@ -44,6 +44,7 @@ const row = (userId: string, balance: number, net: number, joined: number) => ({
   userId,
   username: userId.toUpperCase(),
   image: null,
+  ring: null,
   role: "player" as const,
   balance,
   joinedAt: new Date(2026, 0, joined),

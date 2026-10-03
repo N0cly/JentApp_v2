@@ -11,6 +11,7 @@ const toBoard = (r: RankingRow): BoardRow => ({
   userId: r.userId,
   username: r.username,
   image: r.image,
+  ring: r.ring,
   balance: r.balance,
   net: r.stats.net,
   rank: r.rank,

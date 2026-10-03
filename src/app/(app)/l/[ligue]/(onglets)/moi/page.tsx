@@ -35,7 +35,13 @@ export default async function MePage({ params }: PageProps<"/l/[ligue]/moi">) {
         />
       </div>
       <header className="flex shrink-0 items-center gap-3 px-5 pt-3 pb-4">
-        <Avatar name={user.username} src={user.image} size={56} />
+        <Avatar
+          name={user.username}
+          src={me.image}
+          ring={me.ring ?? undefined}
+          ringWidth={me.ring ? 3 : 2}
+          size={56}
+        />
         <div className="flex grow flex-col">
           <h1 className="text-[24px] leading-[28px] font-extrabold tracking-[-0.01em] [font-stretch:85%]">
             {user.username}

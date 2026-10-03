@@ -32,7 +32,7 @@ import { useProfileSheet } from "@/components/stats/ProfileSheet";
 import { MessageSheet } from "./MessageSheet";
 import { ShareBetSheet, type Shareable } from "./ShareBetSheet";
 
-type Member = { id: string; username: string };
+type Member = { id: string; username: string; image?: string | null; ring?: string | null };
 
 type Props = {
   leagueId: string;
@@ -363,6 +363,7 @@ export function ChatView({
             <Avatar
               name={item.author.username}
               src={item.author.image}
+              ring={item.author.ring ?? undefined}
               size={32}
               background="surface-raised"
             />
@@ -424,7 +425,7 @@ export function ChatView({
               }
               className="flex min-h-[44px] items-center gap-2 px-4 text-left text-[15px] font-semibold"
             >
-              <Avatar name={m.username} size={32} />
+              <Avatar name={m.username} src={m.image} ring={m.ring ?? undefined} size={32} />
               {m.username}
             </button>
           ))}

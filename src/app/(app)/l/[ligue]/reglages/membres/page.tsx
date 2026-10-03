@@ -24,6 +24,7 @@ export default async function MembersPage({ params }: PageProps<"/l/[ligue]/regl
             userId: m.userId,
             username: m.username,
             image: m.image,
+            ring: m.ring,
             role: m.role,
           }))}
           me={user.id}

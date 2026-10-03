@@ -61,6 +61,7 @@ describe("profil", () => {
         "userId",
         "username",
         "image",
+        "ring",
         "role",
         "rank",
         "balance",

@@ -7,6 +7,7 @@ import { bets, leagueMembers, users } from "@/db/schema";
 import { memberOrNotFound, type Role } from "@/server/auth/access";
 import { settleDelayMs } from "@/server/bets/rules";
 import { DELETED_PLAYER } from "@/server/leagues";
+import { appearances, NO_APPEARANCE } from "@/server/shop/appearance";
 import { leagueStats, NO_STATS, type MemberStats } from "./stats";
 
 export type RankingSort = "fortune" | "net";
@@ -15,6 +16,7 @@ export type RankingRow = {
   userId: string;
   username: string;
   image: string | null;
+  ring: string | null;
   role: Role;
   balance: number;
   joinedAt: Date;
@@ -48,7 +50,6 @@ export async function leagueRanking(leagueId: string, sort: RankingSort): Promis
       .select({
         userId: leagueMembers.userId,
         username: users.name,
-        image: users.image,
         role: leagueMembers.role,
         balance: leagueMembers.balance,
         joinedAt: leagueMembers.joinedAt,
@@ -58,9 +59,14 @@ export async function leagueRanking(leagueId: string, sort: RankingSort): Promis
       .where(and(eq(leagueMembers.leagueId, leagueId), isNull(leagueMembers.leftAt))),
     leagueStats(leagueId),
   ]);
+  const looks = await appearances(
+    leagueId,
+    members.map((m) => m.userId),
+  );
   return rankRows(
     members.map((m) => ({
       ...m,
+      ...(looks.get(m.userId) ?? NO_APPEARANCE),
       username: m.username ?? DELETED_PLAYER,
       stats: stats.get(m.userId) ?? NO_STATS,
     })),

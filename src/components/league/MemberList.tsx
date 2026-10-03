@@ -7,7 +7,13 @@ import { RoleBadge, roleLabels } from "@/components/RoleBadge";
 import { Avatar, BottomSheet, Button, IconButton, MoreIcon } from "@/components/ui";
 import type { Role } from "@/server/auth/access";
 
-type Member = { userId: string; username: string; image: string | null; role: Role };
+type Member = {
+  userId: string;
+  username: string;
+  image: string | null;
+  ring: string | null;
+  role: Role;
+};
 
 /** Membres et rôles. L'owner bascule joueur ↔ admin d'un appui, exclut par les trois points. */
 export function MemberList({
@@ -34,7 +40,13 @@ export function MemberList({
           return (
             <div key={m.userId}>
               <div className="flex min-h-[64px] items-center gap-3">
-                <Avatar name={m.username} src={m.image} size={40} background="surface-raised" />
+                <Avatar
+                  name={m.username}
+                  src={m.image}
+                  ring={m.ring ?? undefined}
+                  size={40}
+                  background="surface-raised"
+                />
                 <span className="grow text-[15px] leading-5 font-semibold">
                   {m.username}
                   {m.userId === me && <span className="font-medium text-ink-subtle"> (toi)</span>}

@@ -376,6 +376,7 @@ describe("lecture", () => {
     expect(Object.keys(members[0]!).sort()).toEqual([
       "image",
       "joinedAt",
+      "ring",
       "role",
       "userId",
       "username",

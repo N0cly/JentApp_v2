@@ -12,6 +12,8 @@ export type BoardRow = {
   userId: string;
   username: string;
   image: string | null;
+  /** Bordure portée. */
+  ring: string | null;
   balance: number;
   net: number;
   rank: number;
@@ -36,21 +38,18 @@ function You() {
 const podium = {
   1: {
     avatar: 72,
-    ring: "var(--brand)",
     width: 3,
     block: "h-[124px] bg-brand-soft",
     tone: "text-brand",
   },
   2: {
     avatar: 56,
-    ring: "var(--ink-muted)",
     width: 2,
     block: "h-[84px] bg-surface",
     tone: "text-ink-muted",
   },
   3: {
     avatar: 56,
-    ring: "var(--line-strong)",
     width: 2,
     block: "h-[64px] bg-surface",
     tone: "text-ink-muted",
@@ -83,7 +82,7 @@ function Podium({
               name={row.username}
               src={row.image}
               size={style.avatar}
-              ring={style.ring}
+              ring={row.ring ?? undefined}
               ringWidth={style.width}
             />
             <span className="max-w-full truncate text-[13px] leading-[18px] font-semibold">
@@ -182,7 +181,13 @@ function Row({
         </span>
         {mine && <You />}
       </span>
-      <Avatar name={row.username} src={row.image} size={36} background="surface-raised" />
+      <Avatar
+        name={row.username}
+        src={row.image}
+        ring={row.ring ?? undefined}
+        size={36}
+        background="surface-raised"
+      />
       <span className="min-w-0 grow truncate text-[15px] leading-5 font-semibold">
         {row.username}
       </span>
