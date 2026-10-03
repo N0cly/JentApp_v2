@@ -27,7 +27,7 @@ export function Stepper({ name, label, hint, min, max, step, defaultValue }: Ste
   return (
     <div>
       <div className="flex min-h-[64px] items-center justify-between gap-2">
-        <span className="flex flex-col">
+        <span className="flex min-w-0 flex-col [overflow-wrap:anywhere]">
           <label htmlFor={`stepper-${name}`} className="text-[15px] leading-5 font-semibold">
             {label}
           </label>
