@@ -9,6 +9,7 @@ import {
   setCosmeticActiveAction,
 } from "@/app/(app)/admin/catalogue/actions";
 import { CheckboxField } from "@/components/CheckboxField";
+import { Switch } from "@/components/Switch";
 import {
   Avatar,
   BottomSheet,
@@ -19,7 +20,6 @@ import {
   Segmented,
   TextField,
 } from "@/components/ui";
-import { cx } from "@/lib/cx";
 import type { RuleType } from "@/server/achievements/rules";
 import type {
   CatalogAchievement,
@@ -63,22 +63,7 @@ function ActiveSwitch({
   active: boolean;
   onChange: (active: boolean) => void;
 }) {
-  return (
-    <button
-      type="button"
-      aria-pressed={active}
-      aria-label={`${label} actif`}
-      onClick={() => onChange(!active)}
-      className={cx(
-        "flex h-[32px] w-[52px] shrink-0 items-center rounded-full border p-1",
-        active
-          ? "justify-end border-brand bg-brand"
-          : "justify-start border-line-strong bg-surface-raised",
-      )}
-    >
-      <span className={cx("size-[22px] rounded-full", active ? "bg-on-brand" : "bg-ink-muted")} />
-    </button>
-  );
+  return <Switch label={`${label} actif`} on={active} onChange={onChange} />;
 }
 
 function Rows({ children }: { children: React.ReactNode }) {

@@ -11,6 +11,8 @@ import { NotFoundError } from "@/server/errors";
 import { getLeague } from "@/server/leagues";
 import { getNotifyLevel } from "@/server/notifications";
 import { NotificationSettings } from "@/components/account/NotificationSettings";
+import { PushSwitch } from "@/components/account/PushSwitch";
+import { pushEnabled } from "@/server/push";
 
 export const metadata: Metadata = { title: "Réglages · JentApp" };
 
@@ -50,7 +52,11 @@ export default async function AccountPage({ searchParams }: PageProps<"/compte">
         {league && notifications && (
           <>
             <SectionTitle>NOTIFICATIONS DANS {notifications.name.toUpperCase()}</SectionTitle>
-            <NotificationSettings leagueId={league} level={notifications.level} />
+            <NotificationSettings
+              leagueId={league}
+              level={notifications.level}
+              push={<PushSwitch enabled={pushEnabled()} returnTo={`/compte?ligue=${league}`} />}
+            />
           </>
         )}
         <SectionTitle>

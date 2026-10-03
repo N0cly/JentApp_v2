@@ -39,17 +39,19 @@ export default async function PresentationPage({
   const step = steps[index];
   if (!step) notFound();
 
-  // Après la présentation : l'invitation si on venait d'un lien, sinon l'accueil.
+  // Après la présentation : les notifications, puis l'invitation si on venait
+  // d'un lien, sinon l'accueil.
   const suite = safeNext(params.suite) ?? "/";
+  const after = `/notifications/activer?parcours=1&suite=${encodeURIComponent(suite)}`;
   const isLast = index === steps.length - 1;
   const nextHref = isLast
-    ? suite
+    ? after
     : `/bienvenue/presentation?etape=${index + 2}${params.suite ? `&suite=${encodeURIComponent(suite)}` : ""}`;
 
   return (
     <Screen>
       <div className="flex shrink-0 justify-end px-3 pt-3">
-        <Button variant="discreet" href={suite}>
+        <Button variant="discreet" href={after}>
           Passer
         </Button>
       </div>
