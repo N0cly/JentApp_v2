@@ -31,7 +31,8 @@ export function Button({
   ...props
 }: ButtonProps) {
   const classes = cx(
-    "flex items-center justify-center gap-2 rounded-md text-center disabled:opacity-45",
+    // Un nom de ligue ou un pseudo dans le libellé se coupe plutôt que de déborder.
+    "flex items-center justify-center gap-2 rounded-md text-center [overflow-wrap:anywhere] disabled:opacity-45",
     variants[variant],
     variant === "discreet" && destructive && "text-loss",
     className,
