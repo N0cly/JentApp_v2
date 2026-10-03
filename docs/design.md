@@ -199,4 +199,16 @@ Chat (M4), construits avec les composants existants :
 - Feuille GIF : sans recherche, « Cherche un GIF. » (pas de tendances) ; sans résultat, « Aucun GIF pour cette recherche. ».
 - Flux coupé ou erreur d'envoi : le message d'erreur des champs (icône d'alerte, `loss`) au-dessus de la saisie, « Connexion perdue. On réessaie… ».
 
+Classement, Moi et Profil (M5), construits avec les composants existants :
+
+- Ma ligne hors podium (4e et au-delà) : la ligne des autres, avec l'overline « TOI » sous le rang, comme sur le podium ; la carte se place juste dessous.
+- Carte du premier : « Tu mènes la ligue. {n} clopes d'avance sur {pseudo}. » ; s'il y a des paris ouverts, « {n} paris ouverts pour creuser l'écart » et le bouton « Parier ». Seul : « Tu es seul ici. Invite la bande. » et le bouton « Inviter ».
+- Podium à un ou deux membres : seules les places occupées, chacune dans sa colonne (deuxième à gauche, premier au centre).
+- Vue « Bilan net » : même écran, valeurs signées en `win` ou `loss`, sans carte.
+- Moi, en attendant Succès et Cosmétiques (M6) : le `Segmented` est remplacé par l'overline « HISTORIQUE », comme « DERNIERS PARIS » du profil. Le lien Boutique reste masqué. L'avatar garde l'anneau par défaut jusqu'à la bordure équipée (M6).
+- Historique vide : « Aucun pari pour l'instant. Lance-toi. », avec le bouton « Voir les paris » vers l'onglet Paris.
+- Lignes d'historique en cours et en attente du résultat : le rond neutre à horloge de la ligne « versement dans », sous-titre « {option} · mise {n} · ferme dans {durée} » ou « · en attente du résultat », valeur « en cours » ou « en attente » en `ink-muted`. Annulé : « · pari annulé », « · égalité » ou « · sans résultat depuis 7 jours », valeur « rendu ». « Voir plus » : bouton discret centré sous la liste.
+- Profil sans pari réglé : ni « DERNIERS PARIS » ni lignes. Les lignes du profil ne mènent nulle part, comme sur la page de référence ; sur la feuille, le rond neutre passe en `surface`.
+- Auteur d'un message du chat : un appui sur son avatar ou son pseudo ouvre son profil ; parti ou supprimé, rien ne se passe.
+
 Si un cas ne rentre dans aucune de ces lignes, s'arrêter et demander.
