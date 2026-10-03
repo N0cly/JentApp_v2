@@ -39,8 +39,11 @@ COPY --from=build --chown=nextjs:nodejs /app/src/db/migrate.ts ./db/migrate.ts
 # Scripts d'administration, lancés dans le conteneur :
 #   docker compose exec app node scripts/admin-grant.ts <email>
 #   docker compose exec app node scripts/ledger-check.ts
-COPY --from=build --chown=nextjs:nodejs /app/scripts/admin-grant.ts /app/scripts/ledger-check.ts ./scripts/
+#   docker compose exec app node scripts/announce.ts [--envoyer] "<message>"
+COPY --from=build --chown=nextjs:nodejs /app/scripts/admin-grant.ts /app/scripts/ledger-check.ts /app/scripts/announce.ts ./scripts/
 COPY --from=build --chown=nextjs:nodejs /app/src/server/ledger/check.ts ./src/server/ledger/check.ts
+COPY --from=build --chown=nextjs:nodejs /app/src/server/notifications/announce.ts ./src/server/notifications/announce.ts
+COPY --from=build --chown=nextjs:nodejs /app/src/server/realtime/notify.ts ./src/server/realtime/notify.ts
 
 USER nextjs
 EXPOSE 3000

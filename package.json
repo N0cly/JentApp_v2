@@ -21,6 +21,7 @@
     "test": "vitest run",
     "ledger:check": "node --env-file-if-exists=.env scripts/ledger-check.ts",
     "admin:grant": "node --env-file-if-exists=.env scripts/admin-grant.ts",
+    "announce": "node --env-file-if-exists=.env scripts/announce.ts",
     "vapid:generate": "node scripts/vapid-generate.ts",
     "test:screens": "vitest run --config scripts/screens/vitest.config.ts"
   },
