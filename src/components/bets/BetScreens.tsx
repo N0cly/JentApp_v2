@@ -332,14 +332,14 @@ export function SettledBet({ view }: { view: Ended }) {
           <h2 className="mb-1 text-overline text-ink-subtle">GAINS VERSÉS</h2>
           {winners.map((w, i) => (
             <div key={w.player + i} className="flex min-h-[44px] items-center gap-3">
-              <span className="w-[16px] font-mono text-[13px] font-medium text-ink-subtle">
+              <span className="w-[16px] shrink-0 font-mono text-[13px] font-medium text-ink-subtle">
                 {i + 1}
               </span>
-              <span className="flex grow flex-col">
-                <span className="text-[15px] leading-5 font-semibold">{w.player}</span>
+              <span className="flex min-w-0 grow flex-col">
+                <span className="truncate text-[15px] leading-5 font-semibold">{w.player}</span>
                 <span className="text-caption text-ink-subtle">sur {label(view, w.optionId)}</span>
               </span>
-              <span className="flex flex-col items-end">
+              <span className="flex shrink-0 flex-col items-end">
                 <span className="font-mono text-[15px] leading-5 font-medium">{w.amount}</span>
                 <span className="font-mono text-[12px] leading-4 font-medium text-win">
                   +{w.payout}
