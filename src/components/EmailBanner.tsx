@@ -17,17 +17,24 @@ export function EmailBanner({ email, expired = false }: { email: string; expired
         : `Confirme ton email : un lien est parti à ${email}`;
 
   return (
-    <form action={action} className="flex items-center gap-3 rounded-md bg-surface px-4 py-2">
-      <span className="flex text-brand">
+    <form
+      action={action}
+      className="flex flex-wrap items-center gap-x-3 rounded-md bg-surface px-4 py-2"
+    >
+      <span className="flex shrink-0 text-brand">
         <MailIcon size={18} />
       </span>
-      <span role="status" className="grow text-[13px] leading-[18px] text-ink-muted">
+      {/* Avec un texte agrandi, « Renvoyer » passe sous la phrase. */}
+      <span
+        role="status"
+        className="min-w-0 flex-1 basis-[200px] text-[13px] leading-[18px] text-ink-muted [overflow-wrap:anywhere]"
+      >
         {text}
       </span>
       <button
         type="submit"
         disabled={pending}
-        className="min-h-[44px] px-1 text-[13px] font-semibold text-brand disabled:opacity-45"
+        className="ml-auto min-h-[44px] px-1 text-[13px] font-semibold text-brand disabled:opacity-45"
       >
         Renvoyer
       </button>
