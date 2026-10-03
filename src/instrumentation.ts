@@ -1,4 +1,5 @@
 import * as Sentry from "@sentry/nextjs";
+import type { Instrumentation } from "next";
 
 // Démarrage du serveur Next.js (une fois par processus).
 export async function register() {
@@ -14,5 +15,12 @@ export async function register() {
   await startPush().catch((error) => console.warn("Push non démarré", error));
 }
 
-/** Erreurs de rendu, de route et d'action, transmises au suivi s'il est démarré. */
-export const onRequestError = Sentry.captureRequestError;
+/**
+ * Erreurs de rendu, de route et d'action : une ligne JSON dans le journal,
+ * et le suivi d'erreurs s'il est démarré.
+ */
+export const onRequestError: Instrumentation.onRequestError = async (error, request, context) => {
+  const { logRequestError } = await import("@/server/logging/error-log");
+  await logRequestError(error, request, context);
+  Sentry.captureRequestError(error, request, context);
+};

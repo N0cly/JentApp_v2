@@ -5,6 +5,7 @@
 // une erreur. Ce n'en est pas une : on l'écarte des journaux, lui seul.
 
 import { CLIENT_ABORT_MESSAGES } from "@/lib/error-report";
+import { alreadyWritten, writeErrorLine } from "./error-log";
 
 const ABORTS = new Set(CLIENT_ABORT_MESSAGES);
 
@@ -22,6 +23,16 @@ export function installClientAbortFilter() {
   const original = console.error.bind(console);
   console.error = (...args: unknown[]) => {
     if (isClientAbortLog(args)) return;
+    // Une erreur s'écrit sur une ligne JSON ; déjà écrite avec sa route, elle n'est pas répétée.
+    const error = args.find((arg) => arg instanceof Error);
+    if (error) {
+      // Une erreur de rendu porte un digest : `onRequestError` l'écrit avec sa route.
+      const digest = (error as Error & { digest?: string }).digest;
+      if (!digest && !alreadyWritten(error)) {
+        writeErrorLine(error, { route: null, method: null, userId: null, now: new Date() });
+      }
+      return;
+    }
     original(...args);
   };
 }

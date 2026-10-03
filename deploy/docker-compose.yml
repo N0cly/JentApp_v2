@@ -1,10 +1,18 @@
 # Production, sur le VPS. Voir docs/DEPLOY.md.
 name: jentapp
 
+# Journaux Docker : 10 Mo par fichier, 5 fichiers gardés, pour chaque service.
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
 services:
   app:
     image: ghcr.io/n0cly/jentapp_v2:${JENTAPP_TAG:-latest}
     restart: unless-stopped
+    logging: *logging
     # Valeurs dans /opt/jentapp/.env (modèle : deploy/.env.example). Le délai de
     # versement n'est pas transmis : il reste à 10 minutes en production.
     environment:
@@ -42,6 +50,7 @@ services:
   db:
     image: postgres:18-alpine
     restart: unless-stopped
+    logging: *logging
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
