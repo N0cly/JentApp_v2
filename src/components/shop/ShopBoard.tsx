@@ -1,5 +1,6 @@
 "use client";
 
+import { countOf } from "@/lib/units";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { equipAction, purchaseAction } from "@/app/(app)/l/[ligue]/shop-actions";
@@ -90,7 +91,7 @@ function CardAction({
     <button
       type="button"
       onClick={onBuy}
-      aria-label={`Acheter ${item.name} pour ${item.price} clopes`}
+      aria-label={`Acheter ${item.name} pour ${countOf(item.price)}`}
       className={`${button} font-mono text-[15px] leading-5 font-medium`}
     >
       <Amount value={item.price} />
@@ -178,7 +179,7 @@ export function ShopBoard({
       <BottomSheet
         open={buying !== null}
         onClose={() => setBuying(null)}
-        title={buying ? `Acheter ${buying.name} pour ${buying.price} clopes ?` : ""}
+        title={buying ? `Acheter ${buying.name} pour ${countOf(buying.price)} ?` : ""}
       >
         {buying && (
           <>

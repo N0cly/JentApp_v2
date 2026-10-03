@@ -1,5 +1,6 @@
 "use client";
 
+import { countOf } from "@/lib/units";
 import { useState, useTransition } from "react";
 import { offerRoundAction } from "@/app/(app)/league-actions";
 import {
@@ -76,7 +77,9 @@ export function RoundButton({ leagueId, members }: { leagueId: string; members: 
               onBlur={() => setValue(String(clamp(valid ? amount : MIN)))}
               className="w-[120px] bg-transparent text-center font-mono text-[44px] leading-[48px] font-medium"
             />
-            <span className="text-caption text-ink-muted">clopes par membre</span>
+            <span className="text-caption text-ink-muted">
+              {valid && amount <= 1 ? "clope par membre" : "clopes par membre"}
+            </span>
           </label>
           <IconButton
             label="Ajouter une clope"
@@ -92,7 +95,11 @@ export function RoundButton({ leagueId, members }: { leagueId: string; members: 
           <span>
             {members} {members > 1 ? "membres" : "membre"} × {valid ? amount : "–"}
           </span>
-          <span>{valid ? `${members * amount} clopes créées` : ""}</span>
+          <span>
+            {valid
+              ? `${countOf(members * amount)} ${members * amount > 1 ? "créées" : "créée"}`
+              : ""}
+          </span>
         </div>
         {error && <FieldError id="round-error">{error}</FieldError>}
         <p className="text-caption text-ink-muted">Inscrite au journal de la ligue.</p>

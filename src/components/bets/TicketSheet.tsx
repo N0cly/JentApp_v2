@@ -1,5 +1,6 @@
 "use client";
 
+import { countOf } from "@/lib/units";
 import { frenchSpacing } from "@/lib/typo";
 import { useState, useTransition } from "react";
 import { placeWagerAction } from "@/app/(app)/l/[ligue]/paris/actions";
@@ -168,8 +169,8 @@ export function TicketSheet({
         <span>Solde après mise</span>
         <span>{clopes(balance - amount)}</span>
       </div>
-      {(error ?? (missing ? `Il te manque ${missing} clope.` : null)) && (
-        <FieldError id="ticket-error">{error ?? `Il te manque ${missing} clope.`}</FieldError>
+      {(error ?? (missing ? `Il te manque ${countOf(missing)}.` : null)) && (
+        <FieldError id="ticket-error">{error ?? `Il te manque ${countOf(missing)}.`}</FieldError>
       )}
       <Button onClick={validate} disabled={pending || amount < 1}>
         Valider le ticket

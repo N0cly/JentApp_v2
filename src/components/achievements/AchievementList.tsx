@@ -17,7 +17,7 @@ export function AchievementList({
   return (
     <>
       <p className="text-caption text-ink-muted">
-        {unlocked} succès sur {total} débloqués dans {leagueName}
+        {unlocked} succès sur {total} {unlocked > 1 ? "débloqués" : "débloqué"} dans {leagueName}
       </p>
       <div className="flex flex-col">
         {items.map((item) => {

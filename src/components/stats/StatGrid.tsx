@@ -20,8 +20,8 @@ export function StatGrid({ stats }: { stats: MemberStats }) {
     stats.net > 0 ? `+${stats.net}` : stats.net < 0 ? `${MINUS}${-stats.net}` : String(stats.net);
   return (
     <div className="grid shrink-0 grid-cols-4 gap-2">
-      <Tile value={String(stats.bets)} label="paris" />
-      <Tile value={String(stats.won)} label="gagnés" />
+      <Tile value={String(stats.bets)} label={stats.bets > 1 ? "paris" : "pari"} />
+      <Tile value={String(stats.won)} label={stats.won > 1 ? "gagnés" : "gagné"} />
       <Tile value={stats.successRate === null ? "—" : `${stats.successRate} %`} label="réussite" />
       <Tile
         value={net}
