@@ -27,3 +27,8 @@ export function breakdown(clopes: number): UnitPart[] {
   }
   return parts;
 }
+
+/** « 1 clope », « 21 clopes » ; zéro reste au singulier. */
+export function countOf(n: number, unit: Unit = "clope"): string {
+  return `${n} ${names[unit][Math.abs(n) > 1 ? 1 : 0]}`;
+}
