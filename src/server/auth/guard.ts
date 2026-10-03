@@ -15,6 +15,13 @@ export async function requireUser(nextPath?: string): Promise<SessionUser> {
   return user;
 }
 
+/** Super-admin connecté ; tout autre compte reçoit une 404. */
+export async function requireSuperAdmin(): Promise<SessionUser> {
+  const user = await requireUser();
+  if (!user.isSuperAdmin) notFound();
+  return user;
+}
+
 /** Membre actif de la ligue avec le rôle demandé, sinon 404. */
 export async function requireMember(
   leagueId: string,

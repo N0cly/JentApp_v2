@@ -25,11 +25,10 @@ function avatarsDir(): string {
 export type PhotoResult = { ok: true; image: string } | { ok: false; error: string };
 
 /**
- * Photo de profil : JPEG, PNG ou WebP, 5 Mo au plus. Recadrée en carré de
- * 256 px, convertie en WebP, sans métadonnées. Nom aléatoire ; l'ancienne
- * photo est supprimée.
+ * Image carrée : JPEG, PNG ou WebP, 5 Mo au plus. Recadrée en carré de 256 px,
+ * convertie en WebP, sans métadonnées, sous un nom aléatoire.
  */
-export async function saveProfilePhoto(userId: string, data: Uint8Array): Promise<PhotoResult> {
+async function storeSquareImage(data: Uint8Array): Promise<PhotoResult> {
   if (data.byteLength > MAX_PHOTO_BYTES) return { ok: false, error: photoMessages.tooLarge };
   if (data.byteLength === 0) return { ok: false, error: photoMessages.badFormat };
 
@@ -50,15 +49,25 @@ export async function saveProfilePhoto(userId: string, data: Uint8Array): Promis
   const name = `${randomUUID()}.webp`;
   await mkdir(avatarsDir(), { recursive: true });
   await writeFile(join(avatarsDir(), name), output);
+  return { ok: true, image: `${AVATAR_PATH}${name}` };
+}
 
+/** Photo de profil : l'image carrée ; l'ancienne photo est supprimée. */
+export async function saveProfilePhoto(userId: string, data: Uint8Array): Promise<PhotoResult> {
+  const stored = await storeSquareImage(data);
+  if (!stored.ok) return stored;
   const [previous] = await getDb()
     .select({ image: users.image })
     .from(users)
     .where(eq(users.id, userId));
-  const image = `${AVATAR_PATH}${name}`;
-  await getDb().update(users).set({ image }).where(eq(users.id, userId));
+  await getDb().update(users).set({ image: stored.image }).where(eq(users.id, userId));
   await deletePhotoFile(previous?.image ?? null);
-  return { ok: true, image };
+  return stored;
+}
+
+/** Image d'un avatar du catalogue (M6) : même traitement que la photo de profil. */
+export async function saveCosmeticImage(data: Uint8Array): Promise<PhotoResult> {
+  return storeSquareImage(data);
 }
 
 /** Supprime le fichier d'une photo servie par l'app. */

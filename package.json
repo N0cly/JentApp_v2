@@ -19,7 +19,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "node --env-file-if-exists=.env src/db/migrate.ts",
     "test": "vitest run",
-    "ledger:check": "node --env-file-if-exists=.env scripts/ledger-check.ts"
+    "ledger:check": "node --env-file-if-exists=.env scripts/ledger-check.ts",
+    "admin:grant": "node --env-file-if-exists=.env scripts/admin-grant.ts"
   },
   "dependencies": {
     "better-auth": "1.7.7",

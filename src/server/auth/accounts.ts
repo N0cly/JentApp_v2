@@ -204,6 +204,8 @@ export type SessionUser = {
   email: string;
   emailVerified: boolean;
   image: string | null;
+  /** Gère le catalogue (M6). Donné par `pnpm admin:grant`, jamais par l'interface. */
+  isSuperAdmin: boolean;
 };
 
 /** Utilisateur de la session, ou null. Un compte supprimé n'a plus de session. */
@@ -217,6 +219,7 @@ export async function getSessionUser(headers: Headers): Promise<SessionUser | nu
       email: users.email,
       emailVerified: users.emailVerified,
       image: users.image,
+      isSuperAdmin: users.isSuperAdmin,
     })
     .from(users)
     .where(and(eq(users.id, session.user.id), isNull(users.deletedAt)));
