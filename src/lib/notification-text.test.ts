@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { notificationHref, notificationTag, notificationText } from "./notification-text";
+import {
+  centerHref,
+  notificationHref,
+  notificationTag,
+  notificationText,
+} from "./notification-text";
 
 const now = new Date("2026-10-07T18:00:00Z");
 const PARIS = "Europe/Paris";
@@ -78,6 +83,8 @@ describe("phrase d'une notification", () => {
     const payload = { type: "announcement", message: "Coupure à 23 h : 10 min" } as const;
     expect(notificationText(payload, new Date())).toBe("Coupure à 23 h : 10 min");
     expect(notificationHref(null, payload)).toBe("/notifications");
+    expect(centerHref(null, payload)).toBeNull();
+    expect(centerHref("L", { type: "round", amount: 1 })).toBe("/l/L/paris");
     expect(notificationTag(payload)).toBeNull();
   });
 });

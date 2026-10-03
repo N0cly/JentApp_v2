@@ -9,14 +9,17 @@ import {
   markRead,
   type NotificationView,
 } from "@/server/notifications";
-import { notificationHref } from "@/lib/notification-text";
+import { centerHref } from "@/lib/notification-text";
 
-/** Marque lue et renvoie le lien à ouvrir ; la notification d'un autre : 404. */
-export async function openNotificationAction(id: string): Promise<string> {
+/**
+ * Marque lue et renvoie le lien à ouvrir, rien pour une annonce ; la
+ * notification d'un autre : 404.
+ */
+export async function openNotificationAction(id: string): Promise<string | null> {
   const user = await requireUser();
   try {
     const { leagueId, payload } = await markRead(user, String(id), new Date());
-    return notificationHref(leagueId, payload);
+    return centerHref(leagueId, payload);
   } catch (error) {
     if (error instanceof NotFoundError) notFound();
     throw error;

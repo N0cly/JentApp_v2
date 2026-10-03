@@ -88,6 +88,11 @@ export function notificationHref(leagueId: string | null, payload: NotificationP
   }
 }
 
+/** Où mène un appui dans le centre : nulle part pour une annonce, qui se marque lue sur place. */
+export function centerHref(leagueId: string | null, payload: NotificationPayload): string | null {
+  return payload.type === "announcement" ? null : notificationHref(leagueId, payload);
+}
+
 /** Étiquette du push : une correction remplace la notification du même pari. */
 export function notificationTag(payload: NotificationPayload): string | null {
   return "betId" in payload ? `bet:${payload.betId}` : null;

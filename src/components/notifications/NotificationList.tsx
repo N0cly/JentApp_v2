@@ -104,7 +104,10 @@ export function NotificationList({
 
   const open = (item: NotificationView) =>
     startTransition(async () => {
-      router.push(await openNotificationAction(item.id));
+      const href = await openNotificationAction(item.id);
+      // Une annonce n'ouvre rien : elle se marque lue sur place.
+      if (href) router.push(href);
+      else router.refresh();
     });
 
   const more = () =>

@@ -6,6 +6,8 @@ import { notifications } from "@/db/schema";
 import { offerRound } from "@/server/leagues";
 import { leagueWith } from "@/test/bets";
 import { resetDb } from "@/test/db";
+import { centerHref } from "@/lib/notification-text";
+import { sendAnnouncement } from "./announce";
 import { CENTER_PAGE_SIZE, hasUnread, listNotifications, markAllRead, markRead } from "./center";
 
 const NOW = new Date("2026-10-07T18:00:00Z");
@@ -55,6 +57,26 @@ describe("centre", () => {
     expect(new Set(ids).size).toBe(CENTER_PAGE_SIZE + 5);
     const dates = [...first.items, ...second.items].map((i) => i.createdAt.getTime());
     expect(dates).toEqual([...dates].sort((a, b) => b - a));
+  });
+
+  it("annonce : sans ligue, sous le nom de l'app, se marque lue sans ouvrir de lien", async () => {
+    const ctx = await leagueWith(1);
+    const p = ctx.players[0]!;
+    await rounds(ctx, 1);
+    await sendAnnouncement(getDb(), "Coupure ce soir");
+    const { items } = await listNotifications(p, 0, NOW);
+    const announcement = items.find((i) => i.payload.type === "announcement")!;
+    expect(announcement).toMatchObject({ leagueId: null, leagueName: "JentApp", read: false });
+    expect(items.find((i) => i.payload.type === "round")!.leagueName).toBe("Bande");
+    const read = await markRead(p, announcement.id, NOW);
+    expect(read).toEqual({
+      leagueId: null,
+      payload: { type: "announcement", message: "Coupure ce soir" },
+    });
+    expect(centerHref(read.leagueId, read.payload)).toBeNull();
+    expect(
+      (await listNotifications(p, 0, NOW)).items.find((i) => i.id === announcement.id)!.read,
+    ).toBe(true);
   });
 
   it("la notification d'un autre joueur : 404", async () => {
