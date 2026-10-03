@@ -1,0 +1,12 @@
+# /etc/systemd/system/jentapp-backup.timer — voir docs/DEPLOY.md.
+# Une sauvegarde par nuit ; rattrapée au démarrage si la machine était éteinte.
+[Unit]
+Description=Sauvegarde quotidienne de JentApp
+
+[Timer]
+OnCalendar=*-*-* 03:30:00
+RandomizedDelaySec=15min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

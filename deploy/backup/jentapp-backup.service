@@ -1,0 +1,9 @@
+# /etc/systemd/system/jentapp-backup.service — voir docs/DEPLOY.md.
+[Unit]
+Description=Sauvegarde de JentApp (base et fichiers envoyés)
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/jentapp/backup/backup.sh
