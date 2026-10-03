@@ -21,7 +21,7 @@ export function CheckboxField({ label, error, ...props }: CheckboxFieldProps) {
           className="mt-px size-[22px] shrink-0 accent-brand"
           {...props}
         />
-        <label htmlFor={id} className="text-[13px] leading-[18px] text-ink-muted">
+        <label htmlFor={id} className="min-h-[44px] text-[13px] leading-[18px] text-ink-muted">
           {label}
         </label>
       </div>
