@@ -271,7 +271,7 @@ export function CatalogBoard({
                 <button
                   type="button"
                   onClick={() => setEditCosmetic(c)}
-                  className="flex grow items-center gap-3 text-left"
+                  className="flex min-h-[64px] min-w-0 grow items-center gap-3 text-left"
                 >
                   <Avatar
                     name={me.username}
@@ -311,7 +311,7 @@ export function CatalogBoard({
                 <button
                   type="button"
                   onClick={() => setEditAchievement(a)}
-                  className="flex min-w-0 grow items-center gap-3 text-left"
+                  className="flex min-h-[64px] min-w-0 grow items-center gap-3 text-left"
                 >
                   <span className="flex size-[40px] shrink-0 items-center justify-center rounded-full bg-surface-raised text-ink-muted">
                     <MedalIcon size={20} />
