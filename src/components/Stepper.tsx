@@ -50,7 +50,7 @@ export function Stepper({ name, label, hint, min, max, step, defaultValue }: Ste
             value={value}
             onChange={(e) => setValue(e.target.value.replace(/[^0-9]/g, "").slice(0, 3))}
             onBlur={() => setValue(String(clamp(Number.isNaN(current) ? min : current)))}
-            className="w-[36px] bg-transparent text-center font-mono text-[20px] font-medium"
+            className="h-[44px] w-[44px] bg-transparent text-center font-mono text-[20px] font-medium"
           />
           <IconButton
             label={`Plus, ${label}`}
