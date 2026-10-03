@@ -88,4 +88,4 @@ docker compose up   app + Postgres en local
 
 ## Jalon en cours
 
-M4 — Chat et temps réel (`docs/M4.md`). Mettre cette section à jour à chaque changement de jalon.
+M5 — Classement et profil (`docs/M5.md`). Mettre cette section à jour à chaque changement de jalon.
