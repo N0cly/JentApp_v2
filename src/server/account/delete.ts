@@ -7,6 +7,8 @@ import {
   memberAchievements,
   memberCosmetics,
   messages,
+  notifications,
+  pushSubscriptions,
   rateLimits,
   sessions,
   users,
@@ -84,6 +86,9 @@ export async function deleteAccount(
     // Possessions, apparence et succès (M6) : effacés ; les lignes du journal restent.
     await tx.delete(memberCosmetics).where(eq(memberCosmetics.userId, user.id));
     await tx.delete(memberAchievements).where(eq(memberAchievements.userId, user.id));
+    // Notifications et abonnements push (M7).
+    await tx.delete(notifications).where(eq(notifications.userId, user.id));
+    await tx.delete(pushSubscriptions).where(eq(pushSubscriptions.userId, user.id));
     await tx
       .update(leagueMembers)
       .set({ avatarCosmeticId: null, borderCosmeticId: null })

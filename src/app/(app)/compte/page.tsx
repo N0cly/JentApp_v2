@@ -1,17 +1,16 @@
 import type { Metadata } from "next";
-import { signOutAction } from "@/app/(compte)/actions";
 import { ProfileRows } from "@/components/account/AccountSettings";
 import { PhotoRow } from "@/components/account/PhotoRow";
 import { ListGroup, ListRow, SectionTitle } from "@/components/List";
 import { Screen } from "@/components/Screen";
 import { ScreenHeader } from "@/components/ScreenHeader";
-import { Button, SignOutIcon } from "@/components/ui";
 import { isUuid, memberOrNotFound, requireUser } from "@/server/auth";
 import { NotFoundError } from "@/server/errors";
 import { getLeague } from "@/server/leagues";
 import { getNotifyLevel } from "@/server/notifications";
 import { NotificationSettings } from "@/components/account/NotificationSettings";
 import { PushSwitch } from "@/components/account/PushSwitch";
+import { SignOutButton } from "@/components/account/SignOutButton";
 import { pushEnabled } from "@/server/push";
 
 export const metadata: Metadata = { title: "Réglages · JentApp" };
@@ -69,12 +68,7 @@ export default async function AccountPage({ searchParams }: PageProps<"/compte">
           )}
           <ListRow label="Aide, légal et compte" href={`/compte/aide${suffix}`} />
         </ListGroup>
-        <form action={signOutAction}>
-          <Button variant="secondary" type="submit">
-            <SignOutIcon size={18} />
-            Se déconnecter
-          </Button>
-        </form>
+        <SignOutButton />
       </main>
     </Screen>
   );

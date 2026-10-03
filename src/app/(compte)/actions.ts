@@ -1,9 +1,11 @@
 "use server";
 
+import { unsubscribe } from "@/server/push";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import type { FormState } from "@/components/forms/use-form-errors";
 import {
+  getSessionUser,
   requestPasswordReset,
   requireUser,
   resendVerification,
@@ -68,7 +70,11 @@ export async function newPasswordAction(_: FormState, form: FormData): Promise<F
   redirect("/connexion");
 }
 
-export async function signOutAction() {
+/** Déconnexion : l'abonnement push de cet appareil part avec la session. */
+export async function signOutAction(form?: FormData) {
+  const endpoint = form?.get("endpoint");
+  const user = await getSessionUser(await headers());
+  if (user && typeof endpoint === "string" && endpoint) await unsubscribe(user, endpoint);
   await signOut(await headers());
   redirect("/connexion");
 }

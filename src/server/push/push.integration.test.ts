@@ -15,7 +15,15 @@ import {
 import { at, CLOSE, T0 } from "@/test/bet-scenarios";
 import { leagueWith, optionIds } from "@/test/bets";
 import { resetDb } from "@/test/db";
-import { pushNotification, startPush, subscribe, type PushMessage, type PushSender } from "./push";
+import {
+  pushNotification,
+  startPush,
+  subscribe,
+  unsubscribe,
+  type PushMessage,
+  type PushSender,
+} from "./push";
+import { deleteAccount } from "@/server/account/delete";
 
 const sub = (n: number) => ({
   endpoint: `https://push.exemple.fr/sub/${n}`,
@@ -202,5 +210,35 @@ describe("après validation seulement", () => {
     expect(service.sent.map((s) => s.message.body)).toEqual([
       "Tournée générale : +10 clopes pour tout le monde",
     ]);
+  });
+});
+
+describe("déconnexion et suppression", () => {
+  beforeEach(resetDb);
+
+  it("se désabonner ne retire que l'appareil du joueur", async () => {
+    const ctx = await leagueWith(1);
+    await subscribe(ctx.owner, sub(1));
+    await subscribe(ctx.players[0]!, sub(2));
+    await unsubscribe(ctx.players[0]!, sub(1).endpoint);
+    expect(await getDb().select().from(pushSubscriptions)).toHaveLength(2);
+    await unsubscribe(ctx.owner, sub(1).endpoint);
+    const left = await getDb().select().from(pushSubscriptions);
+    expect(left.map((r) => r.endpoint)).toEqual([sub(2).endpoint]);
+  });
+
+  it("compte supprimé : plus de notification ni d'abonnement", async () => {
+    const ctx = await leagueWith(1);
+    const p = ctx.players[0]!;
+    await subscribe(p, sub(1));
+    await offerRound(ctx.owner, ctx.league.id, { amount: 10, roundId: randomUUID() }, T0);
+    expect(
+      await getDb().select().from(notifications).where(eq(notifications.userId, p.id)),
+    ).toHaveLength(1);
+    await deleteAccount({ id: p.id, username: p.name!, email: p.email }, p.name, T0);
+    expect(
+      await getDb().select().from(notifications).where(eq(notifications.userId, p.id)),
+    ).toEqual([]);
+    expect(await getDb().select().from(pushSubscriptions)).toEqual([]);
   });
 });
