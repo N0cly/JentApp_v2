@@ -45,9 +45,9 @@ export function ChatBetCard({ leagueId, bet }: { leagueId: string; bet: BetView 
   return (
     <Ticket behind="bg" className="w-[260px] shrink-0">
       <div className="flex flex-col gap-2 px-4 py-3">
-        <div className="text-overline flex justify-between text-on-paper-muted">
+        <div className="text-overline flex flex-wrap justify-between gap-x-2 text-on-paper-muted">
           <span>{momentLabel[bet.moment]}</span>
-          <span>{status}</span>
+          <span className="ml-auto">{status}</span>
         </div>
         <div className="text-[16px] leading-5 font-bold">
           {mystery ? "Pari mystère" : "question" in bet ? frenchSpacing(bet.question) : ""}
@@ -56,13 +56,13 @@ export function ChatBetCard({ leagueId, bet }: { leagueId: string; bet: BetView 
       {!mystery && (
         <>
           <TicketCut />
-          <div className="flex items-center justify-between gap-2 px-4 pt-2 pb-3">
+          <div className="flex flex-wrap items-center justify-between gap-2 px-4 pt-2 pb-3">
             <span className="font-mono text-[12px] leading-4 font-medium text-on-paper-muted">
               {options} options{pot !== null && ` · pot ${pot}`}
             </span>
             <Link
               href={href}
-              className="flex min-h-[44px] items-center rounded-md bg-on-paper px-4 text-[14px] font-bold text-paper"
+              className="ml-auto flex min-h-[44px] items-center rounded-md bg-on-paper px-4 text-[14px] font-bold text-paper"
             >
               {bet.state === "open" ? "Parier" : "Voir"}
             </Link>
