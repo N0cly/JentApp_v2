@@ -29,12 +29,12 @@ export function TabBar({ active, hrefs }: TabBarProps) {
           href={hrefs[id]}
           aria-current={id === active ? "page" : undefined}
           className={cx(
-            "flex h-[72px] flex-col items-center justify-center gap-1 text-[12px] leading-4 font-semibold",
+            "flex min-h-[72px] min-w-0 flex-col items-center justify-center gap-1 text-[12px] leading-4 font-semibold",
             id === active ? "text-brand" : "text-ink-muted",
           )}
         >
           <Icon size={22} />
-          <span>{label}</span>
+          <span className="max-w-full truncate px-1">{label}</span>
         </Link>
       ))}
     </nav>
