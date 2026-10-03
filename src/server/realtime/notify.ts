@@ -11,13 +11,15 @@ export type EventType =
   | "reaction.changed"
   | "bet.changed"
   | "balance.changed"
-  | "member.changed";
+  | "member.changed"
+  /** Nouvelle notification : à tous les flux du joueur, quelle que soit la ligue. */
+  | "notification.new";
 
 export type Envelope = {
   league: string;
   type: EventType;
   id?: string | number;
-  /** Destinataire unique (balance.changed). */
+  /** Destinataire unique (balance.changed, notification.new). */
   user?: string;
 };
 

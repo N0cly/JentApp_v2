@@ -1,4 +1,5 @@
 import { and, asc, count, eq, inArray, isNull, sql } from "drizzle-orm";
+import { forgetLeagueNotifications } from "@/server/notifications/create";
 import { appearances, NO_APPEARANCE } from "@/server/shop/appearance";
 import { z } from "zod";
 import { getDb } from "@/db/client";
@@ -436,6 +437,7 @@ export async function leaveLeague(
       .update(leagueMembers)
       .set({ leftAt: now })
       .where(and(eq(leagueMembers.leagueId, leagueId), eq(leagueMembers.userId, actor.id)));
+    await forgetLeagueNotifications(tx, leagueId, actor.id);
     await notify(tx, { league: leagueId, type: "member.changed", id: actor.id });
     return { ok: true } as const;
   });
@@ -483,6 +485,7 @@ export async function removeMember(
       .update(leagueMembers)
       .set({ leftAt: now })
       .where(and(eq(leagueMembers.leagueId, leagueId), eq(leagueMembers.userId, targetUserId)));
+    await forgetLeagueNotifications(tx, leagueId, targetUserId);
     await audit(tx, leagueId, actor.id, "member.removed", { userId: targetUserId });
     await notify(tx, { league: leagueId, type: "member.changed", id: targetUserId });
     return { ok: true } as const;

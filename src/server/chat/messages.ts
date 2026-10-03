@@ -1,4 +1,5 @@
 import { and, asc, count, desc, eq, gt, inArray, isNull, lt, sql } from "drizzle-orm";
+import { notify as notifyPlayers } from "@/server/notifications/create";
 import { appearances, NO_APPEARANCE } from "@/server/shop/appearance";
 import { getDb } from "@/db/client";
 import {
@@ -108,6 +109,13 @@ export async function sendMessage(
         await tx
           .insert(messageMentions)
           .values(mentioned.map((userId) => ({ messageId: id, userId })));
+        await notifyPlayers(tx, {
+          kind: "mention",
+          leagueId,
+          messageId: id,
+          authorId: actor.id,
+          userIds: mentioned,
+        });
       }
     }
     await notify(tx, { league: leagueId, type: "message.new", id });
@@ -217,6 +225,13 @@ export async function shareBet(
         await tx
           .insert(messageMentions)
           .values(mentioned.map((userId) => ({ messageId: row!.id, userId })));
+        await notifyPlayers(tx, {
+          kind: "mention",
+          leagueId,
+          messageId: row!.id,
+          authorId: actor.id,
+          userIds: mentioned,
+        });
       }
     }
     await notify(tx, { league: leagueId, type: "message.new", id: row!.id });

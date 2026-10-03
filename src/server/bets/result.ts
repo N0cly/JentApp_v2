@@ -1,4 +1,5 @@
 import { and, count, eq, gt, gte, isNull, lt, ne } from "drizzle-orm";
+import { notify as notifyPlayers } from "@/server/notifications/create";
 import { notify } from "@/server/realtime/notify";
 import { getDb } from "@/db/client";
 import { betOptions, bets, leagues, wagers } from "@/db/schema";
@@ -63,6 +64,12 @@ async function cancelForTie(tx: Tx, bet: BetRow, actorId: string, now: Date) {
     .where(eq(bets.id, bet.id));
   await notify(tx, { league: bet.leagueId, type: "bet.changed", id: bet.id });
   await audit(tx, bet.leagueId, actorId, "bet.cancelled", { betId: bet.id, reason: "tie" });
+  await notifyPlayers(tx, {
+    kind: "bet_cancelled",
+    leagueId: bet.leagueId,
+    betId: bet.id,
+    actorId,
+  });
   await postSystemMessage(
     tx,
     bet.leagueId,
@@ -71,9 +78,16 @@ async function cancelForTie(tx: Tx, bet: BetRow, actorId: string, now: Date) {
   );
 }
 
-async function applyResult(tx: Tx, bet: BetRow, actorId: string, optionId: string, now: Date) {
+async function applyResult(
+  tx: Tx,
+  bet: BetRow,
+  actorId: string,
+  optionId: string,
+  now: Date,
+  correction: boolean,
+) {
   const [option] = await tx
-    .select({ id: betOptions.id })
+    .select({ id: betOptions.id, label: betOptions.label })
     .from(betOptions)
     .where(and(eq(betOptions.id, optionId), eq(betOptions.betId, bet.id)));
   if (!option) throw new NotFoundError();
@@ -83,6 +97,15 @@ async function applyResult(tx: Tx, bet: BetRow, actorId: string, optionId: strin
     .set({ winningOptionId: optionId, resolvedAt: now, resolvedBy: actorId, seed })
     .where(eq(bets.id, bet.id));
   await notify(tx, { league: bet.leagueId, type: "bet.changed", id: bet.id });
+  await notifyPlayers(tx, {
+    kind: "bet_resolved",
+    leagueId: bet.leagueId,
+    betId: bet.id,
+    actorId,
+    option: option.label,
+    delayMinutes: Math.max(1, Math.round(settleDelayMs() / 60_000)),
+    correction,
+  });
 }
 
 /** Saisir : le créateur, un admin ou l'owner, une fois le pari fermé. */
@@ -105,7 +128,7 @@ export async function resolveBet(
       await cancelForTie(tx, bet, actor.id, now);
       return { ok: true } as const;
     }
-    await applyResult(tx, bet, actor.id, choice.optionId, now);
+    await applyResult(tx, bet, actor.id, choice.optionId, now, false);
     await audit(tx, leagueId, actor.id, "bet.resolved", { betId, optionId: choice.optionId });
     await postSystemMessage(
       tx,
@@ -142,7 +165,7 @@ export async function correctResult(
       await cancelForTie(tx, bet, actor.id, now);
       return { ok: true } as const;
     }
-    await applyResult(tx, bet, actor.id, choice.optionId, now);
+    await applyResult(tx, bet, actor.id, choice.optionId, now, true);
     await audit(tx, leagueId, actor.id, "bet.corrected", { betId, optionId: choice.optionId });
     await postSystemMessage(
       tx,

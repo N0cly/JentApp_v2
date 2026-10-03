@@ -1,4 +1,5 @@
 import { and, count, eq, inArray, isNull } from "drizzle-orm";
+import { notify as notifyPlayers } from "@/server/notifications/create";
 import { notify } from "@/server/realtime/notify";
 import { getDb } from "@/db/client";
 import { betOptions, bets, leagueMembers, wagers } from "@/db/schema";
@@ -72,6 +73,13 @@ export async function createBet(
       { event: "bet_opened", betId: row!.id, data: { by: actor.id } },
       now,
     );
+    await notifyPlayers(tx, {
+      kind: "bet_opened",
+      leagueId,
+      betId: row!.id,
+      actorId: actor.id,
+      now,
+    });
     await notify(tx, { league: leagueId, type: "bet.changed", id: row!.id });
     return { ok: true, betId: row!.id } as const;
   });
@@ -136,6 +144,7 @@ export async function cancelBet(
       .set({ cancelledAt: now, cancelledBy: actor.id, cancelReason: reason })
       .where(eq(bets.id, betId));
     await audit(tx, leagueId, actor.id, "bet.cancelled", { betId, reason });
+    await notifyPlayers(tx, { kind: "bet_cancelled", leagueId, betId, actorId: actor.id });
     await postSystemMessage(
       tx,
       leagueId,

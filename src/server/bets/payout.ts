@@ -1,4 +1,5 @@
 import { and, eq, isNotNull, isNull, lte } from "drizzle-orm";
+import { notify as notifyPlayers } from "@/server/notifications/create";
 import { notify } from "@/server/realtime/notify";
 import { getDb } from "@/db/client";
 import { bets, wagers } from "@/db/schema";
@@ -88,6 +89,7 @@ async function settleOne(betId: string, now: Date): Promise<boolean> {
       await refundAll(tx, bet);
       // Rien en face : la cagnotte n'est pas versée.
       await tx.update(bets).set({ settledAt: now, seed: 0 }).where(eq(bets.id, betId));
+      await notifyPlayers(tx, { kind: "bet_settled", leagueId: bet.leagueId, betId, refund: true });
       await evaluateAfterPayout(tx, bet, stakes);
       await notify(tx, { league: bet.leagueId, type: "bet.changed", id: betId });
       await postSystemMessage(
@@ -122,6 +124,7 @@ async function settleOne(betId: string, now: Date): Promise<boolean> {
         .where(and(eq(wagers.betId, betId), eq(wagers.userId, userId)));
     }
     await tx.update(bets).set({ settledAt: now }).where(eq(bets.id, betId));
+    await notifyPlayers(tx, { kind: "bet_settled", leagueId: bet.leagueId, betId, refund: false });
     await evaluateAfterPayout(tx, bet, stakes);
     await notify(tx, { league: bet.leagueId, type: "bet.changed", id: betId });
     await postSystemMessage(
@@ -151,6 +154,12 @@ async function expireOne(betId: string, now: Date): Promise<boolean> {
       .where(eq(bets.id, betId));
     await notify(tx, { league: bet.leagueId, type: "bet.changed", id: betId });
     await audit(tx, bet.leagueId, null, "bet.cancelled", { betId, reason: "expired" });
+    await notifyPlayers(tx, {
+      kind: "bet_cancelled",
+      leagueId: bet.leagueId,
+      betId,
+      actorId: null,
+    });
     await postSystemMessage(
       tx,
       bet.leagueId,

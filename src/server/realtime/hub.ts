@@ -49,6 +49,10 @@ export function allSubscribers(): Subscriber[] {
 
 /** Redistribue un signal : à toute la ligue, ou au seul joueur concerné. */
 export function dispatch(envelope: Envelope) {
+  if (envelope.type === "notification.new") {
+    for (const sub of allSubscribers()) if (sub.userId === envelope.user) sub.send(envelope);
+    return;
+  }
   for (const sub of subscribersOf(envelope.league)) {
     if (envelope.user && envelope.type === "balance.changed" && sub.userId !== envelope.user)
       continue;
