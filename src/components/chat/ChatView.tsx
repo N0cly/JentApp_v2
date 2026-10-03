@@ -332,7 +332,18 @@ export function ChatView({
         );
         return (
           <div key={m.id} className="flex flex-col items-center gap-2">
-            {m.betId ? <Link href={`/l/${leagueId}/paris/${m.betId}`}>{line}</Link> : line}
+            {m.betId ? (
+              <Link href={`/l/${leagueId}/paris/${m.betId}`} className="relative">
+                {/* Ligne de 16 px ; l'appui, 44 px. */}
+                <span
+                  aria-hidden="true"
+                  className="absolute inset-x-0 top-1/2 h-[44px] -translate-y-1/2"
+                />
+                {line}
+              </Link>
+            ) : (
+              line
+            )}
             {m.bet && <ChatBetCard leagueId={leagueId} bet={m.bet} />}
           </div>
         );
@@ -374,8 +385,13 @@ export function ChatView({
             type="button"
             aria-label={`Profil de ${item.author.username}`}
             onClick={() => profile.open(item.author.id)}
-            className="shrink-0 rounded-full"
+            className="relative shrink-0 rounded-full"
           >
+            {/* L'avatar fait 32 px ; l'appui, 44 px. */}
+            <span
+              aria-hidden="true"
+              className="absolute top-1/2 left-1/2 size-[44px] -translate-1/2"
+            />
             <Avatar
               name={item.author.username}
               src={item.author.image}
@@ -385,11 +401,10 @@ export function ChatView({
             />
           </button>
           <div className="flex max-w-[270px] min-w-0 flex-col gap-1">
-            <span className="text-[12px] leading-4 font-semibold text-ink-muted">
-              <button type="button" onClick={() => profile.open(item.author.id)}>
-                {item.author.username}
-              </button>{" "}
-              <span className="font-mono font-medium text-ink-subtle">
+            <span className="flex text-[12px] leading-4 font-semibold text-ink-muted">
+              <span className="truncate">{item.author.username}</span>
+              <span className="shrink-0 font-mono font-medium whitespace-pre text-ink-subtle">
+                {" "}
                 {clockTime(first.createdAt)}
               </span>
             </span>

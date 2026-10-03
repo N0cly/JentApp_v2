@@ -209,7 +209,7 @@ Classement, Moi et Profil (M5), construits avec les composants existants :
 - Historique vide : « Aucun pari pour l'instant. Lance-toi. », avec le bouton « Voir les paris » vers l'onglet Paris.
 - Lignes d'historique en cours et en attente du résultat : le rond neutre à horloge de la ligne « versement dans », sous-titre « {option} · mise {n} · ferme dans {durée} » ou « · en attente du résultat », valeur « en cours » ou « en attente » en `ink-muted`. Annulé : « · pari annulé », « · égalité » ou « · sans résultat depuis 7 jours », valeur « rendu ». « Voir plus » : bouton discret centré sous la liste.
 - Profil sans pari réglé : ni « DERNIERS PARIS » ni lignes. Les lignes du profil ne mènent nulle part, comme sur la page de référence ; sur la feuille, le rond neutre passe en `surface`.
-- Auteur d'un message du chat : un appui sur son avatar ou son pseudo ouvre son profil ; parti ou supprimé, rien ne se passe.
+- Auteur d'un message du chat : un appui sur son avatar (zone de 44 px autour du dessin de 32 px) ouvre son profil ; parti ou supprimé, rien ne se passe. Le pseudo, au-dessus des bulles, est du texte tronqué : une zone de 44 px y empiéterait sur la bulle.
 
 Boutique, succès et catalogue (M6), construits avec les composants existants :
 
