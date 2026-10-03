@@ -9,7 +9,17 @@ type Db = ReturnType<typeof getDb>;
 export type Tx = Parameters<Parameters<Db["transaction"]>[0]>[0];
 
 /** Raisons d'un mouvement. Mises, gains et remboursements portent ref_id = le pari. */
-export type Reason = "join_grant" | "weekly_grant" | "round" | "wager" | "payout" | "refund";
+export type Reason =
+  | "join_grant"
+  | "weekly_grant"
+  | "round"
+  | "wager"
+  | "payout"
+  | "refund"
+  // ref_id = le cosmétique acheté.
+  | "purchase"
+  // ref_id = le succès débloqué.
+  | "achievement";
 
 export class InsufficientBalanceError extends Error {
   constructor() {

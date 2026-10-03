@@ -11,4 +11,5 @@ export {
   type Movement,
   type PostResult,
   type Reason,
+  type Tx,
 } from "./post";
