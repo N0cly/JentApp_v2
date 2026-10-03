@@ -16,7 +16,7 @@ export function ScreenHeader({
       <IconButton label="Retour" href={back} className="text-ink">
         <ChevronLeftIcon size={22} />
       </IconButton>
-      <span className="grow text-[17px] leading-[22px] font-bold">{title}</span>
+      <span className="min-w-0 grow truncate text-[17px] leading-[22px] font-bold">{title}</span>
       {action}
     </div>
   );
