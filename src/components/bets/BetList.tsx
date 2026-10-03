@@ -169,15 +169,15 @@ function BetCard({
               );
             })}
           </div>
-          <div className="text-caption flex items-center justify-between gap-3 text-ink-subtle">
-            <span className="flex shrink-0 items-center gap-1">
+          <div className="text-caption flex flex-wrap items-center justify-between gap-x-3 text-ink-subtle">
+            <span className="flex flex-wrap items-center gap-x-1">
               <span className="text-ink">Pot</span>
               <span className="text-ink">
                 <Amount value={view.pot} size="sm" />
               </span>
               · {view.bettors} {view.bettors > 1 ? "parieurs" : "parieur"}
             </span>
-            <span className="min-w-0 truncate">par {view.creator}</span>
+            <span className="ml-auto min-w-0 truncate">par {view.creator}</span>
           </div>
         </>
       )}
