@@ -88,4 +88,4 @@ docker compose up   app + Postgres en local
 
 ## Jalon en cours
 
-M6 — Boutique et succès (`docs/M6.md`). Mettre cette section à jour à chaque changement de jalon.
+M7 — Notifications, journal et PWA (`docs/M7.md`). Mettre cette section à jour à chaque changement de jalon.
