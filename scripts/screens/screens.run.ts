@@ -189,14 +189,29 @@ async function inspect(page: Page, width: number) {
     const targets = document.querySelectorAll(
       "a[href], button, input:not([type=hidden]), select, textarea, [role=button], [role=radio]",
     );
+    /** Surface qui reçoit l'appui : l'élément, ses descendants, et le libellé d'un champ. */
+    const hitArea = (el: Element) => {
+      let { left, top, right, bottom } = el.getBoundingClientRect();
+      const parts = [...el.querySelectorAll("*"), ...((el as HTMLInputElement).labels ?? [])];
+      for (const part of parts) {
+        const r = part.getBoundingClientRect();
+        if (r.width <= 1 || r.height <= 1) continue;
+        left = Math.min(left, r.left);
+        top = Math.min(top, r.top);
+        right = Math.max(right, r.right);
+        bottom = Math.max(bottom, r.bottom);
+      }
+      return { width: right - left, height: bottom - top };
+    };
+    /** Lien au fil d'une phrase : exempté (WCAG 2.5.8, exception « inline »). */
+    const inlineInText = (el: Element) =>
+      el.tagName === "A" &&
+      getComputedStyle(el).display === "inline" &&
+      (el.parentElement?.textContent?.trim().length ?? 0) > (el.textContent?.trim().length ?? 0);
+
     for (const el of targets) {
-      if (!visible(el)) continue;
-      // Une case ou un champ compte avec la ligne ou le libellé qui le porte.
-      const host = (el.closest("label") ?? el) as Element;
-      const r = el.getBoundingClientRect();
-      const h = host.getBoundingClientRect();
-      const height = Math.max(r.height, h.height);
-      const widthPx = Math.max(r.width, h.width);
+      if (!visible(el) || inlineInText(el)) continue;
+      const { width: widthPx, height } = hitArea(el);
       if (height < 43.5 || widthPx < 43.5) {
         out.push({
           kind: "zone d'appui",
