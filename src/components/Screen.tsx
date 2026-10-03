@@ -1,10 +1,28 @@
 import type { ReactNode } from "react";
 import { cx } from "@/lib/cx";
 
-/** Colonne de l'app : pleine largeur sur mobile, 480 px au plus au-delà. */
-export function Screen({ children, className }: { children: ReactNode; className?: string }) {
+/**
+ * Colonne de l'app : pleine largeur sur mobile, 480 px au plus au-delà. Le bas
+ * respecte la zone de l'indicateur d'accueil, sauf sous une barre d'onglets
+ * qui s'en charge (`safeBottom={false}`).
+ */
+export function Screen({
+  children,
+  className,
+  safeBottom = true,
+}: {
+  children: ReactNode;
+  className?: string;
+  safeBottom?: boolean;
+}) {
   return (
-    <div className={cx("mx-auto flex min-h-dvh w-full max-w-[480px] flex-col", className)}>
+    <div
+      className={cx(
+        "mx-auto flex min-h-dvh w-full max-w-[480px] flex-col",
+        safeBottom && "pb-[env(safe-area-inset-bottom)]",
+        className,
+      )}
+    >
       {children}
     </div>
   );

@@ -6,7 +6,7 @@ export default async function TabsLayout({ children, params }: LayoutProps<"/l/[
   const { ligue } = await params;
   await requireMember(ligue);
   return (
-    <Screen className="h-dvh">
+    <Screen className="h-dvh" safeBottom={false}>
       <div className="flex min-h-0 grow flex-col overflow-y-auto">{children}</div>
       <LeagueTabs leagueId={ligue} />
     </Screen>
