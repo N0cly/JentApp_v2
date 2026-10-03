@@ -57,12 +57,12 @@ type TicketRowProps = {
 
 export function TicketRow({ label, children, outcome }: TicketRowProps) {
   return (
-    <div className="flex items-baseline justify-between gap-3 font-mono text-[14px] leading-5 font-medium">
+    <div className="flex flex-wrap items-baseline justify-between gap-x-3 font-mono text-[14px] leading-5 font-medium">
       <span className="shrink-0 text-on-paper-muted">{label}</span>
       {/* Un montant reste d'un tenant ; un pseudo long passe à la ligne. */}
       <span
         className={cx(
-          "min-w-0 text-right [overflow-wrap:anywhere]",
+          "ml-auto min-w-0 text-right [overflow-wrap:anywhere]",
           outcome && "text-[28px] leading-8",
           outcome === "win" && "text-on-paper-win",
           outcome === "loss" && "text-on-paper-loss",
