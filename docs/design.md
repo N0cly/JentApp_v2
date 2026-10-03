@@ -223,4 +223,14 @@ Boutique, succès et catalogue (M6), construits avec les composants existants :
 - Catalogue, onglet Succès : mêmes lignes que les cosmétiques (médaille, nom, « {description} · +{récompense} », « · caché » s'il l'est, interrupteur), la note « Un succès désactivé ne se débloque plus ; ceux qui l'ont le gardent. » et le bouton « Ajouter un succès ».
 - Formulaires du catalogue : une feuille, ouverte par une ligne ou par « Ajouter ». Cosmétique : `Segmented` Avatar / Bordure (à la création seulement), Nom, Prix en clopes, Couleur ou Image, Ordre, « Enregistrer ». Succès : des `Chip` pour la règle (Paris misés, Mise d'un coup, Tapis, Paris gagnés, Série, À sec, Paris lancés, Achats ; figée ensuite), Seuil (sauf À sec), Nom, Récompense en clopes, Ordre, la case « Caché », « Enregistrer ».
 
+Notifications, journal et PWA (M7), construits avec les composants existants :
+
+- Cloche : dans l'en-tête de Paris et de Classement, après le solde. Point de non-lu : pastille `loss` de 8 px en haut à droite de la cloche, posée en direct à l'arrivée d'une notification.
+- Centre : icône par type (mention @, résultat horloge, nouveau pari ticket, tournée cadeau, réglé coche, annulé croix), en `brand` tant que la ligne n'est pas lue, sinon `ink-muted`. Heure : « 21:14 » aujourd'hui, « HIER », puis « 5 OCT. ». « Tout lire » n'apparaît que s'il y a des notifications ; « Voir plus », bouton discret, sous la liste. Centre vide : « Rien de neuf. »
+- Réglages du compte : les trois niveaux sont des lignes à bouton radio (`brand` pour le choix), comme la page de référence ; l'interrupteur « Notifications push » est masqué sans push (navigateur, clés absentes) ou tant que l'état de l'appareil n'est pas connu.
+- Activer les notifications : permission refusée, le message de formulaire « Les notifications sont bloquées. Autorise-les dans les réglages de ton navigateur. » au-dessus du bouton ; iPhone sans l'app installée, bouton inactif et, au-dessus, « Sur iPhone, installe d'abord l'app. » suivi du lien « Installer l'app ». Les points du parcours n'apparaissent que dans le parcours d'inscription.
+- Installer l'app : aussi depuis Aide et légal (« Installer l'app »). Onglet présélectionné selon l'appareil (Android hors iPhone). Android : le bouton secondaire « Installer » remplace les étapes ; sans proposition du navigateur, bouton inactif et « Ton navigateur ne propose pas l'installation. Ouvre JentApp dans Chrome. ». Déjà installée : « JentApp est déjà installée. » à la place du sélecteur et des étapes.
+- Hors ligne : l'icône de l'app, « Pas de réseau. JentApp revient dès que tu es connecté. », bouton primaire « Réessayer ».
+- Journal : jours en overline (« AUJOURD'HUI », « HIER », « LUNDI 5 OCTOBRE »), une carte par jour, l'auteur en gras ; « Voir plus », bouton discret. Journal vide : « Rien au journal pour l'instant. »
+
 Si un cas ne rentre dans aucune de ces lignes, s'arrêter et demander.
