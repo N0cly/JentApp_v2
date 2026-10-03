@@ -53,7 +53,7 @@ export default async function DeleteAccountPage() {
             </span>
             <Link
               href={`/l/${league.id}/reglages`}
-              className="flex min-h-[44px] items-center text-[14px] font-semibold text-brand"
+              className="flex min-h-[44px] items-center text-[14px] font-semibold text-brand [overflow-wrap:anywhere]"
             >
               Transférer {league.name}
             </Link>
