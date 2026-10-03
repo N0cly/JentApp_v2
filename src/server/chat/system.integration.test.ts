@@ -9,6 +9,7 @@ import { at, betWithStakes, CLOSE } from "@/test/bet-scenarios";
 import { leagueWith } from "@/test/bets";
 import { resetDb } from "@/test/db";
 import { createUser } from "@/test/factories";
+import { deleteAccount } from "@/server/account/delete";
 import { readMessages } from "./messages";
 import { postSystemMessage } from "./system";
 
@@ -22,6 +23,22 @@ async function systemTexts(user: { id: string }, leagueId: string) {
 
 describe("messages automatiques", () => {
   beforeEach(resetDb);
+
+  it("l'arrivée d'un compte supprimé n'est plus affichée", async () => {
+    const { league, owner } = await leagueWith(0);
+    const gone = await createUser("Parti");
+    await joinLeague({ id: gone.id }, league.inviteCode, new Date());
+    await getDb()
+      .insert(messages)
+      .values({ leagueId: league.id, userId: owner.id, kind: "text", body: "Salut" });
+    expect(await systemTexts(owner, league.id)).toContain("Parti rejoint la ligue");
+    await deleteAccount({ id: gone.id, username: "Parti", email: gone.email }, "Parti", new Date());
+    const texts = await systemTexts(owner, league.id);
+    expect(texts.some((t) => t?.includes("rejoint la ligue"))).toBe(false);
+    // Les autres messages restent.
+    const all = await readMessages(owner, league.id, new Date());
+    expect(all.map((m) => m.body)).toContain("Salut");
+  });
 
   it("un par événement, avec sa phrase", async () => {
     const { league, owner, players } = await leagueWith(3);

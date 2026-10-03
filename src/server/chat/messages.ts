@@ -425,6 +425,11 @@ async function toViews(
   });
 }
 
+/** L'arrivée d'un compte supprimé n'est plus affichée. */
+const notGoneArrival = sql`not (${messages.event} is not distinct from 'member_joined' and exists (
+  select 1 from ${users} where ${users.id}::text = ${messages.data}->>'userId' and ${users.deletedAt} is not null
+))`;
+
 /**
  * Les 50 derniers messages ; `before` remonte par pages de 50, `after` donne
  * ceux qui suivent un identifiant. Toujours dans l'ordre croissant.
@@ -436,7 +441,7 @@ export async function readMessages(
   page: { before?: number; after?: number } = {},
 ): Promise<MessageView[]> {
   await memberOrNotFound(actor.id, leagueId);
-  const visible = and(eq(messages.leagueId, leagueId), isNull(messages.deletedAt));
+  const visible = and(eq(messages.leagueId, leagueId), isNull(messages.deletedAt), notGoneArrival);
   let rows: MessageRow[];
   if (page.after !== undefined) {
     rows = await getDb()
@@ -470,7 +475,14 @@ export async function readMessage(
   const rows = await getDb()
     .select()
     .from(messages)
-    .where(and(eq(messages.id, id), eq(messages.leagueId, leagueId), isNull(messages.deletedAt)));
+    .where(
+      and(
+        eq(messages.id, id),
+        eq(messages.leagueId, leagueId),
+        isNull(messages.deletedAt),
+        notGoneArrival,
+      ),
+    );
   const [view] = await toViews(rows, actor.id, leagueId, now);
   return view ?? null;
 }
