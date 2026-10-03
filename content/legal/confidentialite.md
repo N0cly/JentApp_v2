@@ -23,9 +23,10 @@ Les membres de tes ligues voient ton pseudo, ta photo, tes mises et tes messages
 
 ## Services tiers
 
-- Envoi d'emails : [PRESTATAIRE].
+- Envoi d'emails : Resend, qui reçoit ton adresse email et le contenu des emails de confirmation et de réinitialisation du mot de passe.
 - Recherche de GIF : Giphy, qui reçoit le texte de ta recherche.
-- Notifications : les services de push d'Apple, Google et Mozilla.
+- Notifications : les services de push d'Apple, Google et Mozilla, qui acheminent les notifications sur ton appareil.
+- Suivi des erreurs : GlitchTip, hébergé sur le même serveur que l'app. Il reçoit la description technique d'une erreur et l'identifiant de ton compte, jamais ton email.
 - Hébergement : [HÉBERGEUR], en [PAYS].
 
 ## Combien de temps
