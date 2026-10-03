@@ -67,8 +67,8 @@ export default async function MePage({ params, searchParams }: PageProps<"/l/[li
           ringWidth={me.ring ? 3 : 2}
           size={56}
         />
-        <div className="flex grow flex-col">
-          <h1 className="text-[24px] leading-[28px] font-extrabold tracking-[-0.01em] [font-stretch:85%]">
+        <div className="flex min-w-0 grow flex-col">
+          <h1 className="truncate text-[24px] leading-[28px] font-extrabold tracking-[-0.01em] [font-stretch:85%]">
             {user.username}
           </h1>
           <span className="text-caption text-ink-muted">{rankLabel(me.rank)} de la ligue</span>
