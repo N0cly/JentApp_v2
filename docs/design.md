@@ -145,6 +145,22 @@ Un ticket de papier avec le J et une barre de laiton, sur fond `bg`. Les fichier
 - **Voix.** Tutoiement, phrases courtes, pas d'emoji, pas de point d'exclamation en rafale. « Valider le ticket », pas « Confirmer la transaction ». « Il te manque 6 clopes. », pas « Fonds insuffisants ».
 - **Données d'exemple.** Les pseudos, questions et montants des pages de référence sont des exemples : ne jamais les coder en dur.
 
+## Tailles d'écran
+
+`pnpm test:screens` ouvre chaque écran avec un jeu de données extrême (pseudo de 20 caractères sans espace, ligue de 30, question de 140, 8 options de 40, ligue de 50 membres, message de 500 caractères sans espace) et échoue sur un défilement horizontal, un élément hors de l'écran, une zone d'appui sous 44 px, une feuille coupée ou une colonne décentrée.
+
+- **Tailles vérifiées.** 320 × 568, 360 × 740, 375 × 667, 390 × 844, 412 × 915, 430 × 932 ; 820 × 1180, où la colonne de 480 px reste centrée ; 844 × 390 en paysage ; 390 × 844 avec le texte agrandi à 200 %.
+- **Couper avec des points de suspension** les pseudos et noms de ligue dans les en-têtes, les titres et les listes : sélecteur de ligue, titre d'écran, titre de la feuille Profil, valeurs des lignes de réglages, membres, podium, gains versés, pseudo au-dessus des bulles, ligue d'une notification. Une heure ou un compte à rebours à côté reste entier.
+- **Passer à la ligne** pour tout ce qui se lit en phrase : questions, options, messages, journal, carte du classement, notifications, libellés de bouton, nom de ligue sur un ticket. Un mot sans espace se coupe plutôt que de déborder (`overflow-wrap` sur `body`, `anywhere` dans les contenants flex).
+- **Montants** jamais coupés : sur un ticket, la valeur passe sous son libellé si les deux ne tiennent pas.
+- **Sélecteur de ligue.** À 320 px, avec les trois actions de Paris, il se réduit à son badge ; l'appui ouvre toujours « Tes ligues ».
+- **Bulles du chat.** 270 px au plus, comme la page de référence, et moins si l'écran est étroit.
+- **Zones d'appui.** 44 px au moins. Un dessin plus petit garde sa taille et reçoit une zone d'appui transparente de 44 px : interrupteur de 52 × 32, avatar de 32 px du chat, ligne de message automatique. Un lien au fil d'une phrase (« conditions d'utilisation ») en est exempté.
+- **Zones sûres.** `Screen` respecte `env(safe-area-inset-top)` et, hors écrans à onglets, `env(safe-area-inset-bottom)` ; `TabBar` et `BottomSheet` gèrent le bas.
+- **Clavier.** `interactive-widget=resizes-content` : sur Android, la page se réduit au-dessus du clavier.
+- **Orientation.** Le manifeste déclare le portrait ; en paysage, l'app reste utilisable.
+- **Texte agrandi.** Les hauteurs fixes de texte deviennent des hauteurs minimales (barre d'onglets, champs) pour que rien ne se chevauche.
+
 ## Erreurs de formulaire
 
 Pages de référence : `inscription-erreur.html` et `connexion-erreur.html`.
