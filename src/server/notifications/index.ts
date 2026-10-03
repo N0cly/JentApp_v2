@@ -7,3 +7,4 @@ export {
   markRead,
   type NotificationView,
 } from "./center";
+export { getNotifyLevel, NOTIFY_LEVELS, setNotifyLevel, type NotifyLevel } from "./level";

@@ -8,6 +8,9 @@ import { ScreenHeader } from "@/components/ScreenHeader";
 import { Button, SignOutIcon } from "@/components/ui";
 import { isUuid, memberOrNotFound, requireUser } from "@/server/auth";
 import { NotFoundError } from "@/server/errors";
+import { getLeague } from "@/server/leagues";
+import { getNotifyLevel } from "@/server/notifications";
+import { NotificationSettings } from "@/components/account/NotificationSettings";
 
 export const metadata: Metadata = { title: "Réglages · JentApp" };
 
@@ -27,6 +30,12 @@ export default async function AccountPage({ searchParams }: PageProps<"/compte">
   const user = await requireUser("/compte");
   const league = await fromLeague(user.id, (await searchParams).ligue);
   const suffix = league ? `?ligue=${league}` : "";
+  const notifications = league
+    ? {
+        name: (await getLeague(user, league)).name,
+        level: await getNotifyLevel(user, league),
+      }
+    : null;
 
   return (
     <Screen>
@@ -38,6 +47,12 @@ export default async function AccountPage({ searchParams }: PageProps<"/compte">
           email={user.email}
           photoRow={<PhotoRow username={user.username} image={user.image} />}
         />
+        {league && notifications && (
+          <>
+            <SectionTitle>NOTIFICATIONS DANS {notifications.name.toUpperCase()}</SectionTitle>
+            <NotificationSettings leagueId={league} level={notifications.level} />
+          </>
+        )}
         <SectionTitle>
           {league ? "LIGUE, PLATEFORME, AIDE" : user.isSuperAdmin ? "PLATEFORME, AIDE" : "AIDE"}
         </SectionTitle>

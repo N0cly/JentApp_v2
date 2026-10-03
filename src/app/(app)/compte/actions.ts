@@ -2,6 +2,9 @@
 
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { notFound } from "next/navigation";
+import { NotFoundError } from "@/server/errors";
+import { setNotifyLevel } from "@/server/notifications";
 import type { FormState } from "@/components/forms/use-form-errors";
 import { changePassword, changeUsername, requestEmailChange, requireUser } from "@/server/auth";
 
@@ -35,4 +38,15 @@ export async function changePasswordAction(_: FormState, form: FormData): Promis
       await headers(),
     ),
   );
+}
+
+/** Niveau de notifications dans une ligue. */
+export async function setNotifyLevelAction(leagueId: string, level: string): Promise<void> {
+  const user = await requireUser();
+  try {
+    await setNotifyLevel(user, String(leagueId), level);
+  } catch (error) {
+    if (error instanceof NotFoundError) notFound();
+    throw error;
+  }
 }
