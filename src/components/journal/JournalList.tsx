@@ -68,7 +68,7 @@ export function JournalList({
                 <span className="w-[44px] shrink-0 font-mono text-[13px] leading-5 font-medium text-ink-subtle">
                   {clockTime(entry.createdAt)}
                 </span>
-                <span className="text-[14px] leading-5">
+                <span className="min-w-0 text-[14px] leading-5 [overflow-wrap:anywhere]">
                   {entry.actor && <span className="font-bold">{entry.actor}</span>}
                   {entry.actor ? ` ${entry.text}` : entry.text}
                 </span>
