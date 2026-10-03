@@ -14,6 +14,15 @@ export type Settlement =
       oddsCents: number;
     };
 
+/**
+ * Aucun gagnant ou aucun perdant (un seul parieur compris) : chacun reprend sa
+ * mise. `winning` est le total misé sur l'option gagnante, `total` le pot hors
+ * cagnotte. Le remboursement se lit au pari, jamais à la mise.
+ */
+export function isRefund(winning: number, total: number): boolean {
+  return winning === 0 || winning === total;
+}
+
 export function settle({
   stakes,
   winningOptionId,
@@ -27,8 +36,7 @@ export function settle({
   const winners = stakes.filter((s) => s.optionId === winningOptionId);
   const winning = winners.reduce((sum, s) => sum + s.amount, 0);
 
-  // Aucun gagnant ou aucun perdant (un seul parieur compris) : chacun reprend sa mise.
-  if (winning === 0 || winning === total) {
+  if (isRefund(winning, total)) {
     return { kind: "refund", payouts: new Map(stakes.map((s) => [s.userId, s.amount])) };
   }
 
