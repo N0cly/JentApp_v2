@@ -125,6 +125,12 @@ const ROUTES: Route[] = [
   { name: "journal-vide", path: `/l/${E}/reglages/journal`, as: "empty" },
 ];
 
+/** `SCREENS=paris,chat pnpm test:screens` : seulement ces écrans. */
+const only = process.env.SCREENS?.split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
+const SELECTED = only?.length ? ROUTES.filter((r) => only.includes(r.name)) : ROUTES;
+
 type Problem = { size: string; route: string; kind: string; detail: string };
 
 /** Contrôles dans la page : débordement, zones d'appui, colonne centrée. */
@@ -274,7 +280,7 @@ describe.each(SIZES)("%i × %i", (width, height) => {
     for (const context of contexts.values()) await context.close();
   });
 
-  it.each(ROUTES.map((r) => [r.name, r] as const))("%s", async (name, route) => {
+  it.each(SELECTED.map((r) => [r.name, r] as const))("%s", async (name, route) => {
     const page = await contexts.get(route.as)!.newPage();
     try {
       await page.goto(`${BASE}${route.path}`, { waitUntil: "load", timeout: 60_000 });
