@@ -2,7 +2,11 @@
 // lignes doit égaler son solde. Usage : pnpm ledger:check
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import { findBetDiscrepancies, findDiscrepancies } from "../src/server/ledger/check.ts";
+import {
+  findBetDiscrepancies,
+  findDiscrepancies,
+  findShopDiscrepancies,
+} from "../src/server/ledger/check.ts";
 
 const url = process.env.DATABASE_URL;
 if (!url) {
@@ -15,7 +19,8 @@ try {
   const db = drizzle(client);
   const discrepancies = await findDiscrepancies(db);
   const betIssues = await findBetDiscrepancies(db);
-  if (discrepancies.length === 0 && betIssues.length === 0) {
+  const shopIssues = await findShopDiscrepancies(db);
+  if (discrepancies.length === 0 && betIssues.length === 0 && shopIssues.length === 0) {
     console.log("Journal conforme : aucun écart.");
   }
   if (betIssues.length > 0) {
@@ -23,6 +28,15 @@ try {
     for (const b of betIssues) {
       console.error(
         `  pari ${b.betId} · ${b.problem} · mises ${b.wagered} · gains ${b.paid} · rendus ${b.refunded} · cagnotte ${b.seed}`,
+      );
+    }
+    process.exitCode = 1;
+  }
+  if (shopIssues.length > 0) {
+    console.error(`${shopIssues.length} achat(s) ou succès dont le journal ne tombe pas juste :`);
+    for (const s of shopIssues) {
+      console.error(
+        `  ligue ${s.leagueId} · membre ${s.userId} · ${s.problem} ${s.ref} · ${s.detail}`,
       );
     }
     process.exitCode = 1;

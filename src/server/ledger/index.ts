@@ -1,8 +1,10 @@
 export {
   findBetDiscrepancies,
   findDiscrepancies,
+  findShopDiscrepancies,
   type BetDiscrepancy,
   type Discrepancy,
+  type ShopDiscrepancy,
 } from "./check";
 export {
   InsufficientBalanceError,

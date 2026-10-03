@@ -4,6 +4,8 @@ import {
   accounts,
   leagueMembers,
   leagues,
+  memberAchievements,
+  memberCosmetics,
   messages,
   rateLimits,
   sessions,
@@ -78,6 +80,14 @@ export async function deleteAccount(
         ),
       );
     }
+
+    // Possessions, apparence et succès (M6) : effacés ; les lignes du journal restent.
+    await tx.delete(memberCosmetics).where(eq(memberCosmetics.userId, user.id));
+    await tx.delete(memberAchievements).where(eq(memberAchievements.userId, user.id));
+    await tx
+      .update(leagueMembers)
+      .set({ avatarCosmeticId: null, borderCosmeticId: null })
+      .where(eq(leagueMembers.userId, user.id));
 
     const left = await tx
       .update(leagueMembers)

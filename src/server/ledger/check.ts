@@ -89,3 +89,68 @@ export async function findBetDiscrepancies(
     seed: r.seed,
   }));
 }
+
+export type ShopDiscrepancy = {
+  leagueId: string;
+  userId: string;
+  ref: string;
+  problem: "purchase" | "achievement";
+  detail: string;
+};
+
+/**
+ * Boutique et succès (M6) : chaque achat payant a sa ligne `purchase` au prix
+ * payé, et chaque ligne `purchase` son achat ; chaque ligne `achievement` a son
+ * succès débloqué, et une récompense positive. Les comptes supprimés gardent
+ * leurs lignes sans leurs possessions : ils sont ignorés.
+ */
+export async function findShopDiscrepancies(
+  db: Pick<PostgresJsDatabase<Record<string, unknown>>, "execute">,
+): Promise<ShopDiscrepancy[]> {
+  const rows = await db.execute<{
+    league_id: string;
+    user_id: string;
+    ref: string;
+    problem: ShopDiscrepancy["problem"];
+    detail: string;
+  }>(sql`
+    with purchases as (
+      select league_id, user_id, ref_id, sum(-delta)::int as paid, count(*)::int as lines
+      from ledger where reason = 'purchase'
+      group by league_id, user_id, ref_id
+    )
+    select mc.league_id, mc.user_id, mc.cosmetic_id::text as ref, 'purchase' as problem,
+      'achat à ' || mc.price_paid || ', journal ' || coalesce(p.paid, 0) as detail
+    from member_cosmetics mc
+    left join purchases p
+      on p.league_id = mc.league_id and p.user_id = mc.user_id and p.ref_id = mc.cosmetic_id
+    where (mc.price_paid > 0 or p.lines is not null)
+      and (coalesce(p.paid, 0) <> mc.price_paid or coalesce(p.lines, 0) <> 1)
+    union all
+    select p.league_id, p.user_id, p.ref_id::text, 'purchase', 'ligne sans achat'
+    from purchases p
+    join users u on u.id = p.user_id and u.deleted_at is null
+    where not exists (
+      select 1 from member_cosmetics mc
+      where mc.league_id = p.league_id and mc.user_id = p.user_id and mc.cosmetic_id = p.ref_id
+    )
+    union all
+    select l.league_id, l.user_id, l.ref_id::text, 'achievement',
+      case when l.delta <= 0 then 'récompense ' || l.delta else 'ligne sans succès débloqué' end
+    from ledger l
+    join users u on u.id = l.user_id and u.deleted_at is null
+    where l.reason = 'achievement'
+      and (l.delta <= 0 or not exists (
+        select 1 from member_achievements ma
+        where ma.league_id = l.league_id and ma.user_id = l.user_id and ma.achievement_id = l.ref_id
+      ))
+    order by 1, 2, 3
+  `);
+  return rows.map((r) => ({
+    leagueId: r.league_id,
+    userId: r.user_id,
+    ref: r.ref,
+    problem: r.problem,
+    detail: r.detail,
+  }));
+}
