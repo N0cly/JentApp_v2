@@ -243,12 +243,17 @@ export function BetForm({
               clear("hiddenUntilOpen");
             }}
             className={cx(
-              "flex h-[32px] w-[52px] shrink-0 items-center rounded-full border p-1",
+              "relative flex h-[32px] w-[52px] shrink-0 items-center rounded-full border p-1",
               mystery
                 ? "justify-end border-brand bg-brand-soft"
                 : "justify-start border-line-strong bg-surface-raised",
             )}
           >
+            {/* Le dessin fait 32 px de haut ; l'appui, 44 px. */}
+            <span
+              aria-hidden="true"
+              className="absolute inset-x-0 top-1/2 h-[44px] -translate-y-1/2"
+            />
             <span
               className={cx("size-[22px] rounded-full", mystery ? "bg-brand" : "bg-ink-muted")}
             />
