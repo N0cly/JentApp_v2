@@ -110,7 +110,7 @@ function Bubble({
       type="button"
       onClick={onOpen}
       className={cx(
-        "px-4 py-2 text-left text-[15px] leading-[21px]",
+        "max-w-full px-4 py-2 text-left text-[15px] leading-[21px] [overflow-wrap:anywhere]",
         mine
           ? "rounded-tl-lg rounded-tr-sm rounded-b-lg bg-brand-soft"
           : "rounded-tl-sm rounded-tr-lg rounded-b-lg bg-surface",
@@ -357,7 +357,10 @@ export function ChatView({
       ));
       if (item.mine) {
         return (
-          <div key={item.key} className="flex max-w-[270px] flex-col items-end gap-1 self-end">
+          <div
+            key={item.key}
+            className="flex max-w-[270px] min-w-0 flex-col items-end gap-1 self-end"
+          >
             {bubbles}
             <span className="font-mono text-[12px] leading-4 font-medium text-ink-subtle">
               {clockTime(last.createdAt)}
@@ -381,7 +384,7 @@ export function ChatView({
               background="surface-raised"
             />
           </button>
-          <div className="flex max-w-[270px] flex-col gap-1">
+          <div className="flex max-w-[270px] min-w-0 flex-col gap-1">
             <span className="text-[12px] leading-4 font-semibold text-ink-muted">
               <button type="button" onClick={() => profile.open(item.author.id)}>
                 {item.author.username}

@@ -7,7 +7,7 @@ export function MessageBody({ body, mentions }: { body: string; mentions: string
   const known = new Set(mentions.map((m) => m.toLowerCase()));
   const parts = body.split(MENTION);
   return (
-    <span className="whitespace-pre-wrap break-words">
+    <span className="whitespace-pre-wrap [overflow-wrap:anywhere]">
       {parts.map((part, i) =>
         part.startsWith("@") && known.has(part.slice(1).toLowerCase()) ? (
           <span key={i} className="font-semibold text-brand">
