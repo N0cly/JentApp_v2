@@ -263,11 +263,18 @@ async function inspect(page: Page, width: number) {
  */
 async function enlargeText(page: Page) {
   await page.evaluate(() => {
-    for (const el of document.querySelectorAll<HTMLElement>("body *")) {
-      if (el.dataset.enlarged) continue;
-      const style = getComputedStyle(el);
-      const size = Number.parseFloat(style.fontSize);
-      const line = Number.parseFloat(style.lineHeight);
+    // Toutes les tailles d'abord : un enfant qui hérite ne doit pas doubler deux fois.
+    const sizes = [...document.querySelectorAll<HTMLElement>("body *")]
+      .filter((el) => !el.dataset.enlarged)
+      .map((el) => {
+        const style = getComputedStyle(el);
+        return [
+          el,
+          Number.parseFloat(style.fontSize),
+          Number.parseFloat(style.lineHeight),
+        ] as const;
+      });
+    for (const [el, size, line] of sizes) {
       el.dataset.enlarged = "1";
       el.style.fontSize = `${size * 2}px`;
       if (!Number.isNaN(line)) el.style.lineHeight = `${line * 2}px`;
