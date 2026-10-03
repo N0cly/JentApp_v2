@@ -142,6 +142,9 @@ export const leagueMembers = pgTable(
     balance: integer("balance").notNull().default(0),
     joinedAt: timestamp("joined_at", { withTimezone: true }).notNull().defaultNow(),
     leftAt: timestamp("left_at", { withTimezone: true }),
+    // Apparence dans la ligue (M6) : vide = la photo du compte, sans bordure.
+    avatarCosmeticId: uuid("avatar_cosmetic_id").references((): AnyPgColumn => cosmetics.id),
+    borderCosmeticId: uuid("border_cosmetic_id").references((): AnyPgColumn => cosmetics.id),
   },
   (t) => [
     primaryKey({ columns: [t.leagueId, t.userId] }),
@@ -350,3 +353,102 @@ export const rateLimits = pgTable("rate_limits", {
   count: integer("count").notNull(),
   resetAt: timestamp("reset_at", { withTimezone: true }).notNull(),
 });
+
+// --- Boutique et succès (M6) ------------------------------------------------
+// Catalogue global ; possession et déblocage par ligue.
+
+export const cosmeticType = pgEnum("cosmetic_type", ["avatar", "border"]);
+
+export const cosmetics = pgTable(
+  "cosmetics",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    type: cosmeticType("type").notNull(),
+    name: text("name").notNull(),
+    // Avatar : fichier WebP de 256 px. Bordure : vide.
+    imageUrl: text("image_url"),
+    // Bordure : couleur de l'anneau, #RRGGBB. Avatar : vide.
+    tintColor: text("tint_color"),
+    price: integer("price").notNull(),
+    active: boolean("active").notNull().default(true),
+    position: integer("position").notNull().default(0),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    check("cosmetics_price_positive", sql`${t.price} >= 0`),
+    check(
+      "cosmetics_tint_format",
+      sql`${t.tintColor} is null or ${t.tintColor} ~ '^#[0-9A-Fa-f]{6}$'`,
+    ),
+  ],
+);
+
+export const memberCosmetics = pgTable(
+  "member_cosmetics",
+  {
+    leagueId: uuid("league_id")
+      .notNull()
+      .references(() => leagues.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id),
+    cosmeticId: uuid("cosmetic_id")
+      .notNull()
+      .references(() => cosmetics.id),
+    pricePaid: integer("price_paid").notNull(),
+    acquiredAt: timestamp("acquired_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.leagueId, t.userId, t.cosmeticId] }),
+    check("member_cosmetics_price_positive", sql`${t.pricePaid} >= 0`),
+  ],
+);
+
+export const achievementRule = pgEnum("achievement_rule", [
+  "wagers_count",
+  "single_stake",
+  "all_in",
+  "wins_count",
+  "win_streak",
+  "broke",
+  "bets_created",
+  "purchases_count",
+]);
+
+export const achievements = pgTable(
+  "achievements",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    key: text("key").notNull().unique(),
+    name: text("name").notNull(),
+    ruleType: achievementRule("rule_type").notNull(),
+    // Seuil de la règle ; vide pour « broke ».
+    ruleValue: integer("rule_value"),
+    reward: integer("reward").notNull(),
+    hidden: boolean("hidden").notNull().default(false),
+    active: boolean("active").notNull().default(true),
+    position: integer("position").notNull().default(0),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    check("achievements_reward_positive", sql`${t.reward} >= 0`),
+    check("achievements_rule_value_positive", sql`${t.ruleValue} is null or ${t.ruleValue} > 0`),
+  ],
+);
+
+export const memberAchievements = pgTable(
+  "member_achievements",
+  {
+    leagueId: uuid("league_id")
+      .notNull()
+      .references(() => leagues.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id),
+    achievementId: uuid("achievement_id")
+      .notNull()
+      .references(() => achievements.id),
+    unlockedAt: timestamp("unlocked_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.leagueId, t.userId, t.achievementId] })],
+);

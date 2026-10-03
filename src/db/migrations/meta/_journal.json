@@ -36,6 +36,13 @@
       "when": 1790968135903,
       "tag": "0004_chat",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1790989136461,
+      "tag": "0005_shop_and_achievements",
+      "breakpoints": true
     }
   ]
 }
