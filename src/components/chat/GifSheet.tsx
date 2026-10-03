@@ -59,7 +59,7 @@ export function GifSheet({
           autoComplete="off"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="min-w-0 grow bg-transparent text-[15px] text-ink"
+          className="min-h-[44px] min-w-0 grow bg-transparent text-[15px] text-ink"
         />
       </div>
       {!query.trim() && <p className="text-body text-ink-muted">Cherche un GIF.</p>}
