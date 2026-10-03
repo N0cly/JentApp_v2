@@ -39,8 +39,7 @@ function useClientText(item: NotificationView): { text: string; when: string } |
     subscribe,
     () => {
       const now = new Date();
-      const when = `${item.leagueName.toUpperCase()} · ${shortWhen(item.createdAt, now)}`;
-      return `${notificationText(item.payload, now)}\n${when}`;
+      return `${notificationText(item.payload, now)}\n${shortWhen(item.createdAt, now)}`;
     },
     () => null,
   );
@@ -62,10 +61,20 @@ function Row({ item, onOpen }: { item: NotificationView; onOpen: () => void }) {
       >
         <Icon size={18} />
       </span>
-      <span className="flex grow flex-col gap-1">
-        <span className="text-[14px] leading-5 font-semibold">{shown?.text ?? " "}</span>
-        <span className="font-mono text-[12px] leading-4 font-medium text-ink-subtle">
-          {shown?.when ?? " "}
+      <span className="flex min-w-0 grow flex-col gap-1">
+        <span className="text-[14px] leading-5 font-semibold [overflow-wrap:anywhere]">
+          {shown?.text ?? " "}
+        </span>
+        {/* Le nom de la ligue se coupe ; l'heure reste lisible. */}
+        <span className="flex font-mono text-[12px] leading-4 font-medium text-ink-subtle">
+          {shown ? (
+            <>
+              <span className="truncate">{item.leagueName.toUpperCase()}</span>
+              <span className="shrink-0 whitespace-pre"> · {shown.when}</span>
+            </>
+          ) : (
+            " "
+          )}
         </span>
       </span>
       {!item.read && (
