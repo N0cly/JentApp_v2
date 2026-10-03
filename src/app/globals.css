@@ -63,6 +63,8 @@
     background: var(--bg);
     color: var(--ink);
     font-family: var(--font-display);
+    /* Un pseudo, un nom de ligue ou un code sans espace se coupe plutôt que de déborder. */
+    overflow-wrap: break-word;
   }
 
   :focus-visible {
