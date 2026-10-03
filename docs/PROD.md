@@ -46,11 +46,11 @@ Un commit par point. C'est la première fois que `deploy/` est modifié depuis M
 
 **Critères de la partie A**
 
-- [ ] `docker compose -f deploy/docker-compose.yml config` passe avec `deploy/.env.example`.
-- [ ] En local, dans l'image de production : `admin:grant` et `ledger:check` s'exécutent dans le conteneur.
-- [ ] En local : une erreur provoquée arrive dans un GlitchTip lancé depuis `deploy/glitchtip/`, sans email ni cookie dans l'événement.
-- [ ] En local : `backup.sh` produit un fichier, `restore.sh` le restaure dans une base vide, et `ledger:check` passe sur la base restaurée.
-- [ ] `pnpm lint`, `pnpm typecheck`, `pnpm test` et `pnpm build` passent ; la CI est verte.
+- [x] `docker compose -f deploy/docker-compose.yml config` passe avec `deploy/.env.example`.
+- [x] En local, dans l'image de production : `admin:grant` et `ledger:check` s'exécutent dans le conteneur.
+- [x] En local : une erreur provoquée arrive dans un GlitchTip lancé depuis `deploy/glitchtip/`, sans email ni cookie dans l'événement.
+- [x] En local : `backup.sh` produit un fichier, `restore.sh` le restaure dans une base vide, et `ledger:check` passe sur la base restaurée.
+- [ ] `pnpm lint`, `pnpm typecheck`, `pnpm test` et `pnpm build` passent ; la CI est verte. *(En local : oui. La CI ne tournera qu'au premier push.)*
 
 ## Partie B — Sur le VPS
 
