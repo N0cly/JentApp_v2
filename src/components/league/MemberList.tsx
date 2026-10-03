@@ -47,9 +47,14 @@ export function MemberList({
                   size={40}
                   background="surface-raised"
                 />
-                <span className="grow text-[15px] leading-5 font-semibold">
-                  {m.username}
-                  {m.userId === me && <span className="font-medium text-ink-subtle"> (toi)</span>}
+                <span className="flex min-w-0 grow text-[15px] leading-5 font-semibold">
+                  <span className="truncate">{m.username}</span>
+                  {m.userId === me && (
+                    <span className="shrink-0 font-medium whitespace-pre text-ink-subtle">
+                      {" "}
+                      (toi)
+                    </span>
+                  )}
                 </span>
                 {manageable ? (
                   <button
@@ -65,12 +70,12 @@ export function MemberList({
                         ),
                       )
                     }
-                    className="flex min-h-[44px] items-center"
+                    className="flex min-h-[44px] shrink-0 items-center"
                   >
                     <RoleBadge role={m.role} />
                   </button>
                 ) : (
-                  <span className="flex min-h-[44px] items-center">
+                  <span className="flex min-h-[44px] shrink-0 items-center">
                     <RoleBadge role={m.role} />
                   </span>
                 )}
