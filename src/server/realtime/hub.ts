@@ -21,6 +21,8 @@ export type Subscriber = {
 
 type Hub = {
   subscribers: Map<string, Set<Subscriber>>;
+  /** Traitements côté serveur des signaux validés (envoi du push). */
+  listeners: Set<(envelope: Envelope) => void>;
   listening: Promise<void> | null;
   client: ReturnType<typeof postgres> | null;
   connectedOnce: boolean;
@@ -31,6 +33,7 @@ const globalForHub = globalThis as unknown as { jentappHub?: Hub };
 function hub(): Hub {
   globalForHub.jentappHub ??= {
     subscribers: new Map(),
+    listeners: new Set(),
     listening: null,
     client: null,
     connectedOnce: false,
@@ -47,8 +50,26 @@ export function allSubscribers(): Subscriber[] {
   return [...hub().subscribers.values()].flatMap((set) => [...set]);
 }
 
+/** Écoute les signaux validés côté serveur ; renvoie de quoi arrêter. */
+export function onEnvelope(listener: (envelope: Envelope) => void): () => void {
+  hub().listeners.add(listener);
+  return () => hub().listeners.delete(listener);
+}
+
+/** Le joueur a-t-il un flux ouvert, dans n'importe quelle ligue ? */
+export function hasOpenStream(userId: string): boolean {
+  return allSubscribers().some((sub) => sub.userId === userId);
+}
+
 /** Redistribue un signal : à toute la ligue, ou au seul joueur concerné. */
 export function dispatch(envelope: Envelope) {
+  for (const listener of hub().listeners) {
+    try {
+      listener(envelope);
+    } catch (error) {
+      console.warn("Traitement d'un signal en échec", error);
+    }
+  }
   if (envelope.type === "notification.new") {
     for (const sub of allSubscribers()) if (sub.userId === envelope.user) sub.send(envelope);
     return;
@@ -113,4 +134,5 @@ export async function stopListening() {
   h.listening = null;
   h.connectedOnce = false;
   h.subscribers.clear();
+  h.listeners.clear();
 }

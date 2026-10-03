@@ -3,6 +3,8 @@ export {
   allSubscribers,
   dispatch,
   ensureListening,
+  hasOpenStream,
+  onEnvelope,
   removeSubscriber,
   stopListening,
   subscribersOf,
