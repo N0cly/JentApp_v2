@@ -12,6 +12,8 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   themeColor: colorToken("bg"),
   viewportFit: "cover",
+  // Android réduit la page au-dessus du clavier : la saisie et les boutons restent visibles.
+  interactiveWidget: "resizes-content",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
