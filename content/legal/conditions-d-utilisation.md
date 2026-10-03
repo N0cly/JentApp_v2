@@ -2,7 +2,7 @@
 
 > Brouillon à faire relire avant mise en ligne. Les passages entre crochets sont à compléter.
 
-Dernière mise à jour : [DATE]
+Dernière mise à jour : 3 Octobre 2026
 
 ## Un jeu, pas un jeu d'argent
 
@@ -22,12 +22,11 @@ Tout membre peut proposer un pari. Le résultat est saisi par son créateur, un 
 
 ## Ce qu'on ne fait pas
 
-Pas de harcèlement ni de contenu illégal dans le chat. Pas de pari sur un acte dangereux ou illégal. [ÉDITEUR] peut fermer un compte ou une ligue qui ne respecte pas ces règles.
+Pas de harcèlement ni de contenu illégal dans le chat. Pas de pari sur un acte dangereux ou illégal. Nocly - "Y a quoi ?" peut fermer un compte ou une ligue qui ne respecte pas ces règles.
 
 ## Tabac
 
 Le thème est un clin d'œil entre amis. JentApp ne vend et ne promeut aucun produit du tabac.
 
 ## Fin du service
-
-[ÉDITEUR] peut faire évoluer ou arrêter le service. Tu peux supprimer ton compte à tout moment depuis les réglages.
+Nocly - "Y a quoi ?" peut faire évoluer ou arrêter le service. Tu peux supprimer ton compte à tout moment depuis les réglages.

@@ -2,9 +2,9 @@
 
 > Brouillon à faire relire avant mise en ligne. Les passages entre crochets sont à compléter.
 
-Dernière mise à jour : [DATE]
+Dernière mise à jour : 3 Octobre 2026
 
-Responsable du traitement : [ÉDITEUR], [ADRESSE], [EMAIL DE CONTACT].
+Responsable du traitement : Enzo BEDOS - Nocly - Y a quoi ?, Av. de la cote bleue, 13820 Ensues-la-Redonne. Contact : enzo.bedos@nocly.fr.
 
 ## Ce qu'on garde
 
@@ -27,7 +27,7 @@ Les membres de tes ligues voient ton pseudo, ta photo, tes mises et tes messages
 - Recherche de GIF : Giphy, qui reçoit le texte de ta recherche.
 - Notifications : les services de push d'Apple, Google et Mozilla, qui acheminent les notifications sur ton appareil.
 - Suivi des erreurs : GlitchTip, hébergé sur le même serveur que l'app. Il reçoit la description technique d'une erreur et l'identifiant de ton compte, jamais ton email.
-- Hébergement : [HÉBERGEUR], en [PAYS].
+- Hébergement : IONOS SARL, en Espagne.
 
 ## Combien de temps
 

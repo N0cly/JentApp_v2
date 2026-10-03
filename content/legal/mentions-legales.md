@@ -4,16 +4,16 @@
 
 ## Éditeur
 
-[NOM OU RAISON SOCIALE], [STATUT], [ADRESSE]. Contact : [EMAIL DE CONTACT].
+Enzo BEDOS - Nocly - Y a quoi ?, Auto-entrepreneur, Av. de la cote bleue, 13820 Ensues-la-Redonne. Contact : enzo.bedos@nocly.fr.
 
 ## Directeur de la publication
 
-[NOM].
+Enzo BEDOS.
 
 ## Hébergeur
 
-[NOM DE L'HÉBERGEUR], [ADRESSE], [TÉLÉPHONE].
+IONOS SARL, 7 place de la Gare, BP 70109, 57200 Sarreguemines Cedex, France, 09 70 80 89 11, Serveur: Espagne.
 
 ## Propriété
 
-Le nom, l'icône et l'interface de JentApp appartiennent à [ÉDITEUR].
+Le nom, l'icône et l'interface de JentApp appartiennent à Nocly - Y a quoi ?.
