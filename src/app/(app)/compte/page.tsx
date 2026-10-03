@@ -38,9 +38,14 @@ export default async function AccountPage({ searchParams }: PageProps<"/compte">
           email={user.email}
           photoRow={<PhotoRow username={user.username} image={user.image} />}
         />
-        <SectionTitle>{league ? "LIGUE, PLATEFORME, AIDE" : "AIDE"}</SectionTitle>
+        <SectionTitle>
+          {league ? "LIGUE, PLATEFORME, AIDE" : user.isSuperAdmin ? "PLATEFORME, AIDE" : "AIDE"}
+        </SectionTitle>
         <ListGroup>
           {league && <ListRow label="Réglages de la ligue" href={`/l/${league}/reglages`} />}
+          {user.isSuperAdmin && (
+            <ListRow label="Catalogue" value="super-admin" href="/admin/catalogue" />
+          )}
           <ListRow label="Aide, légal et compte" href={`/compte/aide${suffix}`} />
         </ListGroup>
         <form action={signOutAction}>
