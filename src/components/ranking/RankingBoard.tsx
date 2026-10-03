@@ -146,8 +146,9 @@ function StandingCard({ card, leagueId }: { card: Card; leagueId: string }) {
   }
   return (
     <div className="flex shrink-0 items-center gap-3 rounded-lg bg-surface p-4">
-      <div className="flex grow flex-col gap-1">
-        <span className="text-[16px] leading-5 font-bold">{title}</span>
+      <div className="flex min-w-0 grow flex-col gap-1">
+        {/* Un pseudo sans espace passe à la ligne plutôt que de pousser « Parier ». */}
+        <span className="text-[16px] leading-5 font-bold [overflow-wrap:anywhere]">{title}</span>
         {detail && <span className="text-caption text-ink-subtle">{detail}</span>}
       </div>
       {action && (
