@@ -56,12 +56,32 @@ Créer un jeu de données qui pousse chaque limite de la spec :
 
 ## Critères de fin
 
-- [ ] `pnpm test:screens` passe sur toutes les routes, à toutes les tailles.
-- [ ] Les huit points du § Points déjà repérés sont traités ou explicitement écartés, avec la raison.
-- [ ] Aucune zone d'appui sous 44 px, à 320 px comme à 430 px.
-- [ ] `pnpm lint`, `pnpm typecheck`, `pnpm test` et `pnpm build` passent.
-- [ ] `docs/design.md` reçoit une section « Tailles d'écran » : tailles vérifiées, règles de troncature, zones sûres.
-- [ ] Reste à vérifier sur un vrai iPhone et un vrai Android : listé à part, pour la mise en production.
+- [x] `pnpm test:screens` passe sur toutes les routes, à toutes les tailles.
+- [x] Les huit points du § Points déjà repérés sont traités ou explicitement écartés, avec la raison.
+- [x] Aucune zone d'appui sous 44 px, à 320 px comme à 430 px.
+- [x] `pnpm lint`, `pnpm typecheck`, `pnpm test` et `pnpm build` passent.
+- [x] `docs/design.md` reçoit une section « Tailles d'écran » : tailles vérifiées, règles de troncature, zones sûres.
+- [x] Reste à vérifier sur un vrai iPhone et un vrai Android : listé à part, pour la mise en production.
+
+## Points repérés : traitement
+
+1. Bas d'écran : marge `env(safe-area-inset-bottom)` sur `Screen`, sauf sous la barre d'onglets qui la porte déjà.
+2. Haut d'écran : marge `env(safe-area-inset-top)` sur `Screen` (nulle quand la barre d'état ne recouvre rien).
+3. Clavier : `interactive-widget=resizes-content` (Android). Comportement iOS à vérifier sur l'appareil.
+4. Petites largeurs : bulles de 270 px au plus qui rétrécissent ; `StatGrid`, raccourcis du ticket, cosmétiques et podium passent à 320 px.
+5. Textes longs : pseudos et noms de ligue coupés dans les en-têtes et les listes, phrases et noms sur ticket passés à la ligne, mots sans espace coupés (`docs/design.md`, § Tailles d'écran).
+6. Paysage : `orientation: "portrait"` dans le manifeste ; 844 × 390 vérifié par `pnpm test:screens`.
+7. Hauteur courte : feuilles contrôlées à 568 et 667 px (elles tiennent ou défilent), écrans à bouton en bas qui défilent.
+8. Zoom du texte : passe à 390 px avec chaque texte doublé ; hauteurs fixes de texte passées en hauteurs minimales.
+
+## À vérifier sur un vrai iPhone et un vrai Android (mise en production)
+
+- Zones sûres : bouton du bas hors de l'indicateur d'accueil, en-tête sous la barre d'état, en app installée (`env()` vaut 0 dans Chrome de bureau).
+- Clavier : saisie du chat et bouton primaire d'un formulaire visibles au-dessus du clavier, en-tête toujours à l'écran ; iOS ignore `interactive-widget`.
+- Taille du texte du système (Android « Taille de la police », iOS « Taille du texte ») : la passe à 200 % la simule en doublant chaque texte, sans le moteur réel du téléphone.
+- Rotation réelle de l'app installée malgré l'orientation portrait déclarée.
+- Défilement au doigt des feuilles longues (ticket, tournée, GIF) à 568 px de haut, avec l'élasticité du système.
+- Appui réel sur les zones de 44 px agrandies autour des petits dessins (interrupteurs, avatars du chat, lignes automatiques).
 
 ## Consigne pour Claude Code
 
