@@ -15,11 +15,11 @@ export function LeagueSwitcher({ name, onClick }: LeagueSwitcherProps) {
       onClick={onClick}
       aria-label={`Changer de ligue. Ligue active : ${name}`}
       aria-haspopup="dialog"
-      className="flex min-h-[44px] items-center gap-2 rounded-full border border-line-strong bg-surface pr-3 pl-2"
+      className="flex min-h-[44px] min-w-0 items-center gap-2 rounded-full border border-line-strong bg-surface pr-3 pl-2"
     >
       <LeagueBadge name={name} size="sm" active />
-      <span className="text-[15px] leading-5 font-semibold">{name}</span>
-      <span className="flex text-ink-muted">
+      <span className="min-w-0 truncate text-[15px] leading-5 font-semibold">{name}</span>
+      <span className="flex shrink-0 text-ink-muted">
         <ChevronDownIcon size={16} />
       </span>
     </button>

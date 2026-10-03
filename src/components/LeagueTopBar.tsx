@@ -31,10 +31,10 @@ export async function LeagueTopBar({
       <BalancePill leagueId={leagueId} leagueName={current.name} balance={current.balance} />
     ) : null;
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex items-center justify-between gap-2">
       <LeagueSheet current={leagueId} leagues={leagues} />
       {(balance || action || showBell) && (
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           {action}
           {balance}
           {showBell && <NotificationBell leagueId={leagueId} unread={unread} />}
