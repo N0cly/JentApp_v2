@@ -51,6 +51,7 @@ export function LeagueSettings({ league, isOwner, others }: Props) {
           onClick={isOwner ? () => setSheet("rename") : undefined}
         />
         <ListRow label="Membres" value={league.members} href={`${base}/reglages/membres`} />
+        <ListRow label="Journal" href={`${base}/reglages/journal`} />
       </ListGroup>
 
       <SectionTitle>ÉCONOMIE, EN CLOPES</SectionTitle>
