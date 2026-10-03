@@ -53,11 +53,15 @@ function StatusRow({
       href={href}
       className="flex min-h-[56px] items-center justify-between gap-3 rounded-md bg-surface-raised px-4 py-1"
     >
-      <span className="flex flex-col">
-        <span className="text-[15px] font-semibold">{title}</span>
-        {subtitle && <span className="text-caption text-ink-subtle">{subtitle}</span>}
+      <span className="flex min-w-0 flex-col">
+        <span className="text-[15px] font-semibold [overflow-wrap:anywhere]">{title}</span>
+        {subtitle && <span className="text-caption truncate text-ink-subtle">{subtitle}</span>}
       </span>
-      {right && <span className="flex flex-col items-end">{right}</span>}
+      {right && (
+        <span className="flex max-w-[50%] shrink-0 flex-col items-end text-right [overflow-wrap:anywhere]">
+          {right}
+        </span>
+      )}
     </Link>
   );
 }
@@ -90,11 +94,11 @@ function ScheduledCard({
       <span className="flex size-[44px] shrink-0 items-center justify-center rounded-full bg-surface text-brand">
         {view.mystery ? <LockIcon size={20} /> : <ClockIcon size={20} />}
       </span>
-      <span className="flex grow flex-col">
-        <span className="text-[16px] leading-5 font-bold">
+      <span className="flex min-w-0 grow flex-col">
+        <span className="text-[16px] leading-5 font-bold [overflow-wrap:anywhere]">
           {view.mystery ? "Pari mystère" : view.question}
         </span>
-        <span className="text-caption text-ink-subtle">
+        <span className="text-caption truncate text-ink-subtle">
           {view.mystery ? "Question révélée à l'ouverture" : `par ${view.creator}`}
         </span>
       </span>
@@ -165,15 +169,15 @@ function BetCard({
               );
             })}
           </div>
-          <div className="text-caption flex items-center justify-between text-ink-subtle">
-            <span className="flex items-center gap-1">
+          <div className="text-caption flex items-center justify-between gap-3 text-ink-subtle">
+            <span className="flex shrink-0 items-center gap-1">
               <span className="text-ink">Pot</span>
               <span className="text-ink">
                 <Amount value={view.pot} size="sm" />
               </span>
               · {view.bettors} {view.bettors > 1 ? "parieurs" : "parieur"}
             </span>
-            <span>par {view.creator}</span>
+            <span className="min-w-0 truncate">par {view.creator}</span>
           </div>
         </>
       )}
