@@ -130,7 +130,7 @@ export function BetForm({
         }}
       />
 
-      <fieldset className="flex flex-col gap-2">
+      <fieldset className="flex min-w-0 flex-col gap-2">
         <legend className="mb-2 text-[12px] leading-4 font-semibold text-ink-muted">
           Options, de 2 à 8
         </legend>
@@ -150,7 +150,7 @@ export function BetForm({
                 clear("options");
               }}
               className={cx(
-                "h-[48px] min-w-0 grow rounded-md border bg-surface px-4 text-[15px] text-ink",
+                "min-h-[48px] min-w-0 grow rounded-md border bg-surface px-4 text-[15px] text-ink",
                 error("options") ? "border-loss" : "border-line-strong",
               )}
             />
@@ -177,7 +177,7 @@ export function BetForm({
         )}
       </fieldset>
 
-      <fieldset className="flex flex-col gap-2">
+      <fieldset className="flex min-w-0 flex-col gap-2">
         <legend className="mb-2 text-[12px] leading-4 font-semibold text-ink-muted">Moment</legend>
         <input type="hidden" name="moment" value={moment ?? ""} />
         <div className="flex flex-wrap gap-2">
