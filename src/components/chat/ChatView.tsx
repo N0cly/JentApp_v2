@@ -28,6 +28,7 @@ import type { MessageView } from "@/server/chat";
 import { ChatBetCard } from "./ChatBetCard";
 import { GifSheet, type GifChoice } from "./GifSheet";
 import { MessageBody } from "./MessageBody";
+import { useProfileSheet } from "@/components/stats/ProfileSheet";
 import { MessageSheet } from "./MessageSheet";
 import { ShareBetSheet, type Shareable } from "./ShareBetSheet";
 
@@ -174,6 +175,8 @@ export function ChatView({
   const [sheet, setSheet] = useState<"gif" | "share" | null>(null);
   const [selected, setSelected] = useState<MessageView | null>(null);
   const [newBelow, setNewBelow] = useState(false);
+  // Auteur d'un message : son profil ; parti ou supprimé, rien.
+  const profile = useProfileSheet(leagueId);
   const scroller = useRef<HTMLDivElement>(null);
   const atBottom = useRef(true);
   const stickNext = useRef(true);
@@ -351,15 +354,24 @@ export function ChatView({
       }
       return (
         <div key={item.key} className="flex items-start gap-2">
-          <Avatar
-            name={item.author.username}
-            src={item.author.image}
-            size={32}
-            background="surface-raised"
-          />
+          <button
+            type="button"
+            aria-label={`Profil de ${item.author.username}`}
+            onClick={() => profile.open(item.author.id)}
+            className="shrink-0 rounded-full"
+          >
+            <Avatar
+              name={item.author.username}
+              src={item.author.image}
+              size={32}
+              background="surface-raised"
+            />
+          </button>
           <div className="flex max-w-[270px] flex-col gap-1">
             <span className="text-[12px] leading-4 font-semibold text-ink-muted">
-              {item.author.username}{" "}
+              <button type="button" onClick={() => profile.open(item.author.id)}>
+                {item.author.username}
+              </button>{" "}
               <span className="font-mono font-medium text-ink-subtle">
                 {clockTime(first.createdAt)}
               </span>
@@ -475,6 +487,7 @@ export function ChatView({
           }}
         />
       )}
+      {profile.sheet}
       {selected && (
         <MessageSheet
           liked={selected.likedByMe}

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useProfileSheet } from "@/components/stats/ProfileSheet";
 import { Amount, Avatar, Segmented } from "@/components/ui";
 import { cx } from "@/lib/cx";
 import { countOf } from "@/lib/units";
@@ -210,15 +211,15 @@ export function RankingBoard({
   fortune,
   net,
   card,
-  onOpen,
 }: {
   leagueId: string;
   me: string;
   fortune: BoardRow[];
   net: BoardRow[];
   card: Card | null;
-  onOpen?: (userId: string) => void;
 }) {
+  const profile = useProfileSheet(leagueId);
+  const onOpen = profile.open;
   const [view, setView] = useState<View>("fortune");
   const rows = view === "fortune" ? fortune : net;
   const top = rows.slice(0, 3);
@@ -251,6 +252,7 @@ export function RankingBoard({
           </div>
         )}
       </main>
+      {profile.sheet}
     </>
   );
 }

@@ -22,14 +22,23 @@ function Remaining({ until, kind }: { until: Date; kind: "closes" | "payout" }) 
 }
 
 /** Ligne d'historique : icône, question, option et mise, valeur à droite (moi.html). */
-export function HistoryRow({ item, href }: { item: HistoryItem; href?: string }) {
+export function HistoryRow({
+  item,
+  href,
+  onRaised = false,
+}: {
+  item: HistoryItem;
+  href?: string;
+  /** Posée sur surface-raised (feuille) : le rond neutre passe en surface. */
+  onRaised?: boolean;
+}) {
   const { outcome } = item;
   const base = `${item.option} · mise ${item.amount}`;
   let detail: ReactNode = null;
   let value: string;
   let tone = "text-ink-muted";
   let icon = <ClockIcon size={18} />;
-  let iconTone = "bg-surface-raised text-ink-muted";
+  let iconTone = onRaised ? "bg-surface text-ink-muted" : "bg-surface-raised text-ink-muted";
 
   switch (outcome.kind) {
     case "open":
