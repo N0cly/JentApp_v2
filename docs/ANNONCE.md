@@ -50,10 +50,10 @@ docker compose exec app node scripts/announce.ts --envoyer "Maintenance ce soir 
 
 ## Critères de fin
 
-- [ ] `pnpm lint`, `pnpm typecheck`, `pnpm test` et `pnpm build` passent.
+- [x] `pnpm lint`, `pnpm typecheck`, `pnpm test` et `pnpm build` passent.
 - [ ] Dans l'image de production, en local : l'aperçu n'écrit rien ; l'envoi fait apparaître l'annonce chez deux comptes, et en push chez celui dont l'onglet est fermé.
-- [ ] `nginx -t` valide la conf ; conteneur de l'app arrêté, un Nginx de test sert la page de maintenance.
-- [ ] `docs/DEPLOY.md` et `docs/design.md` sont à jour.
+- [x] `nginx -t` valide la conf ; conteneur de l'app arrêté, un Nginx de test sert la page de maintenance.
+- [x] `docs/DEPLOY.md` et `docs/design.md` sont à jour.
 
 ## Consigne pour Claude Code
 
