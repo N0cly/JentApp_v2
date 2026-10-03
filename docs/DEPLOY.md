@@ -4,7 +4,7 @@ Ce document déroule la partie B de `docs/PROD.md`, commande par commande. Il su
 
 | Où | Quoi |
 | --- | --- |
-| `/opt/jentapp/` | `docker-compose.yml`, `.env`, `deploy.sh`, `backup/` |
+| `/opt/jentapp/` | `docker-compose.yml`, `.env`, `deploy.sh`, `announce.sh`, `backup/` |
 | `/opt/glitchtip/` | `docker-compose.yml`, `.env` |
 | `/etc/nginx/sites-available/` | `jentapp.conf`, `glitchtip.conf` |
 | `/etc/systemd/system/` | `jentapp-backup.service`, `jentapp-backup.timer` |
@@ -46,11 +46,11 @@ Depuis ton poste, à la racine du dépôt :
 
 ```sh
 ssh <vps> 'sudo mkdir -p /opt/jentapp/backup /opt/glitchtip && sudo chown -R "$USER" /opt/jentapp /opt/glitchtip'
-scp deploy/docker-compose.yml deploy/.env.example deploy/deploy.sh <vps>:/opt/jentapp/
+scp deploy/docker-compose.yml deploy/.env.example deploy/deploy.sh deploy/announce.sh <vps>:/opt/jentapp/
 scp deploy/backup/* <vps>:/opt/jentapp/backup/
 scp deploy/glitchtip/docker-compose.yml deploy/glitchtip/.env.example <vps>:/opt/glitchtip/
 scp deploy/nginx/jentapp.conf deploy/nginx/glitchtip.conf <vps>:/tmp/
-ssh <vps> 'chmod +x /opt/jentapp/deploy.sh /opt/jentapp/backup/*.sh'
+ssh <vps> 'chmod +x /opt/jentapp/deploy.sh /opt/jentapp/announce.sh /opt/jentapp/backup/*.sh'
 ```
 
 ## 3. GlitchTip
@@ -271,6 +271,28 @@ Une migration ne se défait pas. Si la version abandonnée avait migré la base,
 cd /opt/jentapp
 docker compose exec app node scripts/admin-grant.ts <email>    # super-admin
 docker compose exec app node scripts/ledger-check.ts           # contrôle du journal
+```
+
+### Annonce à tous les joueurs
+
+Maintenance, nouveauté, coupure : le message arrive dans le centre de notifications de tous les comptes non supprimés, quel que soit leur niveau de notifications, et en push chez ceux dont l'app est fermée. Titre « JentApp », lien vers `/notifications`. De 1 à 200 caractères.
+
+```sh
+# Aperçu : affiche le message et le nombre de destinataires, n'envoie rien.
+/opt/jentapp/announce.sh "Maintenance ce soir à 23 h, coupure de 10 minutes."
+
+# Envoi.
+/opt/jentapp/announce.sh --envoyer "Maintenance ce soir à 23 h, coupure de 10 minutes."
+# Annonce envoyée à 12 comptes, dont 7 abonnés au push.
+```
+
+Le raccourci lance `docker compose exec -T app node scripts/announce.ts` dans `/opt/jentapp`. L'app doit tourner : c'est elle qui envoie le push. Une annonce envoyée ne se retire pas ; elle disparaît avec les autres notifications au bout de 30 jours.
+
+Installé avant l'arrivée de l'annonce ? Depuis ton poste :
+
+```sh
+scp deploy/announce.sh <vps>:/opt/jentapp/
+ssh <vps> 'chmod +x /opt/jentapp/announce.sh'
 ```
 
 ## 13. Journaux
