@@ -459,20 +459,26 @@ La validation n'est pas sauvegardée : ses données se reprennent de la producti
 
 | Étape | Où | Commande ou geste |
 | --- | --- | --- |
-| 1. Numéro et notes | Dépôt | Monter la version dans `package.json`, écrire `content/releases/{version}.md` |
-| 2. Image | GitHub | `git push origin main`, attendre la CI : elle publie `sha-…` |
-| 3. Copie de la production | VPS | `/opt/jentapp-validation/refresh.sh` avec `JENTAPP_TAG=sha-…` |
-| 4. Essai | iPhone | La feuille « Quoi de neuf » s'affiche, le push arrive, la nouveauté marche, rien d'autre n'est cassé |
-| 5. Promotion | VPS | `/opt/jentapp/promote.sh` : sauvegarde, même image, contrôle du journal |
-| 6. Contrôle | iPhone | La production affiche la nouvelle version dans Aide et légal |
+| 1. Développement | Dépôt, branche `develop` | Commits, puis `git push origin develop` ; la CI publie l'image `develop` |
+| 2. Essai courant | VPS, puis iPhone | `/opt/jentapp-validation/deploy.sh`, et test sur la validation. Autant de fois que nécessaire |
+| 3. Numéro et notes | Dépôt, branche `develop` | Quand c'est prêt : monter la version dans `package.json`, écrire `content/releases/{version}.md`, pousser |
+| 4. Répétition générale | VPS, puis iPhone | `/opt/jentapp-validation/refresh.sh` : copie fraîche de la production, migrations rejouées. La feuille « Quoi de neuf » s'affiche, le push arrive, rien d'autre n'est cassé |
+| 5. Fusion | Dépôt | `git checkout main && git merge --ff-only develop && git push origin main`, puis `git checkout develop`. La CI ajoute `latest` à l'image déjà validée |
+| 6. Promotion | VPS | `/opt/jentapp/promote.sh` : sauvegarde, même image, contrôle du journal |
+| 7. Contrôle | iPhone | La production affiche la nouvelle version dans Aide et légal |
 
+- Une correction urgente suit le même chemin : `develop`, validation, fusion, promotion. Rien ne s'écrit directement sur `main`.
+- Si `git merge --ff-only` refuse, c'est qu'un commit est arrivé sur `main` hors parcours : le reporter sur `develop` d'abord.
 - Le push part au démarrage de la production : éviter de promouvoir la nuit.
 - Retour arrière : `JENTAPP_TAG=<sha précédent> /opt/jentapp/deploy.sh`, et restauration de la sauvegarde si une migration est passée.
 - Numérotation : `2.x.0` pour une nouveauté visible, `2.x.y` pour une correction.
 
-Les commandes exactes des étapes 3 et 5 :
+Les commandes exactes sur le VPS :
 
 ```sh
-sudo JENTAPP_TAG=sha-abc1234 /opt/jentapp-validation/refresh.sh
-/opt/jentapp/promote.sh
+/opt/jentapp-validation/deploy.sh            # 2. essai courant, image develop
+sudo /opt/jentapp-validation/refresh.sh      # 4. répétition générale, même étiquette que le dernier deploy.sh
+/opt/jentapp/promote.sh                      # 6. promotion, après la fusion dans main et la CI verte
 ```
+
+`refresh.sh` reprend l'étiquette notée dans le `.env` de la validation, `develop` après un `deploy.sh` : il tire donc la dernière image `develop`. `sudo` : les sauvegardes ne sont lisibles que par root.
