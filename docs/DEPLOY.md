@@ -5,7 +5,7 @@ Ce document déroule la partie B de `docs/PROD.md`, commande par commande. Il su
 | Où | Quoi |
 | --- | --- |
 | `/opt/jentapp/` | `docker-compose.yml`, `.env`, `deploy.sh`, `promote.sh`, `announce.sh`, `backup/` |
-| `/opt/jentapp-validation/` | `docker-compose.yml`, `docker-compose.override.yml`, `.env`, `refresh.sh`, `validation.sh` (étape 16) |
+| `/opt/jentapp-validation/` | `docker-compose.yml`, `docker-compose.override.yml`, `.env`, `deploy.sh`, `refresh.sh`, `validation.sh` (étape 16) |
 | `/opt/glitchtip/` | `docker-compose.yml`, `.env` |
 | `/etc/nginx/sites-available/` | `jentapp.conf`, `jentapp-validation.conf`, `glitchtip.conf` |
 | `/var/www/jentapp/` | `maintenance.html`, servie quand l'app ne répond pas |
@@ -355,7 +355,8 @@ Depuis ton poste, à la racine du dépôt :
 ```sh
 ssh <vps> 'sudo mkdir -p /opt/jentapp-validation && sudo chown -R "$USER" /opt/jentapp-validation'
 scp deploy/docker-compose.yml deploy/validation/docker-compose.override.yml \
-  deploy/validation/.env.example deploy/validation/refresh.sh deploy/validation/validation.sh \
+  deploy/validation/.env.example deploy/validation/deploy.sh deploy/validation/refresh.sh \
+  deploy/validation/validation.sh \
   <vps>:/opt/jentapp-validation/
 scp deploy/promote.sh deploy/deploy.sh <vps>:/opt/jentapp/
 scp deploy/nginx/jentapp-validation.conf <vps>:/tmp/
@@ -382,7 +383,7 @@ nano .env
 | `ERROR_DSN` | Le DSN de « JentApp validation » |
 | `VALIDATION_KEEP_EMAILS` | Ton email de connexion à JentApp |
 
-`APP_ENV=validation`, `JENTAPP_PROJECT=jentapp-validation`, `JENTAPP_PORT=3100` et `APP_URL` ont déjà leur valeur. `JENTAPP_TAG` reste vide : `refresh.sh` l'écrit. Vérifier : `docker compose config >/dev/null && echo ok`.
+`APP_ENV=validation`, `JENTAPP_PROJECT=jentapp-validation`, `JENTAPP_PORT=3100` et `APP_URL` ont déjà leur valeur. `JENTAPP_TAG` reste vide : `refresh.sh` et `deploy.sh` l'écrivent. Vérifier : `docker compose config >/dev/null && echo ok`.
 
 ### 16.5 Certificat et Nginx
 
@@ -425,10 +426,19 @@ Ouvrir `https://val.jentapp.nocly.fr` dans Safari, se connecter avec ton compte,
 
 ### 16.8 Au quotidien
 
+Après chaque push sur `develop`, une fois la CI verte :
+
+```sh
+/opt/jentapp-validation/deploy.sh                          # dernière image develop
+JENTAPP_TAG=sha-abc1234 /opt/jentapp-validation/deploy.sh  # ou un commit précis
+```
+
+`deploy.sh` refuse de tourner si le `.env` n'a pas `APP_ENV=validation`. Il tire l'image, redémarre (les migrations s'appliquent au démarrage), attend le healthcheck, note l'étiquette dans `.env` et lance `ledger-check`. Il garde les données de la validation ; `refresh.sh` ne sert que pour repartir d'une copie fraîche de la production.
+
 ```sh
 /opt/jentapp-validation/validation.sh status
 /opt/jentapp-validation/validation.sh stop      # libère la mémoire ; les données restent
-/opt/jentapp-validation/validation.sh start     # même image qu'au dernier rafraîchissement
+/opt/jentapp-validation/validation.sh start     # même image qu'au dernier déploiement ou rafraîchissement
 ```
 
 Emails envoyés par la validation : `ssh -L 8025:127.0.0.1:8025 <vps>`, puis `http://localhost:8025` sur ton poste.
