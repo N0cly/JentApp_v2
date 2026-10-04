@@ -141,3 +141,28 @@ jobs:
           fi
           docker buildx imagetools create --tag "$image:latest" "$image:$tag"
           echo "$image:$tag étiquetée latest"
+
+  # docs/AUTOMATISATION.md, A.6 : un push sur develop ou main dont un job
+  # échoue prévient sur Telegram. Jamais sur une demande de fusion.
+  notify-failure:
+    name: Report CI failure on Telegram
+    if: failure() && github.event_name == 'push' && (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main')
+    needs: [check, image, deploy-validation, latest]
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      # Testé par scripts/ci.test.ts. Le jeton passe par l'entrée standard de curl.
+      - id: notify
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          BRANCH: ${{ github.ref_name }}
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          title="${COMMIT_MESSAGE%%$'\n'*}"
+          text="CI ÉCHEC · $BRANCH · ${GITHUB_SHA:0:7} · $title · $RUN_URL"
+          printf 'url = "https://api.telegram.org/bot%s/sendMessage"\n' "$TELEGRAM_BOT_TOKEN" \
+            | curl -sS --fail-with-body --max-time 15 --config - \
+              --data-urlencode "chat_id=$TELEGRAM_CHAT_ID" \
+              --data-urlencode "text=$text" >/dev/null

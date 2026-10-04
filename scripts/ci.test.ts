@@ -18,10 +18,10 @@ function job(name: string): string {
   return next === -1 ? workflow.slice(start) : workflow.slice(start, start + 1 + next);
 }
 
-/** Le script `run: |` de l'étape `id: tag-latest`, désindenté. */
-function tagLatestScript(): string {
-  const lines = job("latest").split("\n");
-  const from = lines.findIndex((l) => l.trim() === "- id: tag-latest");
+/** Le script `run: |` de l'étape `- id: <step>` du job, désindenté. */
+function stepScript(jobName: string, step: string): string {
+  const lines = job(jobName).split("\n");
+  const from = lines.findIndex((l) => l.trim() === `- id: ${step}`);
   const run = lines.findIndex((l, i) => i > from && l.trim() === "run: |");
   const indent = (lines[run + 1] ?? "").search(/\S/);
   const body: string[] = [];
@@ -47,7 +47,7 @@ esac
 `,
   );
   chmodSync(join(dir, "docker"), 0o755);
-  writeFileSync(join(dir, "run.sh"), tagLatestScript());
+  writeFileSync(join(dir, "run.sh"), stepScript("latest", "tag-latest"));
   let code = 0;
   let stdout = "";
   try {
@@ -135,5 +135,45 @@ describe("CI", () => {
     expect(result.code).not.toBe(0);
     expect(result.stdout).toContain("n'est pas passé par develop");
     expect(result.calls.some((c) => c.includes("imagetools create"))).toBe(false);
+  });
+
+  it("prévient sur Telegram quand un job échoue, sur develop et main seulement", () => {
+    const notify = job("notify-failure");
+    expect(notify).toContain(
+      "if: failure() && github.event_name == 'push' && (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main')",
+    );
+    expect(notify).toContain("needs: [check, image, deploy-validation, latest]");
+    expect(notify).toContain("secrets.TELEGRAM_BOT_TOKEN");
+    expect(notify).toContain("secrets.TELEGRAM_CHAT_ID");
+  });
+
+  it("message : CI ÉCHEC · branche · commit court · titre · lien, jeton hors ligne de commande", () => {
+    const dir = mkdtempSync(join(tmpdir(), "jentapp-ci-notify-"));
+    dirs.push(dir);
+    writeFileSync(
+      join(dir, "curl"),
+      `#!/bin/sh\ncat > "${dir}/config"\nfor a in "$@"; do printf '%s\\n' "$a"; done > "${dir}/args"\n`,
+    );
+    chmodSync(join(dir, "curl"), 0o755);
+    writeFileSync(join(dir, "run.sh"), stepScript("notify-failure", "notify"));
+    execFileSync("bash", ["-e", join(dir, "run.sh")], {
+      env: {
+        NODE_ENV: "test",
+        PATH: `${dir}:${process.env.PATH}`,
+        TELEGRAM_BOT_TOKEN: "123:secret",
+        TELEGRAM_CHAT_ID: "42",
+        BRANCH: "develop",
+        GITHUB_SHA: "abc1234def5678abc1234def5678abc1234def56",
+        COMMIT_MESSAGE: "feat: add stickers\n\nCo-Authored-By: someone",
+        RUN_URL: "https://github.com/N0cly/JentApp_v2/actions/runs/1",
+      },
+    });
+    const args = readFileSync(join(dir, "args"), "utf8");
+    expect(args).toContain(
+      "text=CI ÉCHEC · develop · abc1234 · feat: add stickers · https://github.com/N0cly/JentApp_v2/actions/runs/1\n",
+    );
+    expect(args).toContain("chat_id=42");
+    expect(args).not.toContain("123:secret");
+    expect(readFileSync(join(dir, "config"), "utf8")).toContain("/bot123:secret/sendMessage");
   });
 });
