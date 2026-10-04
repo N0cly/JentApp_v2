@@ -1,0 +1,31 @@
+# Validation, sur le VPS (docs/VALIDATION.md) : copié en
+# /opt/jentapp-validation/docker-compose.override.yml, à côté du
+# docker-compose.yml de la production, que Compose complète avec ce fichier.
+# Valeurs dans /opt/jentapp-validation/.env (modèle : deploy/validation/.env.example).
+
+services:
+  app:
+    environment:
+      APP_ENV: ${APP_ENV:?APP_ENV=validation manquant dans le .env}
+      # Délai de versement réglable, pour raccourcir les essais.
+      SETTLE_DELAY_SECONDS: ${SETTLE_DELAY_SECONDS:-600}
+      # Jamais un vrai email : tout part dans Mailpit.
+      SMTP_HOST: mailpit
+      SMTP_PORT: "1025"
+      SMTP_USER: ""
+      SMTP_PASSWORD: ""
+    depends_on:
+      mailpit:
+        condition: service_started
+
+  mailpit:
+    image: axllent/mailpit:v1.31
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    ports:
+      # Interface web sur la machine seulement : ssh -L 8025:127.0.0.1:8025 <vps>
+      - "127.0.0.1:${MAILPIT_PORT:-8025}:8025"

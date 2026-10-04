@@ -20,11 +20,15 @@ const dirs: string[] = [];
 afterAll(() => dirs.forEach((d) => rmSync(d, { recursive: true, force: true })));
 
 /** `docker compose config` dans un dossier neuf, comme /opt/jentapp, sans l'environnement du poste. */
-function config(files: Record<string, string>, env: Record<string, string> = {}): string {
+function config(
+  files: Record<string, string>,
+  env: Record<string, string> = {},
+  args: string[] = [],
+): string {
   const dir = mkdtempSync(join(tmpdir(), "jentapp-compose-"));
   dirs.push(dir);
   for (const [to, from] of Object.entries(files)) copyFileSync(from, join(dir, to));
-  return execFileSync("docker", ["compose", "config"], {
+  return execFileSync("docker", ["compose", "config", ...args], {
     cwd: dir,
     env: { NODE_ENV: "test", PATH: process.env.PATH, HOME: process.env.HOME, ...env },
     encoding: "utf8",
@@ -42,5 +46,39 @@ describe.skipIf(!hasCompose)("compose de production", () => {
         ),
       ).toBe(config({ "docker-compose.yml": before, ".env": "deploy/.env.example" }, env));
     }
+  });
+});
+
+type Port = { host_ip?: string; target: number; published: string };
+type Service = { environment: Record<string, string>; ports?: Port[] };
+type ComposeConfig = { name: string; services: Record<string, Service> };
+
+describe.skipIf(!hasCompose)("compose de validation", () => {
+  it("APP_ENV, port 3100, Mailpit local, emails jamais réels, projet à part", () => {
+    const out = JSON.parse(
+      config(
+        {
+          "docker-compose.yml": "deploy/docker-compose.yml",
+          "docker-compose.override.yml": "deploy/validation/docker-compose.override.yml",
+          ".env": "deploy/validation/.env.example",
+        },
+        { JENTAPP_TAG: "sha-abc1234" },
+        ["--format", "json"],
+      ),
+    ) as ComposeConfig;
+    const { app, mailpit } = out.services as { app: Service; mailpit: Service };
+    expect(out.name).toBe("jentapp-validation");
+    expect(app.environment).toMatchObject({
+      APP_ENV: "validation",
+      APP_URL: "https://val.jentapp.nocly.fr",
+      SETTLE_DELAY_SECONDS: "60",
+      SMTP_HOST: "mailpit",
+      SMTP_PORT: "1025",
+      SMTP_PASSWORD: "",
+    });
+    expect(app.ports).toMatchObject([{ host_ip: "127.0.0.1", target: 3000, published: "3100" }]);
+    expect(mailpit.ports).toMatchObject([
+      { host_ip: "127.0.0.1", target: 8025, published: "8025" },
+    ]);
   });
 });
