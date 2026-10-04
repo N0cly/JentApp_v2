@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { ListGroup, ListRow, SectionTitle } from "@/components/List";
 import { Screen } from "@/components/Screen";
 import { ScreenHeader } from "@/components/ScreenHeader";
+import { APP_VERSION } from "@/lib/version";
 import { isUuid, requireUser } from "@/server/auth";
 
 export const metadata: Metadata = { title: "Aide et légal · JentApp" };
@@ -34,7 +35,7 @@ export default async function HelpPage({ searchParams }: PageProps<"/compte/aide
           <ListRow label="Supprimer mon compte" tone="loss" href="/compte/supprimer" />
         </ListGroup>
         <div className="grow" />
-        <p className="text-caption text-ink-subtle">JentApp v2</p>
+        <p className="text-caption text-ink-subtle">JentApp {APP_VERSION}</p>
       </main>
     </Screen>
   );
