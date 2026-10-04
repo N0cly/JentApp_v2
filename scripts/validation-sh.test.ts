@@ -1,5 +1,13 @@
 import { execFileSync } from "node:child_process";
-import { chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+  chmodSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
@@ -41,6 +49,27 @@ describe("validation.sh", () => {
     expect(run(VALID, "start")).toEqual({ code: 0, calls: "compose up -d --wait" });
     expect(run(VALID, "stop")).toEqual({ code: 0, calls: "compose stop" });
     expect(run(VALID, "status")).toEqual({ code: 0, calls: "compose ps" });
+  });
+
+  it("stop met en pause, start reprend", () => {
+    const dir = mkdtempSync(join(tmpdir(), "jentapp-validation-pause-"));
+    dirs.push(dir);
+    mkdirSync(join(dir, "bin"));
+    writeFileSync(join(dir, "bin", "docker"), "#!/bin/sh\nexit 0\n");
+    chmodSync(join(dir, "bin", "docker"), 0o755);
+    writeFileSync(join(dir, ".env"), VALID);
+    const env = {
+      NODE_ENV: "test" as const,
+      PATH: `${join(dir, "bin")}:${process.env.PATH}`,
+      JENTAPP_VALIDATION_DIR: dir,
+    };
+    const sh = (command: string) =>
+      execFileSync("bash", ["deploy/validation/validation.sh", command], { env, encoding: "utf8" });
+    sh("stop");
+    expect(existsSync(join(dir, ".paused"))).toBe(true);
+    expect(sh("status")).toContain("En pause");
+    sh("start");
+    expect(existsSync(join(dir, ".paused"))).toBe(false);
   });
 
   it("refuse hors validation, sans étiquette, ou sans commande", () => {
