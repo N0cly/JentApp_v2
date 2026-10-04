@@ -7,6 +7,9 @@ export async function register() {
   const { installClientAbortFilter } = await import("@/server/logging/client-abort");
   installClientAbortFilter();
   if (process.env.NEXT_PHASE === "phase-production-build") return;
+  // APP_ENV mal écrit : le serveur refuse de démarrer plutôt que de deviner.
+  const { appEnv } = await import("@/server/env");
+  appEnv();
   // Suivi d'erreurs : ERROR_DSN lu à l'exécution ; vide, désactivé.
   const { startServerMonitoring } = await import("@/server/monitoring");
   startServerMonitoring();
