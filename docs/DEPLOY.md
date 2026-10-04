@@ -4,12 +4,12 @@ Ce document déroule la partie B de `docs/PROD.md`, commande par commande. Il su
 
 | Où | Quoi |
 | --- | --- |
-| `/opt/jentapp/` | `docker-compose.yml`, `.env`, `deploy.sh`, `promote.sh`, `announce.sh`, `backup/` |
-| `/opt/jentapp-validation/` | `docker-compose.yml`, `docker-compose.override.yml`, `.env`, `deploy.sh`, `refresh.sh`, `validation.sh` (étape 16) |
+| `/opt/jentapp/` | `docker-compose.yml`, `.env`, `deploy.sh`, `promote.sh`, `announce.sh`, `notify.sh`, `notify.env`, `backup/` |
+| `/opt/jentapp-validation/` | `docker-compose.yml`, `docker-compose.override.yml`, `.env`, `deploy.sh`, `ci-deploy.sh`, `refresh.sh`, `validation.sh` (étapes 16 et 17) |
 | `/opt/glitchtip/` | `docker-compose.yml`, `.env` |
 | `/etc/nginx/sites-available/` | `jentapp.conf`, `jentapp-validation.conf`, `glitchtip.conf` |
 | `/var/www/jentapp/` | `maintenance.html`, servie quand l'app ne répond pas |
-| `/etc/systemd/system/` | `jentapp-backup.service`, `jentapp-backup.timer` |
+| `/etc/systemd/system/` | `jentapp-backup.service`, `jentapp-backup.timer`, `jentapp-backup-failure.service`, `jentapp-backup-check.service`, `jentapp-backup-check.timer` (étape 17) |
 | `/var/backups/jentapp/` | Sauvegardes, 14 jours |
 
 L'image est construite par la CI et publiée sur `ghcr.io/n0cly/jentapp_v2` à chaque push sur `develop`, étiquetée `develop` et `sha-<commit court>`. Un push sur `main` ne reconstruit rien : la CI ajoute l'étiquette `latest` à l'image déjà construite pour ce commit, et échoue s'il n'y en a pas (commit arrivé sur `main` sans passer par `develop`). La production ne déploie jamais `latest` : une version passe d'abord par la validation, puis la même image part en production (« Publier une version »).
@@ -428,7 +428,7 @@ Ouvrir `https://val.jentapp.nocly.fr` dans Safari, se connecter avec ton compte,
 
 ### 16.8 Au quotidien
 
-Après chaque push sur `develop`, une fois la CI verte :
+Une fois l'automatisation installée (étape 17), chaque push sur `develop` déploie la validation tout seul. À la main, par exemple pour revenir à un commit précis :
 
 ```sh
 /opt/jentapp-validation/deploy.sh                          # dernière image develop
@@ -455,6 +455,157 @@ docker compose exec app node scripts/validation-login.ts <pseudo> <mot de passe>
 
 La validation n'est pas sauvegardée : ses données se reprennent de la production à chaque rafraîchissement.
 
+## 17. Automatisation
+
+Un push sur `develop` met la validation à jour tout seul, et Telegram te dit ce qui se passe (`docs/AUTOMATISATION.md`). La production reste manuelle : `promote.sh` envoie un push à tous les joueurs.
+
+| Message | Envoyé par |
+| --- | --- |
+| `VAL déployée · sha-… · https://val.jentapp.nocly.fr`, ou `VAL ÉCHEC · sha-… · étape : …` et les 15 dernières lignes du journal | `validation/deploy.sh`, lancé par la CI ou à la main |
+| `VAL en pause · déploiement de sha-… ignoré` | `validation/ci-deploy.sh`, quand la validation est arrêtée par `validation.sh stop` |
+| `VAL rafraîchie depuis la sauvegarde du JJ/MM · sha-…`, ou `VAL ÉCHEC du rafraîchissement · étape : …` | `validation/refresh.sh` |
+| `PROD · JentApp X.Y.Z en ligne · sha-…`, ou `PROD ÉCHEC · étape : …` et la commande de retour arrière | `deploy.sh` de production, lancé par `promote.sh` |
+| `SAUVEGARDE ÉCHEC · voir journalctl -u jentapp-backup` | `jentapp-backup-failure.service`, par `OnFailure=` |
+| `SAUVEGARDE MANQUANTE · la dernière date du …` | `jentapp-backup-check.timer`, chaque matin à 9 h |
+| `CI ÉCHEC · develop · abc1234 · <titre du commit> · <lien>` | La CI, sur un push sur `develop` ou `main` dont un job échoue |
+
+`notify.sh` ne fait jamais échouer le script qui l'appelle : sans `notify.env`, ou si Telegram ne répond pas, il écrit une ligne dans le journal (`journalctl -t jentapp-notify`) et continue.
+
+### 17.1 Bot Telegram
+
+Dans Telegram, auprès de `@BotFather` : `/newbot`, puis noter le jeton. Envoyer un message quelconque à ton bot, puis, depuis ton poste :
+
+```sh
+curl -s "https://api.telegram.org/bot<jeton>/getUpdates"    # identifiant du chat : result[].message.chat.id
+```
+
+### 17.2 Copier les fichiers
+
+Depuis ton poste, à la racine du dépôt, sur `develop` :
+
+```sh
+scp deploy/notify.sh deploy/deploy.sh deploy/promote.sh <vps>:/opt/jentapp/
+scp deploy/backup/check.sh deploy/backup/jentapp-backup.service \
+  deploy/backup/jentapp-backup-failure.service deploy/backup/jentapp-backup-check.service \
+  deploy/backup/jentapp-backup-check.timer <vps>:/opt/jentapp/backup/
+scp deploy/validation/deploy.sh deploy/validation/refresh.sh deploy/validation/validation.sh \
+  deploy/validation/ci-deploy.sh <vps>:/opt/jentapp-validation/
+ssh <vps> 'chmod +x /opt/jentapp/*.sh /opt/jentapp/backup/*.sh /opt/jentapp-validation/*.sh'
+```
+
+### 17.3 Configuration de Telegram
+
+Sur le VPS, avec l'utilisateur qui possède `/opt/jentapp`. Le jeton est lu au clavier, pour ne pas finir dans l'historique du shell :
+
+```sh
+read -rsp 'Jeton du bot : ' TOKEN; echo; read -rp 'Identifiant du chat : ' CHAT
+( umask 077; printf 'TELEGRAM_BOT_TOKEN=%s\nTELEGRAM_CHAT_ID=%s\n' "$TOKEN" "$CHAT" > /opt/jentapp/notify.env )
+unset TOKEN CHAT
+chmod 600 /opt/jentapp/notify.env
+/opt/jentapp/notify.sh "Test depuis le VPS"
+```
+
+Le message arrive sur Telegram. Sinon : `journalctl -t jentapp-notify -n 5`.
+
+### 17.4 Alertes de sauvegarde
+
+```sh
+sudo cp /opt/jentapp/backup/jentapp-backup.service /opt/jentapp/backup/jentapp-backup-failure.service \
+  /opt/jentapp/backup/jentapp-backup-check.service /opt/jentapp/backup/jentapp-backup-check.timer \
+  /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now jentapp-backup-check.timer
+systemctl list-timers 'jentapp-backup*'
+
+sudo systemctl start jentapp-backup-failure.service    # essai : « SAUVEGARDE ÉCHEC » arrive
+sudo systemctl start jentapp-backup-check.service      # rien si la dernière sauvegarde a moins de 26 h
+journalctl -u jentapp-backup-check -n 5
+```
+
+### 17.5 Clé de déploiement de la CI
+
+Sur ton poste, hors du dépôt :
+
+```sh
+ssh-keygen -t ed25519 -f jentapp-validation-deploy -N "" -C "github-actions-validation"
+ssh-keyscan -p <port> <hôte du VPS> > jentapp-validation-known-hosts
+ssh-keygen -lf jentapp-validation-known-hosts
+```
+
+Comparer les empreintes affichées avec celles du VPS, lues sur le VPS lui-même : `for f in /etc/ssh/ssh_host_*_key.pub; do ssh-keygen -lf "$f"; done`. Elles doivent être identiques : c'est ce qui garantit que la CI parle bien à ton serveur.
+
+Sur le VPS, avec l'utilisateur qui possède `/opt/jentapp-validation` et appartient au groupe `docker` (`id -nG`), ajouter cette ligne à `~/.ssh/authorized_keys`, en un seul tenant, avec la clé publique de `jentapp-validation-deploy.pub` :
+
+```
+command="/opt/jentapp-validation/ci-deploy.sh",no-port-forwarding,no-agent-forwarding,no-X11-forwarding,no-pty ssh-ed25519 AAAA… github-actions-validation
+```
+
+Cette clé ne peut lancer que `ci-deploy.sh`, quoi qu'on lui demande. `ci-deploy.sh` n'accepte que `sha-` suivi de 7 caractères hexadécimaux et ne l'exécute jamais. Vérifier depuis ton poste qu'une autre demande est refusée :
+
+```sh
+ssh -i jentapp-validation-deploy -p <port> <utilisateur>@<hôte du VPS> latest
+# ci-deploy : demande refusée : latest
+```
+
+Les refus sont journalisés : `journalctl -t jentapp-ci-deploy`.
+
+### 17.6 GitHub
+
+Avec `gh`, connecté au compte qui administre le dépôt, depuis ton poste :
+
+```sh
+# Environnement « validation », limité à develop.
+gh api -X PUT repos/N0cly/JentApp_v2/environments/validation \
+  -F 'deployment_branch_policy[protected_branches]=false' \
+  -F 'deployment_branch_policy[custom_branch_policies]=true'
+gh api -X POST repos/N0cly/JentApp_v2/environments/validation/deployment-branch-policies \
+  -f name=develop -f type=branch
+
+# Ses cinq secrets.
+gh secret set VALIDATION_SSH_KEY --env validation < jentapp-validation-deploy
+gh secret set VALIDATION_SSH_KNOWN_HOSTS --env validation < jentapp-validation-known-hosts
+gh secret set VALIDATION_SSH_HOST --env validation --body '<hôte du VPS>'
+gh secret set VALIDATION_SSH_PORT --env validation --body '<port>'
+gh secret set VALIDATION_SSH_USER --env validation --body '<utilisateur>'
+
+# Secrets du dépôt, pour « CI ÉCHEC » : gh les demande au clavier.
+gh secret set TELEGRAM_BOT_TOKEN
+gh secret set TELEGRAM_CHAT_ID
+
+# Dependabot : alertes activées, mises à jour de sécurité automatiques désactivées
+# (elles viseraient main ; les correctifs passent par develop).
+gh api -X PUT repos/N0cly/JentApp_v2/vulnerability-alerts
+gh api -X DELETE repos/N0cly/JentApp_v2/automated-security-fixes
+
+rm jentapp-validation-deploy     # la clé privée ne vit plus que dans GitHub
+```
+
+Les mêmes réglages existent dans l'interface : Settings → Environments, Settings → Secrets and variables → Actions, Settings → Advanced Security (« Code security » sur les comptes plus anciens).
+
+Dependabot ouvre ses demandes chaque lundi vers 7 h, vers `develop` (`.github/dependabot.yml`) : mineures et correctives regroupées par écosystème, majeures une par une, cinq demandes ouvertes au plus, et seulement des versions publiées depuis au moins 7 jours. Une demande fusionnée dans `develop` suit le chemin habituel : validation, puis « Publier une version ».
+
+### 17.7 Surveillance du site
+
+Hors du VPS, sans code : un service de surveillance (UptimeRobot, Healthchecks.io ou équivalent) qui appelle `https://jentapp.nocly.fr/api/health` chaque minute, attend `"status":"ok"` et alerte ton bot Telegram. Il doit tourner ailleurs que sur le VPS : c'est lui qui te prévient quand le serveur entier tombe. Y ajouter l'expiration du certificat.
+
+### 17.8 Mise en pause
+
+`/opt/jentapp-validation/validation.sh stop` arrête la validation et la met en pause : les déploiements de la CI sont ignorés, avec le message `VAL en pause`. `validation.sh start` la reprend, sur la dernière image déployée ; le push suivant sur `develop` la remet à jour.
+
+### 17.9 Faire tourner la clé SSH
+
+Une fois par an, ou tout de suite si la clé a pu fuiter :
+
+1. Sur ton poste, une nouvelle paire : `ssh-keygen -t ed25519 -f jentapp-validation-deploy-new -N "" -C "github-actions-validation"`.
+2. Sur le VPS, ajouter sa ligne dans `~/.ssh/authorized_keys`, avec le même préfixe `command="/opt/jentapp-validation/ci-deploy.sh",no-port-forwarding,…`, sans retirer l'ancienne.
+3. `gh secret set VALIDATION_SSH_KEY --env validation < jentapp-validation-deploy-new`, puis `rm jentapp-validation-deploy-new`.
+4. Relancer le job « Deploy to validation » de la dernière exécution sur `develop`, depuis l'onglet Actions, ou pousser sur `develop`. Attendre `VAL déployée`.
+5. Sur le VPS, retirer la ligne de l'ancienne clé de `~/.ssh/authorized_keys`.
+
+Si la clé a fuité, faire l'étape 5 en premier : les déploiements échouent jusqu'à l'étape 3, la validation reste telle quelle.
+
+Si la clé d'hôte du VPS change (réinstallation), refaire `ssh-keyscan`, comparer les empreintes comme en 17.5, puis `gh secret set VALIDATION_SSH_KNOWN_HOSTS --env validation < jentapp-validation-known-hosts`.
+
 ## Publier une version
 
 | Étape | Où | Commande ou geste |
@@ -467,6 +618,7 @@ La validation n'est pas sauvegardée : ses données se reprennent de la producti
 | 6. Promotion | VPS | `/opt/jentapp/promote.sh` : sauvegarde, même image, contrôle du journal |
 | 7. Contrôle | iPhone | La production affiche la nouvelle version dans Aide et légal |
 
+- Avec l'automatisation (étape 17), l'étape 2 se fait toute seule à chaque push sur `develop` : attendre `VAL déployée` sur Telegram. `deploy.sh` reste là pour revenir à un commit précis.
 - Une correction urgente suit le même chemin : `develop`, validation, fusion, promotion. Rien ne s'écrit directement sur `main`.
 - Si `git merge --ff-only` refuse, c'est qu'un commit est arrivé sur `main` hors parcours : le reporter sur `develop` d'abord.
 - Le push part au démarrage de la production : éviter de promouvoir la nuit.
