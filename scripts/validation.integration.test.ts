@@ -46,3 +46,31 @@ describe("scripts/validation-scrub.ts", () => {
     expect(await emails()).toEqual([ctx.owner.email, "joueur-1@validation.invalid"].sort());
   });
 });
+
+describe("scripts/validation-login.ts", () => {
+  beforeEach(resetDb);
+
+  it("hors validation : refus, code non nul", async () => {
+    const ctx = await leagueWith(1);
+    const result = await run(
+      "scripts/validation-login.ts",
+      [ctx.players[0]!.name!, "essai-validation"],
+      {},
+    );
+    expect(result.code).not.toBe(0);
+    expect(result.stderr).toContain("validation");
+  });
+
+  it("en validation : donne le mot de passe et dit avec quel email se connecter", async () => {
+    const ctx = await leagueWith(1);
+    const env = { APP_ENV: "validation", VALIDATION_KEEP_EMAILS: ctx.owner.email };
+    await run("scripts/validation-scrub.ts", [], env);
+    const result = await run(
+      "scripts/validation-login.ts",
+      [ctx.players[0]!.name!, "essai-validation"],
+      env,
+    );
+    expect(result.code).toBe(0);
+    expect(result.stdout).toContain("joueur-1@validation.invalid");
+  });
+});
