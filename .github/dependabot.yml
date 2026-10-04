@@ -1,0 +1,86 @@
+# Mises à jour des dépendances (docs/AUTOMATISATION.md, A.7) : chaque lundi
+# matin, vers develop, jamais vers main. Mineures et correctives regroupées en
+# une demande par écosystème ; majeures une par une. Cinq demandes ouvertes au
+# plus en tout (la limite de Dependabot s'applique par écosystème : 2 + 1 + 1 + 1).
+# Une version n'est proposée qu'après 7 jours de publication.
+# Les mises à jour de sécurité automatiques restent désactivées : elles
+# viseraient main ; les alertes, elles, sont activées dans les réglages.
+version: 2
+
+updates:
+  - package-ecosystem: npm
+    directory: /
+    target-branch: develop
+    schedule:
+      interval: weekly
+      day: monday
+      time: "07:00"
+      timezone: Europe/Paris
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 2
+    commit-message:
+      prefix: chore
+      include: scope
+    groups:
+      npm-minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    target-branch: develop
+    schedule:
+      interval: weekly
+      day: monday
+      time: "07:00"
+      timezone: Europe/Paris
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 1
+    commit-message:
+      prefix: ci
+      include: scope
+    groups:
+      actions-minor-and-patch:
+        update-types: [minor, patch]
+
+  # Dockerfile de l'app.
+  - package-ecosystem: docker
+    directory: /
+    target-branch: develop
+    schedule:
+      interval: weekly
+      day: monday
+      time: "07:00"
+      timezone: Europe/Paris
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 1
+    commit-message:
+      prefix: chore
+      include: scope
+    groups:
+      docker-minor-and-patch:
+        update-types: [minor, patch]
+
+  # Composes du VPS : production, validation, GlitchTip.
+  - package-ecosystem: docker-compose
+    directories:
+      - /deploy
+      - /deploy/validation
+      - /deploy/glitchtip
+    target-branch: develop
+    schedule:
+      interval: weekly
+      day: monday
+      time: "07:00"
+      timezone: Europe/Paris
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 1
+    commit-message:
+      prefix: chore
+      include: scope
+    groups:
+      compose-minor-and-patch:
+        update-types: [minor, patch]
