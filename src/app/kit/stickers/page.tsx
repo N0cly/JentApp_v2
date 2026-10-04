@@ -12,7 +12,7 @@ export default function KitStickersPage() {
           <p className="text-overline text-ink-subtle">JentApp · Kit</p>
           <h1 className="text-title">Stickers</h1>
           <p className="text-body text-ink-muted">
-            Colle ou insère un sticker dans chaque champ. Les événements s&apos;affichent ici ; rien
+            Colle ou insère un sticker dans chaque champ. Les événements s&apos;affichent ici ; rien
             n&apos;est envoyé au serveur.
           </p>
         </header>

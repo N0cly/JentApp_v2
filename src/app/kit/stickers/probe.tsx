@@ -19,19 +19,19 @@ function short(text: string, max = 300): string {
 }
 
 function describeTransfer(dt: DataTransfer | null): string[] {
-  if (!dt) return ["  dataTransfer : aucun"];
-  const lines = [`  types : ${dt.types.length ? dt.types.join(", ") : "aucun"}`];
+  if (!dt) return ["  dataTransfer: aucun"];
+  const lines = [`  types: ${dt.types.length ? dt.types.join(", ") : "aucun"}`];
   Array.from(dt.items).forEach((item, i) => {
-    lines.push(`  item ${i} : ${item.kind} ${item.type || "(sans type)"}`);
+    lines.push(`  item ${i}: ${item.kind} ${item.type || "(sans type)"}`);
   });
   Array.from(dt.files).forEach((file, i) => {
-    lines.push(`  fichier ${i} : ${file.type || "(sans type)"}, ${file.size} o, « ${file.name} »`);
+    lines.push(`  fichier ${i}: ${file.type || "(sans type)"}, ${file.size} o, « ${file.name} »`);
   });
-  if (dt.files.length === 0) lines.push("  fichiers : aucun");
+  if (dt.files.length === 0) lines.push("  fichiers: aucun");
   const html = dt.getData("text/html");
-  if (html) lines.push(`  text/html : ${short(html)}`);
+  if (html) lines.push(`  text/html: ${short(html)}`);
   const plain = dt.getData("text/plain");
-  if (plain) lines.push(`  text/plain : ${short(plain)}`);
+  if (plain) lines.push(`  text/plain: ${short(plain)}`);
   return lines;
 }
 
@@ -66,10 +66,10 @@ async function describeImage(img: HTMLImageElement): Promise<string[]> {
     if (entry) weight = `${entry.encodedBodySize} o transférés, ${entry.decodedBodySize} o décodés`;
   }
   return [
-    `  source : ${kind} (${short(attribute, 120)})`,
-    `  type MIME : ${mime}`,
-    `  dimensions : ${img.naturalWidth}×${img.naturalHeight} (affichée ${img.width}×${img.height})`,
-    `  poids : ${weight}`,
+    `  source: ${kind} (${short(attribute, 120)})`,
+    `  type MIME: ${mime}`,
+    `  dimensions: ${img.naturalWidth}×${img.naturalHeight} (affichée ${img.width}×${img.height})`,
+    `  poids: ${weight}`,
   ];
 }
 
@@ -99,7 +99,7 @@ export function StickerProbe() {
     ] as Array<[Target, HTMLElement]>) {
       const onBeforeInput = (event: InputEvent) => {
         const details = [
-          `  data : ${event.data === null ? "null" : short(JSON.stringify(event.data))}`,
+          `  data: ${event.data === null ? "null" : short(JSON.stringify(event.data))}`,
         ];
         append(target, `beforeinput ${event.inputType}`, [
           ...details,
@@ -109,9 +109,9 @@ export function StickerProbe() {
       const onInput = (event: Event) => {
         const input = event as InputEvent;
         const details = [
-          `  data : ${input.data === null ? "null" : short(JSON.stringify(input.data))}`,
+          `  data: ${input.data === null ? "null" : short(JSON.stringify(input.data))}`,
         ];
-        if (target === "textarea") details.push(`  valeur : ${area.value.length} car.`);
+        if (target === "textarea") details.push(`  valeur: ${area.value.length} car.`);
         append(target, `input ${input.inputType ?? "(sans inputType)"}`, details);
       };
       const onPaste = (event: ClipboardEvent) => {
@@ -168,7 +168,7 @@ export function StickerProbe() {
       helper.select();
       const ok = document.execCommand("copy");
       helper.remove();
-      setCopied(ok ? "Journal copié." : "Copie impossible : sélectionne le journal à la main.");
+      setCopied(ok ? "Journal copié." : "Copie impossible : sélectionne le journal à la main.");
     }
   }
 
