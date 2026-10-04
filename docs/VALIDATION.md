@@ -115,11 +115,11 @@ Section à reprendre telle quelle dans `docs/DEPLOY.md`.
 ## Critères de fin
 
 - [ ] `pnpm lint`, `pnpm typecheck`, `pnpm test` et `pnpm build` passent ; la CI est verte.
-- [ ] `docker compose config` passe pour la production et pour la validation, et la sortie de production est identique à celle d'avant.
-- [ ] En local, avec une sauvegarde de ta base de dev : `refresh.sh` produit une validation où seul le compte gardé se connecte, et `validation-login.ts` permet d'incarner un autre joueur.
-- [ ] En local : passer de `2.0.0` à une version d'essai affiche la feuille une fois, crée une notification par compte, et rien de plus au redémarrage.
-- [ ] `nginx -t` valide la conf de validation.
-- [ ] `docs/DEPLOY.md` contient l'installation de la validation et « Publier une version ».
+- [x] `docker compose config` passe pour la production et pour la validation, et la sortie de production est identique à celle d'avant.
+- [x] En local, avec une sauvegarde de ta base de dev : `refresh.sh` produit une validation où seul le compte gardé se connecte, et `validation-login.ts` permet d'incarner un autre joueur.
+- [x] En local : passer de `2.0.0` à une version d'essai affiche la feuille une fois, crée une notification par compte, et rien de plus au redémarrage.
+- [x] `nginx -t` valide la conf de validation.
+- [x] `docs/DEPLOY.md` contient l'installation de la validation et « Publier une version ».
 
 ## Consigne pour Claude Code
 
