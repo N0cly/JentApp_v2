@@ -44,6 +44,8 @@ export const users = pgTable(
     isSuperAdmin: boolean("is_super_admin").notNull().default(false),
     termsAcceptedAt: timestamp("terms_accepted_at", { withTimezone: true }),
     deletedAt: timestamp("deleted_at", { withTimezone: true }),
+    // Dernière version dont le joueur a vu les nouveautés (docs/VALIDATION.md, B.4).
+    lastSeenRelease: text("last_seen_release"),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },

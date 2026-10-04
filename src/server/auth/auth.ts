@@ -5,6 +5,7 @@ import { nextCookies } from "better-auth/next-js";
 import { getDb } from "@/db/client";
 import * as schema from "@/db/schema";
 import { confirmationEmail, resetPasswordEmail, sendEmail } from "@/server/email";
+import { APP_VERSION } from "@/lib/version";
 import { signupsClosed } from "@/server/env";
 import { messages } from "./validation";
 
@@ -53,6 +54,7 @@ function createAuth() {
         isSuperAdmin: { type: "boolean", input: false, returned: false, defaultValue: false },
         termsAcceptedAt: { type: "date", input: false, returned: false, required: false },
         deletedAt: { type: "date", input: false, returned: false, required: false },
+        lastSeenRelease: { type: "string", input: false, returned: false, required: false },
       },
     },
     emailAndPassword: {
@@ -82,7 +84,10 @@ function createAuth() {
           before: async (user) => {
             if (signupsClosed())
               throw new APIError("FORBIDDEN", { message: messages.signupsClosed });
-            return { data: { ...user, termsAcceptedAt: new Date() } };
+            // Un nouveau joueur a déjà la version courante : pas de feuille « Quoi de neuf ».
+            return {
+              data: { ...user, termsAcceptedAt: new Date(), lastSeenRelease: APP_VERSION },
+            };
           },
         },
       },

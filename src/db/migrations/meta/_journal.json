@@ -57,6 +57,13 @@
       "when": 1791052632630,
       "tag": "0007_announcements",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1791129957560,
+      "tag": "0008_last_seen_release",
+      "breakpoints": true
     }
   ]
 }
