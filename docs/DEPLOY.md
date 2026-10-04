@@ -12,7 +12,7 @@ Ce document déroule la partie B de `docs/PROD.md`, commande par commande. Il su
 | `/etc/systemd/system/` | `jentapp-backup.service`, `jentapp-backup.timer` |
 | `/var/backups/jentapp/` | Sauvegardes, 14 jours |
 
-L'image est construite par la CI et publiée sur `ghcr.io/n0cly/jentapp_v2` à chaque push sur `main`, étiquetée `latest` et `sha-<commit court>`. Les scripts ne déploient jamais `latest` : une version passe d'abord par la validation, puis la même étiquette `sha-…` part en production (« Publier une version »).
+L'image est construite par la CI et publiée sur `ghcr.io/n0cly/jentapp_v2` à chaque push sur `develop`, étiquetée `develop` et `sha-<commit court>`. Un push sur `main` ne reconstruit rien : la CI ajoute l'étiquette `latest` à l'image déjà construite pour ce commit, et échoue s'il n'y en a pas (commit arrivé sur `main` sans passer par `develop`). La production ne déploie jamais `latest` : une version passe d'abord par la validation, puis la même image part en production (« Publier une version »).
 
 Dans les commandes, `<vps>` est ton hôte SSH (par exemple `nocly@1.2.3.4`).
 

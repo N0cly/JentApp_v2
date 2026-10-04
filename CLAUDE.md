@@ -48,6 +48,7 @@ Réécriture complète de la v1 (`N0cly/JentApp`, React Native + Supabase). Rien
 - Code, identifiants, tables et commits en anglais. Textes d'interface en français, tutoiement, sans emoji.
 - Unités : clope, joint (5 clopes), paquet (20 clopes). Un solde s'affiche toujours en clopes.
 - Commits atomiques, format conventionnel (`feat:`, `fix:`, `chore:`…).
+- On travaille sur `develop`, jamais sur `main`. `main` n'avance que par `git merge --ff-only develop` : le commit validé sur `develop` est celui qui part en production.
 - Une fonctionnalité se construit dans cet ordre : logique serveur et ses tests, puis interface.
 - Un bug hors périmètre du jalon se note dans `docs/BUGS.md` ; il ne bloque pas le jalon.
 
