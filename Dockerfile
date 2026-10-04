@@ -40,10 +40,13 @@ COPY --from=build --chown=nextjs:nodejs /app/src/db/migrate.ts ./db/migrate.ts
 #   docker compose exec app node scripts/admin-grant.ts <email>
 #   docker compose exec app node scripts/ledger-check.ts
 #   docker compose exec app node scripts/announce.ts [--envoyer] "<message>"
-COPY --from=build --chown=nextjs:nodejs /app/scripts/admin-grant.ts /app/scripts/ledger-check.ts /app/scripts/announce.ts ./scripts/
+#   docker compose run --rm app node scripts/validation-scrub.ts   (validation seulement)
+COPY --from=build --chown=nextjs:nodejs /app/scripts/admin-grant.ts /app/scripts/ledger-check.ts /app/scripts/announce.ts /app/scripts/validation-scrub.ts ./scripts/
 COPY --from=build --chown=nextjs:nodejs /app/src/server/ledger/check.ts ./src/server/ledger/check.ts
 COPY --from=build --chown=nextjs:nodejs /app/src/server/notifications/announce.ts ./src/server/notifications/announce.ts
 COPY --from=build --chown=nextjs:nodejs /app/src/server/realtime/notify.ts ./src/server/realtime/notify.ts
+COPY --from=build --chown=nextjs:nodejs /app/src/server/env.ts ./src/server/env.ts
+COPY --from=build --chown=nextjs:nodejs /app/src/server/validation/scrub.ts ./src/server/validation/scrub.ts
 
 USER nextjs
 EXPOSE 3000
