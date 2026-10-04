@@ -3,6 +3,7 @@ export {
   MAX_ITEMS,
   parseRelease,
   readRelease,
+  releaseProblems,
   ReleaseFormatError,
   RELEASES_DIR,
   type Release,

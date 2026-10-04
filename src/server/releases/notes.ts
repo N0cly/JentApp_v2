@@ -47,6 +47,29 @@ function releasesDir() {
   return join(process.cwd(), RELEASES_DIR);
 }
 
+/**
+ * Garde (B.3) : ce qui empêcherait une version de partir. La version courante
+ * doit avoir sa note, et chaque note doit être bien formée.
+ */
+export async function releaseProblems(version: string, dir = releasesDir()): Promise<string[]> {
+  const problems: string[] = [];
+  const files = (await readdir(dir)).filter((f) => f.endsWith(".md"));
+  if (!files.includes(`${version}.md`)) {
+    problems.push(
+      `${RELEASES_DIR}/${version}.md manquant pour la version ${version} de package.json`,
+    );
+  }
+  for (const file of files) {
+    try {
+      parseRelease(file.slice(0, -3), await readFile(join(dir, file), "utf8"));
+    } catch (error) {
+      if (!(error instanceof ReleaseFormatError)) throw error;
+      problems.push(error.message);
+    }
+  }
+  return problems;
+}
+
 /** Toutes les versions, la plus récente d'abord. */
 export async function listReleases(): Promise<Release[]> {
   const dir = releasesDir();
