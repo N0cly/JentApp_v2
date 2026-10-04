@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { chmodSync, existsSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
@@ -20,6 +20,10 @@ function refresh(envFile: string | null, extra: Record<string, string> = {}) {
   writeFileSync(join(dir, "backups", "jentapp-2026-10-04.dump"), "x");
   writeFileSync(join(dir, "backups", "uploads-2026-10-04.tar.gz"), "x");
   if (envFile !== null) writeFileSync(join(dir, "val", ".env"), envFile);
+  const messages = join(dir, "messages");
+  writeFileSync(messages, "");
+  writeFileSync(join(bin, "notify"), `#!/bin/sh\nprintf '%s\\n' "$1" >> "${messages}"\n`);
+  chmodSync(join(bin, "notify"), 0o755);
   let code = 0;
   let stderr = "";
   try {
@@ -29,6 +33,7 @@ function refresh(envFile: string | null, extra: Record<string, string> = {}) {
         PATH: `${bin}:${process.env.PATH}`,
         JENTAPP_VALIDATION_DIR: join(dir, "val"),
         BACKUP_DIR: join(dir, "backups"),
+        NOTIFY: join(bin, "notify"),
         ...extra,
       },
       stdio: "pipe",
@@ -38,7 +43,12 @@ function refresh(envFile: string | null, extra: Record<string, string> = {}) {
     code = e.status;
     stderr = e.stderr.toString();
   }
-  return { code, stderr, dockerCalled: existsSync(marker) };
+  return {
+    code,
+    stderr,
+    dockerCalled: existsSync(marker),
+    messages: readFileSync(messages, "utf8"),
+  };
 }
 
 const VALID = "APP_ENV=validation\nJENTAPP_PROJECT=jentapp-validation\nJENTAPP_TAG=sha-abc1234\n";
@@ -65,10 +75,13 @@ describe("refresh.sh refuse de tourner hors validation", () => {
     expect(result.code).not.toBe(0);
     expect(result.stderr).toContain("rafraîchissement");
     expect(result.dockerCalled).toBe(false);
+    expect(result.messages).toBe("VAL ÉCHEC du rafraîchissement · étape : contrôles\n");
   });
 
   it("en validation, passe les gardes et va jusqu'à Docker", () => {
     const result = refresh(VALID);
     expect(result.dockerCalled).toBe(true);
+    // Le faux docker échoue à la première commande : l'étape est nommée.
+    expect(result.messages).toBe("VAL ÉCHEC du rafraîchissement · étape : image\n");
   });
 });

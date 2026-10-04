@@ -1,5 +1,13 @@
 import { execFileSync } from "node:child_process";
-import { chmodSync, existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import {
+  chmodSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
@@ -52,7 +60,35 @@ esac
   chmodSync(join(dir, "bin", "docker"), 0o755);
   writeFileSync(join(dir, "prod", "deploy.sh"), `#!/bin/sh\necho "deploy $JENTAPP_TAG"\n`);
   chmodSync(join(dir, "prod", "deploy.sh"), 0o755);
+  writeFileSync(join(dir, "messages"), "");
+  writeFileSync(
+    join(dir, "bin", "notify"),
+    `#!/bin/sh\nprintf '%s\\n---\\n' "$1" >> "${join(dir, "messages")}"\n`,
+  );
+  chmodSync(join(dir, "bin", "notify"), 0o755);
   return { dir, marker };
+}
+
+const messages = (dir: string) =>
+  readFileSync(join(dir, "messages"), "utf8").split("\n---\n").filter(Boolean);
+
+/** Production qui tourne sur sha-1111111 ; faux Docker pour tout le déploiement. */
+function production(health: string) {
+  const { dir } = sandbox();
+  writeFileSync(join(dir, "prod", ".env"), "POSTGRES_DB=jentapp\nJENTAPP_TAG=sha-1111111\n");
+  writeFileSync(
+    join(dir, "bin", "docker"),
+    `#!/bin/sh
+case "$*" in
+  "compose ps --status running -q db") ;;
+  "compose ps -q app") echo cafe ;;
+  *State.Health.Status*) echo ${health} ;;
+  *package.json*) echo 2.1.0 ;;
+  *) ;;
+esac
+`,
+  );
+  return dir;
 }
 
 function run(script: string, dir: string, extra: Record<string, string> = {}) {
@@ -63,6 +99,7 @@ function run(script: string, dir: string, extra: Record<string, string> = {}) {
         PATH: `${join(dir, "bin")}:${process.env.PATH}`,
         JENTAPP_DIR: join(dir, "prod"),
         JENTAPP_VALIDATION_DIR: join(dir, "val"),
+        NOTIFY: join(dir, "bin", "notify"),
         ...extra,
       },
       stdio: "pipe",
@@ -85,6 +122,28 @@ describe("deploy.sh", () => {
     expect(result.code).not.toBe(0);
     expect(result.stderr).toContain("étiquette explicite");
     expect(existsSync(marker)).toBe(false);
+    expect(messages(dir)).toEqual([
+      "PROD ÉCHEC · étape : contrôles\nRien n'a changé en production.",
+    ]);
+  });
+
+  it("en succès, annonce la version en ligne et l'étiquette", () => {
+    const dir = production("healthy");
+    const result = run("deploy/deploy.sh", dir, { JENTAPP_TAG: "sha-abc1234" });
+    expect(result.code).toBe(0);
+    expect(messages(dir)).toEqual(["PROD · JentApp 2.1.0 en ligne · sha-abc1234"]);
+  });
+
+  it("en échec après le redémarrage, rappelle la commande de retour arrière", () => {
+    const dir = production("unhealthy");
+    const result = run("deploy/deploy.sh", dir, {
+      JENTAPP_TAG: "sha-abc1234",
+      HEALTH_TIMEOUT: "0",
+    });
+    expect(result.code).not.toBe(0);
+    const [message] = messages(dir);
+    expect(message).toContain("PROD ÉCHEC · étape : healthcheck");
+    expect(message).toContain(`JENTAPP_TAG=sha-1111111 ${join(dir, "prod")}/deploy.sh`);
   });
 });
 
@@ -103,6 +162,9 @@ describe("promote.sh", () => {
     expect(result.stdout).not.toContain("deploy ");
     expect(result.stderr).toContain("ne désigne pas l'image qui tourne en validation");
     expect(result.stderr).toContain("git merge --ff-only develop");
+    expect(messages(dir)).toEqual([
+      "PROD ÉCHEC · étape : vérification de latest\nRien n'a changé en production.",
+    ]);
   });
 
   it.each([

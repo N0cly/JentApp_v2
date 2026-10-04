@@ -3,6 +3,7 @@
 # les jours. Tire l'image, redémarre, attend le healthcheck, contrôle le journal.
 # Ne touche pas aux données : pour repartir d'une copie fraîche de la production,
 # refresh.sh.
+# Prévient sur Telegram à la fin, en succès comme en échec (notify.sh).
 # Usage : deploy.sh
 #   Étiquette `develop` par défaut, ou celle de JENTAPP_TAG (sha-…). Jamais
 #   `latest`. Une fois l'app saine, elle est notée dans le .env, pour que
@@ -11,10 +12,31 @@ set -euo pipefail
 
 VAL_DIR="${JENTAPP_VALIDATION_DIR:-/opt/jentapp-validation}"
 HEALTH_TIMEOUT="${HEALTH_TIMEOUT:-180}"
+NOTIFY="${NOTIFY:-/opt/jentapp/notify.sh}"
+# Telegram (docs/AUTOMATISATION.md, A.2). Ne fait jamais échouer le script.
+notify() {
+  if [ -x "$NOTIFY" ]; then "$NOTIFY" "$1" || true; else echo "notification non envoyée : $NOTIFY introuvable" >&2; fi
+}
 
 step() { echo "==> $*"; }
 fail() { echo "déploiement de la validation : $*" >&2; exit 1; }
 env_value() { sed -n "s/^$1=//p" .env | tail -1 | sed -e 's/^"\(.*\)"$/\1/' -e "s/^'\(.*\)'$/\1/"; }
+
+TAG="${JENTAPP_TAG:-develop}"
+URL="https://val.jentapp.nocly.fr"
+STAGE="contrôles"
+finish() {
+  local status=$?
+  if [ "$status" -eq 0 ]; then
+    notify "VAL déployée · $TAG · $URL"
+  elif [ "$STAGE" = "contrôles" ]; then
+    notify "VAL ÉCHEC · $TAG · étape : $STAGE"
+  else
+    notify "VAL ÉCHEC · $TAG · étape : $STAGE
+$(docker compose logs --no-color --tail 15 app 2>&1 || true)"
+  fi
+}
+trap finish EXIT
 
 cd "$VAL_DIR" 2>/dev/null || fail "dossier introuvable : $VAL_DIR"
 [ -f .env ] || fail "pas de .env dans $VAL_DIR"
@@ -23,18 +45,22 @@ project="$(env_value JENTAPP_PROJECT)"
 [ -n "$project" ] && [ "$project" != "jentapp" ] \
   || fail "JENTAPP_PROJECT doit nommer le projet de validation, pas celui de la production"
 
-TAG="${JENTAPP_TAG:-develop}"
+URL="$(env_value APP_URL)"
+URL="${URL:-https://val.jentapp.nocly.fr}"
 [ "$TAG" != "latest" ] || fail "jamais latest en validation : develop ou sha-…"
 export JENTAPP_TAG="$TAG"
 
 echo "Validation : $VAL_DIR · image $TAG"
 
+STAGE="image"
 step "Image"
 docker compose pull
 
+STAGE="redémarrage"
 step "Redémarrage"
 docker compose up -d
 
+STAGE="healthcheck"
 step "Attente du healthcheck (${HEALTH_TIMEOUT} s au plus)"
 app="$(docker compose ps -q app)"
 [ -n "$app" ] || fail "conteneur app introuvable"
@@ -50,6 +76,7 @@ until [ "$(docker inspect --format '{{.State.Health.Status}}' "$app")" = "health
 done
 echo "App saine."
 
+STAGE="étiquette"
 step "Étiquette notée dans le .env"
 if grep -q '^JENTAPP_TAG=' .env; then
   sed -i.bak "s/^JENTAPP_TAG=.*/JENTAPP_TAG=$TAG/" .env && rm -f .env.bak
@@ -57,8 +84,9 @@ else
   echo "JENTAPP_TAG=$TAG" >> .env
 fi
 
+STAGE="ledger-check"
 step "Contrôle du journal des clopes"
 docker compose exec -T app node scripts/ledger-check.ts || fail "le journal a des écarts"
 
-docker image prune -f >/dev/null
+docker image prune -f >/dev/null || true
 step "Validation déployée : $TAG ($(docker inspect --format '{{.Image}}' "$app"))"

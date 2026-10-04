@@ -5,15 +5,30 @@
 #   2. Vérifie que `latest` désigne cette même image : le commit validé a bien
 #      été fusionné dans main. Sinon, s'arrête en disant quoi faire.
 #   3. Vérifie que l'étiquette sha-… du commit désigne encore cette image.
-#   4. Lance deploy.sh en production avec cette étiquette.
+#   4. Lance deploy.sh en production avec cette étiquette, qui prévient sur
+#      Telegram. Un refus avant ce point prévient aussi (notify.sh).
 # Usage : promote.sh
 set -euo pipefail
 
 APP_DIR="${JENTAPP_DIR:-/opt/jentapp}"
 VAL_DIR="${JENTAPP_VALIDATION_DIR:-/opt/jentapp-validation}"
+NOTIFY="${NOTIFY:-$APP_DIR/notify.sh}"
 
 fail() { echo "promotion : $*" >&2; exit 1; }
 image_id() { docker image inspect --format '{{.Id}}' "$1"; }
+# Telegram (docs/AUTOMATISATION.md, A.2). Ne fait jamais échouer le script.
+notify() {
+  if [ -x "$NOTIFY" ]; then "$NOTIFY" "$1" || true; else echo "notification non envoyée : $NOTIFY introuvable" >&2; fi
+}
+
+# Jusqu'à deploy.sh, seuls des refus : la production n'a pas changé.
+STAGE="validation"
+finish() {
+  local status=$?
+  [ "$status" -eq 0 ] || notify "PROD ÉCHEC · étape : $STAGE
+Rien n'a changé en production."
+}
+trap finish EXIT
 
 cd "$VAL_DIR" 2>/dev/null || fail "dossier de la validation introuvable : $VAL_DIR"
 app="$(docker compose ps -q app)"
@@ -29,6 +44,7 @@ revision="$(docker image inspect --format '{{index .Config.Labels "org.openconta
 tag="sha-${revision:0:7}"
 echo "En validation : $ref, commit ${revision:0:7} ($validated)"
 
+STAGE="vérification de latest"
 docker pull -q "$repo:latest" >/dev/null || fail "impossible de tirer $repo:latest"
 if [ "$(image_id "$repo:latest")" != "$validated" ]; then
   cat >&2 <<MSG
@@ -43,9 +59,11 @@ MSG
   exit 1
 fi
 
+STAGE="vérification de $tag"
 docker pull -q "$repo:$tag" >/dev/null || fail "impossible de tirer $repo:$tag"
 [ "$(image_id "$repo:$tag")" = "$validated" ] \
   || fail "$repo:$tag ne désigne plus l'image validée : redéployer la validation et réessayer"
 
 echo "Promotion en production de $repo:$tag"
+trap - EXIT
 JENTAPP_TAG="$tag" exec "$APP_DIR/deploy.sh"
