@@ -4,14 +4,15 @@ Ce document déroule la partie B de `docs/PROD.md`, commande par commande. Il su
 
 | Où | Quoi |
 | --- | --- |
-| `/opt/jentapp/` | `docker-compose.yml`, `.env`, `deploy.sh`, `announce.sh`, `backup/` |
+| `/opt/jentapp/` | `docker-compose.yml`, `.env`, `deploy.sh`, `promote.sh`, `announce.sh`, `backup/` |
+| `/opt/jentapp-validation/` | `docker-compose.yml`, `docker-compose.override.yml`, `.env`, `refresh.sh`, `validation.sh` (étape 16) |
 | `/opt/glitchtip/` | `docker-compose.yml`, `.env` |
-| `/etc/nginx/sites-available/` | `jentapp.conf`, `glitchtip.conf` |
+| `/etc/nginx/sites-available/` | `jentapp.conf`, `jentapp-validation.conf`, `glitchtip.conf` |
 | `/var/www/jentapp/` | `maintenance.html`, servie quand l'app ne répond pas |
 | `/etc/systemd/system/` | `jentapp-backup.service`, `jentapp-backup.timer` |
 | `/var/backups/jentapp/` | Sauvegardes, 14 jours |
 
-L'image est construite par la CI et publiée sur `ghcr.io/n0cly/jentapp_v2` à chaque push sur `main`, étiquetée `latest` et `sha-<commit court>`.
+L'image est construite par la CI et publiée sur `ghcr.io/n0cly/jentapp_v2` à chaque push sur `main`, étiquetée `latest` et `sha-<commit court>`. Les scripts ne déploient jamais `latest` : une version passe d'abord par la validation, puis la même étiquette `sha-…` part en production (« Publier une version »).
 
 Dans les commandes, `<vps>` est ton hôte SSH (par exemple `nocly@1.2.3.4`).
 
@@ -47,11 +48,11 @@ Depuis ton poste, à la racine du dépôt :
 
 ```sh
 ssh <vps> 'sudo mkdir -p /opt/jentapp/backup /opt/glitchtip && sudo chown -R "$USER" /opt/jentapp /opt/glitchtip'
-scp deploy/docker-compose.yml deploy/.env.example deploy/deploy.sh deploy/announce.sh <vps>:/opt/jentapp/
+scp deploy/docker-compose.yml deploy/.env.example deploy/deploy.sh deploy/promote.sh deploy/announce.sh <vps>:/opt/jentapp/
 scp deploy/backup/* <vps>:/opt/jentapp/backup/
 scp deploy/glitchtip/docker-compose.yml deploy/glitchtip/.env.example <vps>:/opt/glitchtip/
 scp deploy/nginx/jentapp.conf deploy/nginx/glitchtip.conf deploy/nginx/maintenance.html <vps>:/tmp/
-ssh <vps> 'chmod +x /opt/jentapp/deploy.sh /opt/jentapp/announce.sh /opt/jentapp/backup/*.sh'
+ssh <vps> 'chmod +x /opt/jentapp/deploy.sh /opt/jentapp/promote.sh /opt/jentapp/announce.sh /opt/jentapp/backup/*.sh'
 ```
 
 ## 3. GlitchTip
@@ -188,14 +189,16 @@ Vérifier la page, après le premier déploiement : dans `/opt/jentapp`, `docker
 
 ## 7. Premier déploiement
 
+L'étiquette `sha-<commit court>` de la dernière image est visible sur la page du paquet GHCR et dans l'onglet Actions de GitHub.
+
 ```sh
 cd /opt/jentapp
-./deploy.sh
+JENTAPP_TAG=sha-abc1234 ./deploy.sh
 curl -s https://jentapp.nocly.fr/api/health
 # {"status":"ok","db":"ok"}
 ```
 
-`deploy.sh` enchaîne la sauvegarde (sautée au premier lancement, la base n'existant pas encore), `docker compose pull`, `docker compose up -d`, l'attente du healthcheck et `ledger-check`. Il s'arrête à la première erreur et affiche les derniers journaux de l'app si elle ne démarre pas. Les migrations s'appliquent au démarrage du conteneur.
+`deploy.sh` refuse de partir sans étiquette explicite, et jamais avec `latest`. Il enchaîne la sauvegarde (sautée au premier lancement, la base n'existant pas encore), `docker compose pull`, `docker compose up -d`, l'attente du healthcheck et `ledger-check`. Il s'arrête à la première erreur et affiche les derniers journaux de l'app si elle ne démarre pas. Une fois l'app saine, il note l'étiquette dans `.env` (`JENTAPP_TAG`), pour que la sauvegarde et toute commande `docker compose` suivante gardent la même image. Les migrations s'appliquent au démarrage du conteneur.
 
 ## 8. Pare-feu
 
@@ -254,17 +257,12 @@ docker compose exec -T app node scripts/ledger-check.ts
 
 ## 11. Mise à jour et retour arrière
 
-Après un push sur `main` et une CI verte :
+Une mise à jour suit « Publier une version » : validation d'abord, puis `promote.sh`.
+
+Revenir à une version précise :
 
 ```sh
-cd /opt/jentapp
-./deploy.sh
-```
-
-Revenir à une version précise : l'étiquette `sha-<commit court>` est visible sur la page du paquet GHCR et dans l'onglet Actions de GitHub.
-
-```sh
-JENTAPP_TAG=sha-abc1234 ./deploy.sh
+JENTAPP_TAG=sha-abc1234 /opt/jentapp/deploy.sh
 ```
 
 Une migration ne se défait pas. Si la version abandonnée avait migré la base, restaurer d'abord la sauvegarde faite par `deploy.sh` juste avant (étape 10, restauration réelle), puis relancer avec `JENTAPP_TAG`.
@@ -331,3 +329,138 @@ curl -s https://jentapp.nocly.fr/api/health
 ## 15. Dashboard Homepage
 
 Fusionner `deploy/homepage/services.yaml` dans `config/services.yaml` de Homepage, en adaptant le groupe et `server` (le nom de l'hôte Docker déclaré dans `config/docker.yaml`). La tuile affiche l'état du conteneur `jentapp-app-1` et le temps de réponse de `/api/health`.
+
+## 16. Validation
+
+Une copie de la production sur `val.jentapp.nocly.fr`, sur le même VPS, pour essayer chaque version depuis ton iPhone avant les joueurs (`docs/VALIDATION.md`). Elle a sa propre base, ses propres secrets, ses inscriptions fermées, et n'envoie jamais un vrai email : tout part dans Mailpit.
+
+### 16.1 Mémoire
+
+```sh
+free -h          # la validation ajoute une app, une base et Mailpit : environ 500 Mo quand elle tourne
+```
+
+Les ports `3100` (app) et `8025` (Mailpit) doivent être libres : `sudo ss -ltnp | grep -E ':(3100|8025) '` ne doit rien afficher.
+
+### 16.2 DNS, GlitchTip et VAPID
+
+- Enregistrement `A` (et `AAAA`) de `val.jentapp.nocly.fr` vers le VPS. Vérifier : `dig +short val.jentapp.nocly.fr`.
+- Dans GlitchTip, un second projet « JentApp validation », plateforme Next.js : copier son DSN.
+- Sur ton poste, une paire VAPID propre à la validation : `pnpm vapid:generate`.
+
+### 16.3 Copier les fichiers
+
+Depuis ton poste, à la racine du dépôt :
+
+```sh
+ssh <vps> 'sudo mkdir -p /opt/jentapp-validation && sudo chown -R "$USER" /opt/jentapp-validation'
+scp deploy/docker-compose.yml deploy/validation/docker-compose.override.yml \
+  deploy/validation/.env.example deploy/validation/refresh.sh deploy/validation/validation.sh \
+  <vps>:/opt/jentapp-validation/
+scp deploy/promote.sh deploy/deploy.sh <vps>:/opt/jentapp/
+scp deploy/nginx/jentapp-validation.conf <vps>:/tmp/
+ssh <vps> 'chmod +x /opt/jentapp-validation/*.sh /opt/jentapp/promote.sh /opt/jentapp/deploy.sh'
+```
+
+`docker-compose.yml` est le même fichier que celui de la production : `docker-compose.override.yml`, lu automatiquement à côté, y ajoute la validation.
+
+### 16.4 Secrets
+
+```sh
+cd /opt/jentapp-validation
+cp .env.example .env && chmod 600 .env
+openssl rand -hex 24          # → POSTGRES_PASSWORD
+openssl rand -base64 32       # → BETTER_AUTH_SECRET
+nano .env
+```
+
+| Variable | Valeur |
+| --- | --- |
+| `POSTGRES_PASSWORD`, `BETTER_AUTH_SECRET` | Les valeurs générées, jamais celles de la production |
+| `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` | La paire de la validation |
+| `VAPID_SUBJECT` | `mailto:<adresse de contact>` |
+| `ERROR_DSN` | Le DSN de « JentApp validation » |
+| `VALIDATION_KEEP_EMAILS` | Ton email de connexion à JentApp |
+
+`APP_ENV=validation`, `JENTAPP_PROJECT=jentapp-validation`, `JENTAPP_PORT=3100` et `APP_URL` ont déjà leur valeur. `JENTAPP_TAG` reste vide : `refresh.sh` l'écrit. Vérifier : `docker compose config >/dev/null && echo ok`.
+
+### 16.5 Certificat et Nginx
+
+```sh
+sudo tee /etc/nginx/sites-available/jentapp-validation.conf >/dev/null <<'NGINX'
+server {
+    listen 80;
+    listen [::]:80;
+    server_name val.jentapp.nocly.fr;
+    location /.well-known/acme-challenge/ { root /var/www/certbot; }
+}
+NGINX
+sudo ln -sf /etc/nginx/sites-available/jentapp-validation.conf /etc/nginx/sites-enabled/jentapp-validation.conf
+sudo nginx -t && sudo systemctl reload nginx
+sudo certbot certonly --webroot -w /var/www/certbot -d val.jentapp.nocly.fr
+
+sudo cp /tmp/jentapp-validation.conf /etc/nginx/sites-available/jentapp-validation.conf
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+La conf ajoute `X-Robots-Tag: noindex` et sert la même page de maintenance que la production.
+
+### 16.6 Premier rafraîchissement
+
+Il faut au moins une sauvegarde de production (étape 9). Avec l'étiquette qui tourne en production :
+
+```sh
+docker inspect --format '{{.Config.Image}}' "$(cd /opt/jentapp && docker compose ps -q app)"
+sudo JENTAPP_TAG=sha-abc1234 /opt/jentapp-validation/refresh.sh
+curl -s http://127.0.0.1:3100/api/health
+```
+
+`refresh.sh` refuse de tourner si le `.env` n'a pas `APP_ENV=validation`. Il ne touche jamais la base de production : il lit la dernière sauvegarde de `/var/backups/jentapp/` (ou celle donnée en argument), recrée la base de la validation, restaure les photos, applique les migrations de l'image demandée, nettoie les comptes, remet tes abonnements push de validation, note l'étiquette dans `.env`, redémarre et lance `ledger-check`. `sudo` : les sauvegardes ne sont lisibles que par root.
+
+Après chaque rafraîchissement, tes sessions de validation sont effacées : reconnecte-toi sur l'iPhone.
+
+### 16.7 iPhone
+
+Ouvrir `https://val.jentapp.nocly.fr` dans Safari, se connecter avec ton compte, l'installer sur l'écran d'accueil (« Validation » sous l'icône, bandeau « VALIDATION » en haut de chaque écran), puis y activer les notifications.
+
+### 16.8 Au quotidien
+
+```sh
+/opt/jentapp-validation/validation.sh status
+/opt/jentapp-validation/validation.sh stop      # libère la mémoire ; les données restent
+/opt/jentapp-validation/validation.sh start     # même image qu'au dernier rafraîchissement
+```
+
+Emails envoyés par la validation : `ssh -L 8025:127.0.0.1:8025 <vps>`, puis `http://localhost:8025` sur ton poste.
+
+Incarner un joueur qui signale un problème : les comptes nettoyés n'ont plus de mot de passe.
+
+```sh
+cd /opt/jentapp-validation
+docker compose exec app node scripts/validation-login.ts <pseudo> <mot de passe>
+# Paco : connecte-toi sur la validation avec joueur-12@validation.invalid et ce mot de passe.
+```
+
+La validation n'est pas sauvegardée : ses données se reprennent de la production à chaque rafraîchissement.
+
+## Publier une version
+
+| Étape | Où | Commande ou geste |
+| --- | --- | --- |
+| 1. Numéro et notes | Dépôt | Monter la version dans `package.json`, écrire `content/releases/{version}.md` |
+| 2. Image | GitHub | `git push origin main`, attendre la CI : elle publie `sha-…` |
+| 3. Copie de la production | VPS | `/opt/jentapp-validation/refresh.sh` avec `JENTAPP_TAG=sha-…` |
+| 4. Essai | iPhone | La feuille « Quoi de neuf » s'affiche, le push arrive, la nouveauté marche, rien d'autre n'est cassé |
+| 5. Promotion | VPS | `/opt/jentapp/promote.sh` : sauvegarde, même image, contrôle du journal |
+| 6. Contrôle | iPhone | La production affiche la nouvelle version dans Aide et légal |
+
+- Le push part au démarrage de la production : éviter de promouvoir la nuit.
+- Retour arrière : `JENTAPP_TAG=<sha précédent> /opt/jentapp/deploy.sh`, et restauration de la sauvegarde si une migration est passée.
+- Numérotation : `2.x.0` pour une nouveauté visible, `2.x.y` pour une correction.
+
+Les commandes exactes des étapes 3 et 5 :
+
+```sh
+sudo JENTAPP_TAG=sha-abc1234 /opt/jentapp-validation/refresh.sh
+/opt/jentapp/promote.sh
+```
