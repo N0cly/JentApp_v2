@@ -26,6 +26,7 @@ const PUSHED = new Set<NotificationPayload["type"]>([
   "mention",
   "round",
   "announcement",
+  "release",
 ]);
 
 export type BrowserSubscription = {

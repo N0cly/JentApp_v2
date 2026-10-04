@@ -16,6 +16,12 @@ export async function register() {
   // Le push part des signaux validés : l'écoute démarre avec le serveur.
   const { startPush } = await import("@/server/push");
   await startPush().catch((error) => console.warn("Push non démarré", error));
+  // Nouvelle version : une notification par compte et un push, une seule fois.
+  // Après le branchement du push, pour que ses signaux soient entendus.
+  const { announceCurrentRelease } = await import("@/server/releases");
+  await announceCurrentRelease().catch((error) =>
+    console.error("Annonce de version en échec", error),
+  );
 }
 
 /**

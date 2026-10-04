@@ -15,6 +15,7 @@ import {
   ClockIcon,
   CloseIcon,
   GiftIcon,
+  MedalIcon,
   TicketIcon,
 } from "@/components/ui";
 import { cx } from "@/lib/cx";
@@ -30,6 +31,7 @@ const icons: Record<NotificationType, (props: { size: number }) => ReactNode> = 
   bet_settled: CheckIcon,
   bet_cancelled: CloseIcon,
   announcement: BellIcon,
+  release: MedalIcon,
 };
 
 const subscribe = () => () => {};

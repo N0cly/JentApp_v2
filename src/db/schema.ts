@@ -468,6 +468,7 @@ export const notificationType = pgEnum("notification_type", [
   "mention",
   "round",
   "announcement",
+  "release",
 ]);
 
 export const notifications = pgTable(
@@ -477,7 +478,8 @@ export const notifications = pgTable(
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id),
-    // Vide pour une annonce, globale (docs/ANNONCE.md) ; exigée pour les autres types.
+    // Vide pour une annonce (docs/ANNONCE.md) ou une nouvelle version
+    // (docs/VALIDATION.md), globales ; exigée pour les autres types.
     leagueId: uuid("league_id").references(() => leagues.id, { onDelete: "cascade" }),
     type: notificationType("type").notNull(),
     // Identifiants et libellés pour écrire la phrase et le lien à la lecture.
@@ -490,7 +492,7 @@ export const notifications = pgTable(
     // En texte : une valeur d'enum ajoutée ne peut servir dans la transaction qui l'ajoute.
     check(
       "notifications_league_by_type",
-      sql`(${t.leagueId} is null) = (${t.type}::text = 'announcement')`,
+      sql`(${t.leagueId} is null) = (${t.type}::text in ('announcement', 'release'))`,
     ),
   ],
 );

@@ -79,6 +79,14 @@ describe("phrase d'une notification", () => {
     expect(notificationTag({ type: "round", amount: 1 })).toBeNull();
   });
 
+  it("nouvelle version : texte, lien vers les nouveautés, ouvert depuis le centre", () => {
+    const payload = { type: "release", version: "2.1.0", title: "Les stickers arrivent" } as const;
+    expect(notificationText(payload, new Date())).toBe("JentApp 2.1.0 : Les stickers arrivent");
+    expect(notificationHref(null, payload)).toBe("/nouveautes");
+    expect(centerHref(null, payload)).toBe("/nouveautes");
+    expect(notificationTag(payload)).toBeNull();
+  });
+
   it("annonce : son texte tel quel, le centre pour lien, sans étiquette", () => {
     const payload = { type: "announcement", message: "Coupure à 23 h : 10 min" } as const;
     expect(notificationText(payload, new Date())).toBe("Coupure à 23 h : 10 min");

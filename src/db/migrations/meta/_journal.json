@@ -64,6 +64,13 @@
       "when": 1791129957560,
       "tag": "0008_last_seen_release",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1791130119135,
+      "tag": "0009_release_notifications",
+      "breakpoints": true
     }
   ]
 }

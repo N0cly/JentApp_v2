@@ -33,7 +33,9 @@ export type NotificationPayload =
   | { type: "mention"; messageId: number; author: string }
   | { type: "round"; amount: number }
   /** Annonce à tous les joueurs (docs/ANNONCE.md), sans ligue : son texte tel quel. */
-  | { type: "announcement"; message: string };
+  | { type: "announcement"; message: string }
+  /** Nouvelle version, annoncée au démarrage (docs/VALIDATION.md, B.7), sans ligue. */
+  | { type: "release"; version: string; title: string };
 
 export type NotificationType = NotificationPayload["type"];
 
@@ -71,6 +73,8 @@ export function notificationText(
       return `Tournée générale : +${clopes(payload.amount)} pour tout le monde`;
     case "announcement":
       return payload.message;
+    case "release":
+      return `JentApp ${payload.version} : ${frenchSpacing(payload.title)}`;
   }
 }
 
@@ -79,6 +83,8 @@ export function notificationHref(leagueId: string | null, payload: NotificationP
   switch (payload.type) {
     case "announcement":
       return "/notifications";
+    case "release":
+      return "/nouveautes";
     case "mention":
       return `/l/${leagueId}/chat?message=${payload.messageId}`;
     case "round":
