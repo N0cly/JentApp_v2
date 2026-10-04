@@ -1,7 +1,5 @@
-# Production et validation, sur le VPS. Voir docs/DEPLOY.md.
-# La validation ajoute deploy/validation/docker-compose.override.yml et son .env ;
-# sans ces variables, les valeurs par défaut sont celles de la production.
-name: ${JENTAPP_PROJECT:-jentapp}
+# Production, sur le VPS. Voir docs/DEPLOY.md.
+name: jentapp
 
 # Journaux Docker : 10 Mo par fichier, 5 fichiers gardés, pour chaque service.
 x-logging: &logging
@@ -36,7 +34,7 @@ services:
       ERROR_DSN: ${ERROR_DSN:-}
     ports:
       # Seul Nginx, sur la même machine, parle à l'app.
-      - "127.0.0.1:${JENTAPP_PORT:-3000}:3000"
+      - "127.0.0.1:3000:3000"
     volumes:
       - uploads:/app/uploads
     depends_on:
