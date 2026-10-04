@@ -102,10 +102,10 @@ chmod 600 /opt/jentapp/notify.env
 ## Critères de fin
 
 - [ ] `pnpm lint`, `pnpm typecheck` et `pnpm test` passent ; la CI est verte.
-- [ ] En local : `ci-deploy.sh` refuse toutes les étiquettes malformées du § Tests.
+- [x] En local : `ci-deploy.sh` refuse toutes les étiquettes malformées du § Tests.
 - [ ] Après l'installation : un push sur `develop` met à jour `https://val.jentapp.nocly.fr` et envoie `VAL déployée` sur Telegram, sans intervention.
 - [ ] Un échec provoqué (test cassé sur une branche d'essai fusionnée dans `develop`, puis annulé) envoie `CI ÉCHEC`.
-- [ ] `docs/DEPLOY.md` est à jour.
+- [x] `docs/DEPLOY.md` est à jour.
 
 ## Plus tard
 
