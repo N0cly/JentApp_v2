@@ -80,6 +80,39 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+  # docs/AUTOMATISATION.md, A.5 : la validation suit develop, sans geste sur le
+  # VPS. La clé ne peut lancer que ci-deploy.sh, qui ne lit que l'étiquette.
+  deploy-validation:
+    name: Deploy to validation
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    needs: image
+    runs-on: ubuntu-latest
+    environment: validation
+    timeout-minutes: 10
+    # Un seul déploiement à la fois ; les suivants attendent leur tour.
+    concurrency:
+      group: deploy-validation
+      cancel-in-progress: false
+      queue: max
+    permissions: {}
+    steps:
+      - name: Deploy over SSH
+        env:
+          SSH_KEY: ${{ secrets.VALIDATION_SSH_KEY }}
+          SSH_HOST: ${{ secrets.VALIDATION_SSH_HOST }}
+          SSH_PORT: ${{ secrets.VALIDATION_SSH_PORT }}
+          SSH_USER: ${{ secrets.VALIDATION_SSH_USER }}
+          SSH_KNOWN_HOSTS: ${{ secrets.VALIDATION_SSH_KNOWN_HOSTS }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/validation_deploy
+          chmod 600 ~/.ssh/validation_deploy
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/validation_known_hosts
+          ssh -i ~/.ssh/validation_deploy -p "$SSH_PORT" \
+            -o IdentitiesOnly=yes -o BatchMode=yes \
+            -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$HOME/.ssh/validation_known_hosts" \
+            "$SSH_USER@$SSH_HOST" "sha-${GITHUB_SHA:0:7}"
+
   latest:
     name: Tag the validated image as latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'

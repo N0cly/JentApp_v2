@@ -90,6 +90,37 @@ describe("CI", () => {
     expect(workflow.match(/build-push-action/g)).toHaveLength(1);
   });
 
+  it("déploie la validation seulement sur un push sur develop, après l'image", () => {
+    const deploy = job("deploy-validation");
+    expect(deploy).toContain(
+      "if: github.event_name == 'push' && github.ref == 'refs/heads/develop'",
+    );
+    expect(deploy).toContain("needs: image");
+    expect(deploy).toContain("environment: validation");
+    expect(deploy).toContain("timeout-minutes: 10");
+    expect(deploy).toMatch(
+      /concurrency:\n\s+group: deploy-validation\n\s+cancel-in-progress: false\n\s+queue: max/,
+    );
+    expect(deploy).toContain('"sha-${GITHUB_SHA:0:7}"');
+  });
+
+  it("vérifie la clé d'hôte du VPS", () => {
+    const deploy = job("deploy-validation");
+    expect(deploy).toContain("-o StrictHostKeyChecking=yes");
+    expect(deploy).toContain("UserKnownHostsFile=");
+    expect(deploy).toContain("secrets.VALIDATION_SSH_KNOWN_HOSTS");
+    expect(workflow).not.toMatch(/StrictHostKeyChecking=(no|accept-new)/);
+  });
+
+  it("aucun secret sur une demande de fusion", () => {
+    const jobs = [...workflow.matchAll(/\n {2}([a-z-]+):\n/g)].map((m) => m[1] ?? "");
+    for (const name of jobs) {
+      const block = job(name);
+      if (!block.includes("secrets.")) continue;
+      expect(block, name).toMatch(/if: .*github\.event_name == 'push'/);
+    }
+  });
+
   it("sur main, étiquette latest l'image existante du commit", () => {
     const result = tagLatest(true);
     expect(result.code).toBe(0);
