@@ -34,6 +34,8 @@ RUN addgroup -S -g 1001 nodejs && adduser -S -u 1001 -G nodejs nextjs \
 COPY --from=build --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=build --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=build --chown=nextjs:nodejs /app/public ./public
+# Notes de version, lues à l'exécution (feuille « Quoi de neuf », page Nouveautés, annonce).
+COPY --from=build --chown=nextjs:nodejs /app/content/releases ./content/releases
 COPY --from=build --chown=nextjs:nodejs /app/src/db/migrations ./db/migrations
 COPY --from=build --chown=nextjs:nodejs /app/src/db/migrate.ts ./db/migrate.ts
 # Scripts d'administration, lancés dans le conteneur :
