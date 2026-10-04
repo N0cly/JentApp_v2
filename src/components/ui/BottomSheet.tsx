@@ -9,6 +9,8 @@ type BottomSheetProps = {
   open: boolean;
   onClose: () => void;
   title: string;
+  /** Sur-titre en `overline`, au-dessus du titre. */
+  overline?: string;
   /** Un titre qui est un pseudo se coupe avec des points de suspension ; sinon il passe à la ligne. */
   truncateTitle?: boolean;
   children: ReactNode;
@@ -19,6 +21,7 @@ export function BottomSheet({
   open,
   onClose,
   title,
+  overline,
   truncateTitle = false,
   children,
 }: BottomSheetProps) {
@@ -49,15 +52,18 @@ export function BottomSheet({
           className="h-[4px] w-[36px] self-center rounded-full bg-line-strong"
         />
         <div className="flex items-center justify-between gap-2">
-          <h2
-            id={titleId}
-            className={cx(
-              "min-w-0 text-[24px] leading-[28px] font-extrabold tracking-[-0.01em] [font-stretch:85%]",
-              truncateTitle ? "truncate" : "[overflow-wrap:anywhere]",
-            )}
-          >
-            {title}
-          </h2>
+          <div className="flex min-w-0 flex-col gap-1">
+            {overline && <p className="text-overline text-ink-subtle">{overline}</p>}
+            <h2
+              id={titleId}
+              className={cx(
+                "min-w-0 text-[24px] leading-[28px] font-extrabold tracking-[-0.01em] [font-stretch:85%]",
+                truncateTitle ? "truncate" : "[overflow-wrap:anywhere]",
+              )}
+            >
+              {title}
+            </h2>
+          </div>
           <IconButton label="Fermer" onClick={onClose}>
             <CloseIcon size={22} />
           </IconButton>

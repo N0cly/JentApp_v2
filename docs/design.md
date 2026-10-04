@@ -76,7 +76,7 @@ Un ticket de papier avec le J et une barre de laiton, sur fond `bg`. Les fichier
 | `Avatar` | Joueur | Rond. La bordure portée est un anneau de couleur |
 | `LeagueBadge` | Ligue | Carré arrondi avec l'initiale, pour ne pas le confondre avec un joueur |
 | `LeagueSwitcher` | Ligue active | Pilule en haut à gauche de chaque onglet : badge, nom, chevron. Ouvre la feuille « Tes ligues » |
-| `BottomSheet` | Feuille modale | Fond `surface-raised`, haut en `radius-lg`, poignée, bouton fermer |
+| `BottomSheet` | Feuille modale | Fond `surface-raised`, haut en `radius-lg`, poignée, bouton fermer, sur-titre `overline` facultatif |
 | `TabBar` | Navigation | Quatre onglets : Paris, Classement, Chat, Moi. Actif en `brand` |
 | `TextField` | Saisie | 52 px, `surface`, bordure `line-strong`, libellé visible au-dessus |
 
@@ -250,6 +250,7 @@ Notifications, journal et PWA (M7), construits avec les composants existants :
 - Hors ligne : l'icône de l'app, « Pas de réseau. JentApp revient dès que tu es connecté. », bouton primaire « Réessayer ».
 - Maintenance (`deploy/nginx/maintenance.html`, `docs/ANNONCE.md`) : servie par Nginx quand l'app ne répond pas, donc autonome, valeurs des jetons recopiées dans la page. Mise en page de la page hors ligne : l'icône de l'app, « JentApp revient dans un instant. » en `heading`, « Mise à jour en cours. Recharge la page dans une minute. » en `body` `ink-muted`. Pas de bouton.
 - Bandeau de validation (`docs/VALIDATION.md`) : en validation seulement, une bande pleine largeur tout en haut de chaque écran, fond `brand`, « VALIDATION » en `overline` `on-brand`, centré. En app installée, la bande remplit aussi la zone de la barre d'état. Le manifeste s'appelle « JentApp validation », nom court « Validation » sous l'icône.
+- Feuille « Quoi de neuf » (`docs/VALIDATION.md`) : `BottomSheet` à la première page ouverte après une mise à jour. Sur-titre « NOUVEAUTÉS · 2.1.0 » en `overline` `ink-subtle`, le titre de la note comme titre de feuille, la liste à puces en `body` `ink-muted`, bouton primaire « Compris », puis lien discret « Toutes les nouveautés » centré. Fermée de n'importe quelle façon (bouton, croix, fond), la version est notée lue.
 - Journal : jours en overline (« AUJOURD'HUI », « HIER », « LUNDI 5 OCTOBRE »), une carte par jour, l'auteur en gras ; « Voir plus », bouton discret. Journal vide : « Rien au journal pour l'instant. »
 
 Si un cas ne rentre dans aucune de ces lignes, s'arrêter et demander.

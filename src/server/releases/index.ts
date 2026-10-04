@@ -8,3 +8,4 @@ export {
   RELEASES_DIR,
   type Release,
 } from "./notes";
+export { markReleaseSeen, pendingRelease } from "./seen";
