@@ -3,6 +3,8 @@
 Description=Sauvegarde de JentApp (base et fichiers envoyés)
 Requires=docker.service
 After=docker.service
+# En échec, un message Telegram (docs/AUTOMATISATION.md, A.3).
+OnFailure=jentapp-backup-failure.service
 
 [Service]
 Type=oneshot

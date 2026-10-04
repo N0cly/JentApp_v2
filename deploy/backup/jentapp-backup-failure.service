@@ -1,0 +1,8 @@
+# /etc/systemd/system/jentapp-backup-failure.service — voir docs/DEPLOY.md.
+# Lancé par OnFailure= de jentapp-backup.service : prévient sur Telegram.
+[Unit]
+Description=Alerte d'échec de la sauvegarde de JentApp
+
+[Service]
+Type=oneshot
+ExecStart=/opt/jentapp/notify.sh "SAUVEGARDE ÉCHEC · voir journalctl -u jentapp-backup"

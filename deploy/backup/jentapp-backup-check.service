@@ -1,0 +1,8 @@
+# /etc/systemd/system/jentapp-backup-check.service — voir docs/DEPLOY.md.
+# Vérifie que la dernière sauvegarde a moins de 26 heures ; sinon, Telegram.
+[Unit]
+Description=Contrôle de fraîcheur de la sauvegarde de JentApp
+
+[Service]
+Type=oneshot
+ExecStart=/opt/jentapp/backup/check.sh

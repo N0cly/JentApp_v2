@@ -1,0 +1,11 @@
+# /etc/systemd/system/jentapp-backup-check.timer — voir docs/DEPLOY.md.
+# Chaque matin à 9 h ; rattrapé au démarrage si la machine était éteinte.
+[Unit]
+Description=Contrôle quotidien de la sauvegarde de JentApp
+
+[Timer]
+OnCalendar=*-*-* 09:00:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target
