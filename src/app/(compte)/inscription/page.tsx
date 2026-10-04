@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { SignUpForm } from "@/components/forms/SignUpForm";
 import { Screen } from "@/components/Screen";
 import { ScreenHeader } from "@/components/ScreenHeader";
-import { safeNext } from "@/server/auth";
+import { messages, safeNext } from "@/server/auth";
+import { signupsClosed } from "@/server/env";
 import { redirectIfSignedIn } from "../redirect-if-signed-in";
 
 export const metadata: Metadata = { title: "Créer un compte · JentApp" };
@@ -21,7 +22,11 @@ export default async function SignUpPage({ searchParams }: PageProps<"/inscripti
         <h1 className="text-[28px] leading-8 font-extrabold tracking-[-0.02em] [font-stretch:85%]">
           Rejoins le comptoir
         </h1>
-        <SignUpForm next={next} />
+        {signupsClosed() ? (
+          <p className="text-body text-ink-muted">{messages.signupsClosed}</p>
+        ) : (
+          <SignUpForm next={next} />
+        )}
       </main>
     </Screen>
   );

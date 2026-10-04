@@ -9,6 +9,7 @@ export const messages = {
   passwordTooShort: (missing: number) => `8 caractères minimum. Il en manque ${missing}.`,
   termsRequired: "Coche la case pour continuer.",
   signInRefused: "Email ou mot de passe incorrect.",
+  signupsClosed: "Les inscriptions sont fermées sur cet environnement.",
   linkExpired: "Ce lien n'est plus valable. Demande-en un nouveau.",
   currentPasswordWrong: "Ce n'est pas ton mot de passe actuel.",
 } as const;

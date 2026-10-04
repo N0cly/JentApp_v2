@@ -70,6 +70,7 @@ describe.skipIf(!hasCompose)("compose de validation", () => {
     expect(out.name).toBe("jentapp-validation");
     expect(app.environment).toMatchObject({
       APP_ENV: "validation",
+      SIGNUPS: "closed",
       APP_URL: "https://val.jentapp.nocly.fr",
       SETTLE_DELAY_SECONDS: "60",
       SMTP_HOST: "mailpit",

@@ -11,6 +11,7 @@ import {
   record,
   rules,
 } from "@/server/rate-limit";
+import { signupsClosed } from "@/server/env";
 import { getAuth } from "./auth";
 import {
   emailSchema,
@@ -77,6 +78,7 @@ async function signUpUnlimited(
   headers: Headers,
   now: Date,
 ): Promise<Result<SignUpField>> {
+  if (signupsClosed()) return { ok: false, formError: messages.signupsClosed };
   const ip = clientIp(headers);
   await assertAllowed(rules.signUpIp, ip, now);
 

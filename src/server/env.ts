@@ -14,6 +14,11 @@ export function appEnv(env: Record<string, string | undefined> = process.env): A
   throw new Error(`APP_ENV inconnu : « ${value} » (production ou validation)`);
 }
 
+/** `SIGNUPS=closed` : plus aucune création de compte (la validation). Sinon ouvertes. */
+export function signupsClosed(env: Record<string, string | undefined> = process.env): boolean {
+  return env.SIGNUPS?.trim() === "closed";
+}
+
 export function isValidation(env: Record<string, string | undefined> = process.env): boolean {
   return appEnv(env) === "validation";
 }

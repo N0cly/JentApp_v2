@@ -7,6 +7,8 @@ services:
   app:
     environment:
       APP_ENV: ${APP_ENV:?APP_ENV=validation manquant dans le .env}
+      # Toi seul : aucune création de compte.
+      SIGNUPS: closed
       # Délai de versement réglable, pour raccourcir les essais.
       SETTLE_DELAY_SECONDS: ${SETTLE_DELAY_SECONDS:-600}
       # Jamais un vrai email : tout part dans Mailpit.

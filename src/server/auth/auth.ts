@@ -1,9 +1,12 @@
 import { betterAuth } from "better-auth";
+import { APIError } from "better-auth/api";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 import { getDb } from "@/db/client";
 import * as schema from "@/db/schema";
 import { confirmationEmail, resetPasswordEmail, sendEmail } from "@/server/email";
+import { signupsClosed } from "@/server/env";
+import { messages } from "./validation";
 
 const DAY = 60 * 60 * 24;
 
@@ -75,7 +78,12 @@ function createAuth() {
       user: {
         create: {
           // L'inscription n'est acceptée qu'avec la case cochée (vérifiée avant l'appel).
-          before: async (user) => ({ data: { ...user, termsAcceptedAt: new Date() } }),
+          // Inscriptions fermées : refusé ici, quel que soit le chemin d'appel.
+          before: async (user) => {
+            if (signupsClosed())
+              throw new APIError("FORBIDDEN", { message: messages.signupsClosed });
+            return { data: { ...user, termsAcceptedAt: new Date() } };
+          },
         },
       },
     },
