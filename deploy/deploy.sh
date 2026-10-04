@@ -2,8 +2,10 @@
 # Déploiement de JentApp sur le VPS (docs/PROD.md, A.9) : sauvegarde, image,
 # redémarrage, attente du healthcheck, contrôle du journal. S'arrête à la
 # première erreur.
-# Usage : deploy.sh                      dernière image (`latest`, ou JENTAPP_TAG du .env)
-#         JENTAPP_TAG=sha-abc1234 deploy.sh   retour à une version précise
+# Usage : JENTAPP_TAG=sha-abc1234 deploy.sh
+#   L'étiquette est obligatoire, jamais `latest` : d'ordinaire, promote.sh la
+#   reprend de la validation. Une fois l'app saine, elle est notée dans le .env,
+#   pour que toute commande Compose suivante garde la même image.
 # Une migration ne se défait pas : en cas de retour arrière après une migration,
 # restaurer la sauvegarde faite au début (backup/restore.sh).
 set -euo pipefail
@@ -15,8 +17,13 @@ BACKUP_SCRIPT="${BACKUP_SCRIPT:-$APP_DIR/backup/backup.sh}"
 step() { echo "==> $*"; }
 fail() { echo "déploiement : $*" >&2; exit 1; }
 
+TAG="${JENTAPP_TAG:-}"
+[ -n "$TAG" ] && [ "$TAG" != "latest" ] \
+  || fail "étiquette explicite obligatoire : JENTAPP_TAG=sha-… $0 (ou promote.sh)"
+export JENTAPP_TAG="$TAG"
+
 cd "$APP_DIR"
-echo "Version : ${JENTAPP_TAG:-celle du .env, sinon latest}"
+echo "Version : $TAG"
 
 step "Sauvegarde"
 if [ -n "$(docker compose ps --status running -q db)" ]; then
@@ -45,6 +52,13 @@ until [ "$(docker inspect --format '{{.State.Health.Status}}' "$app")" = "health
   waited=$((waited + 5))
 done
 echo "App saine."
+
+step "Étiquette notée dans le .env"
+if grep -q '^JENTAPP_TAG=' .env; then
+  sed -i.bak "s/^JENTAPP_TAG=.*/JENTAPP_TAG=$TAG/" .env && rm -f .env.bak
+else
+  echo "JENTAPP_TAG=$TAG" >> .env
+fi
 
 step "Contrôle du journal des clopes"
 docker compose exec -T app node scripts/ledger-check.ts || fail "le journal a des écarts"
