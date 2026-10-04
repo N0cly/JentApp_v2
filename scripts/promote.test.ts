@@ -4,12 +4,30 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
 
-// docs/VALIDATION.md, A.10 : deploy.sh exige une étiquette explicite ;
-// promote.sh reprend celle qui tourne en validation. Docker est simulé.
+// docs/VALIDATION.md, A.11 : deploy.sh exige l'étiquette sha-… d'un commit ;
+// promote.sh ne promeut l'image de la validation que si `latest` la désigne.
+// Docker est simulé : chaque étiquette du registre donne un identifiant d'image.
 const dirs: string[] = [];
 afterAll(() => dirs.forEach((d) => rmSync(d, { recursive: true, force: true })));
 
-function sandbox(health = "healthy", image = "ghcr.io/n0cly/jentapp_v2:sha-abc1234") {
+const REVISION = "abc1234def5678abc1234def5678abc1234def56";
+const REPO = "ghcr.io/n0cly/jentapp_v2";
+
+interface Registry {
+  health?: string;
+  running?: string;
+  revision?: string;
+  latest?: string;
+  sha?: string;
+}
+
+function sandbox({
+  health = "healthy",
+  running = "sha256:validated",
+  revision = REVISION,
+  latest = "sha256:validated",
+  sha = "sha256:validated",
+}: Registry = {}) {
   const dir = mkdtempSync(join(tmpdir(), "jentapp-promote-"));
   dirs.push(dir);
   for (const d of ["bin", "prod", "val"]) mkdirSync(join(dir, d));
@@ -21,7 +39,12 @@ touch "${marker}"
 case "$*" in
   "compose ps -q app") echo cafe ;;
   *State.Health.Status*) echo ${health} ;;
-  *Config.Image*) echo ${image} ;;
+  *"{{.Image}}"*) echo ${running} ;;
+  *Config.Image*) echo ${REPO}:develop ;;
+  *Labels*) echo ${revision} ;;
+  "pull -q "*) ;;
+  *"{{.Id}}"*:latest) echo ${latest} ;;
+  *"{{.Id}}"*:sha-${REVISION.slice(0, 7)}) echo ${sha} ;;
   *) exit 1 ;;
 esac
 `,
@@ -55,6 +78,7 @@ describe("deploy.sh", () => {
   it.each([
     ["sans étiquette", {}],
     ["latest", { JENTAPP_TAG: "latest" }],
+    ["develop", { JENTAPP_TAG: "develop" }],
   ])("%s : refus, aucune commande Docker", (_, env) => {
     const { dir, marker } = sandbox();
     const result = run("deploy/deploy.sh", dir, env as Record<string, string>);
@@ -65,22 +89,30 @@ describe("deploy.sh", () => {
 });
 
 describe("promote.sh", () => {
-  it("lance deploy.sh avec l'étiquette qui tourne en validation", () => {
+  it("lance deploy.sh avec l'étiquette du commit qui tourne en validation", () => {
     const { dir } = sandbox();
     const result = run("deploy/promote.sh", dir);
     expect(result.code).toBe(0);
     expect(result.stdout).toContain("deploy sha-abc1234");
   });
 
-  it("refuse une validation qui n'est pas saine ou une étiquette qui n'est pas sha-…", () => {
-    for (const [health, image] of [
-      ["unhealthy", "ghcr.io/n0cly/jentapp_v2:sha-abc1234"],
-      ["healthy", "ghcr.io/n0cly/jentapp_v2:latest"],
-    ] as const) {
-      const { dir } = sandbox(health, image);
-      const result = run("deploy/promote.sh", dir);
-      expect(result.code).not.toBe(0);
-      expect(result.stdout).not.toContain("deploy ");
-    }
+  it("s'arrête si latest ne désigne pas l'image qui tourne en validation", () => {
+    const { dir } = sandbox({ latest: "sha256:other" });
+    const result = run("deploy/promote.sh", dir);
+    expect(result.code).not.toBe(0);
+    expect(result.stdout).not.toContain("deploy ");
+    expect(result.stderr).toContain("ne désigne pas l'image qui tourne en validation");
+    expect(result.stderr).toContain("git merge --ff-only develop");
+  });
+
+  it.each([
+    ["validation pas saine", { health: "unhealthy" }],
+    ["image sans commit", { revision: "" }],
+    ["étiquette sha-… reconstruite depuis", { sha: "sha256:rebuilt" }],
+  ])("%s : refus", (_, registry) => {
+    const { dir } = sandbox(registry);
+    const result = run("deploy/promote.sh", dir);
+    expect(result.code).not.toBe(0);
+    expect(result.stdout).not.toContain("deploy ");
   });
 });

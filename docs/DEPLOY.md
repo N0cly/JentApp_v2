@@ -198,7 +198,7 @@ curl -s https://jentapp.nocly.fr/api/health
 # {"status":"ok","db":"ok"}
 ```
 
-`deploy.sh` refuse de partir sans étiquette explicite, et jamais avec `latest`. Il enchaîne la sauvegarde (sautée au premier lancement, la base n'existant pas encore), `docker compose pull`, `docker compose up -d`, l'attente du healthcheck et `ledger-check`. Il s'arrête à la première erreur et affiche les derniers journaux de l'app si elle ne démarre pas. Une fois l'app saine, il note l'étiquette dans `.env` (`JENTAPP_TAG`), pour que la sauvegarde et toute commande `docker compose` suivante gardent la même image. Les migrations s'appliquent au démarrage du conteneur.
+`deploy.sh` refuse de partir sans l'étiquette `sha-…` d'un commit : jamais `latest` ni `develop`, qui changent d'image. Il enchaîne la sauvegarde (sautée au premier lancement, la base n'existant pas encore), `docker compose pull`, `docker compose up -d`, l'attente du healthcheck et `ledger-check`. Il s'arrête à la première erreur et affiche les derniers journaux de l'app si elle ne démarre pas. Une fois l'app saine, il note l'étiquette dans `.env` (`JENTAPP_TAG`), pour que la sauvegarde et toute commande `docker compose` suivante gardent la même image. Les migrations s'appliquent au démarrage du conteneur.
 
 ## 8. Pare-feu
 
@@ -258,6 +258,8 @@ docker compose exec -T app node scripts/ledger-check.ts
 ## 11. Mise à jour et retour arrière
 
 Une mise à jour suit « Publier une version » : validation d'abord, puis `promote.sh`.
+
+`promote.sh` lit l'image exacte qui tourne en validation et le commit dont elle est issue. Il tire `latest` et vérifie qu'elle désigne cette même image, c'est-à-dire que le commit validé a été fusionné dans `main` ; sinon il s'arrête, sans rien changer en production, et dit quoi faire. Il lance enfin `deploy.sh` avec l'étiquette `sha-…` de ce commit.
 
 Revenir à une version précise :
 

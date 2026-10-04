@@ -3,9 +3,10 @@
 # redémarrage, attente du healthcheck, contrôle du journal. S'arrête à la
 # première erreur.
 # Usage : JENTAPP_TAG=sha-abc1234 deploy.sh
-#   L'étiquette est obligatoire, jamais `latest` : d'ordinaire, promote.sh la
-#   reprend de la validation. Une fois l'app saine, elle est notée dans le .env,
-#   pour que toute commande Compose suivante garde la même image.
+#   L'étiquette `sha-…` d'un commit est obligatoire : jamais `latest` ni
+#   `develop`, qui changent d'image. D'ordinaire, promote.sh la reprend de la
+#   validation. Une fois l'app saine, elle est notée dans le .env, pour que toute
+#   commande Compose suivante garde la même image.
 # Une migration ne se défait pas : en cas de retour arrière après une migration,
 # restaurer la sauvegarde faite au début (backup/restore.sh).
 set -euo pipefail
@@ -18,8 +19,8 @@ step() { echo "==> $*"; }
 fail() { echo "déploiement : $*" >&2; exit 1; }
 
 TAG="${JENTAPP_TAG:-}"
-[ -n "$TAG" ] && [ "$TAG" != "latest" ] \
-  || fail "étiquette explicite obligatoire : JENTAPP_TAG=sha-… $0 (ou promote.sh)"
+[[ "$TAG" =~ ^sha-[0-9a-f]{7,40}$ ]] \
+  || fail "étiquette explicite obligatoire, sha-… d'un commit : JENTAPP_TAG=sha-… $0 (ou promote.sh)"
 export JENTAPP_TAG="$TAG"
 
 cd "$APP_DIR"
