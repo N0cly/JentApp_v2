@@ -9,3 +9,4 @@ export {
   type Release,
 } from "./notes";
 export { markReleaseSeen, pendingRelease } from "./seen";
+export { releaseDate } from "./date";
