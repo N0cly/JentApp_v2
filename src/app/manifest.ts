@@ -1,10 +1,15 @@
 import type { MetadataRoute } from "next";
 import { colorToken } from "@/lib/tokens";
+import { isValidation } from "@/server/env";
+
+// Lu à l'exécution : la validation installée porte son propre nom.
+export const dynamic = "force-dynamic";
 
 export default function manifest(): MetadataRoute.Manifest {
+  const validation = isValidation();
   return {
-    name: "JentApp",
-    short_name: "JentApp",
+    name: validation ? "JentApp validation" : "JentApp",
+    short_name: validation ? "Validation" : "JentApp",
     description: "Les paris de la bande, au comptoir de nuit.",
     lang: "fr",
     start_url: "/",

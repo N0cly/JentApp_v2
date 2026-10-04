@@ -5,7 +5,6 @@ import { Screen } from "@/components/Screen";
 
 export const metadata: Metadata = { title: "Hors ligne · JentApp" };
 // Gardée en cache par le service worker : aucune donnée d'un joueur.
-export const dynamic = "force-static";
 
 export default function OfflinePage() {
   return (
