@@ -6,3 +6,4 @@ export {
   type Sticker,
 } from "./process";
 export { isStickerHash, readStickerFile, stickersRoot, writeStickerFile } from "./files";
+export { STICKER_HEADERS, stickerResponse } from "./serve";
