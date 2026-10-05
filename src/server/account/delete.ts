@@ -15,6 +15,7 @@ import {
   verifications,
 } from "@/db/schema";
 import { deletePhotoFile } from "@/server/avatars";
+import { removeLeagueStickers, removeUnusedStickers, stickerRef } from "@/server/stickers";
 import { notify } from "@/server/realtime/notify";
 
 export const deleteMessages = {
@@ -74,6 +75,7 @@ export async function deleteAccount(
           isNull(leagueMembers.leftAt),
         ),
       );
+    const soloIds = solo.map((l) => l.id);
     if (solo.length > 0) {
       await tx.delete(leagues).where(
         inArray(
@@ -104,10 +106,12 @@ export async function deleteAccount(
     }
 
     // Ses messages disparaissent, avec leurs réactions et mentions (en cascade).
-    const removed = await tx
-      .delete(messages)
-      .where(eq(messages.userId, user.id))
-      .returning({ id: messages.id, leagueId: messages.leagueId });
+    const removed = await tx.delete(messages).where(eq(messages.userId, user.id)).returning({
+      id: messages.id,
+      leagueId: messages.leagueId,
+      kind: messages.kind,
+      data: messages.data,
+    });
     for (const { id, leagueId } of removed) {
       await notify(tx, { league: leagueId, type: "message.deleted", id });
     }
@@ -129,10 +133,18 @@ export async function deleteAccount(
         deletedAt: now,
       })
       .where(and(eq(users.id, user.id), ne(users.email, `${user.id}@deleted.invalid`)));
-    return { blocked: false, image: row?.image ?? null } as const;
+    return {
+      blocked: false,
+      image: row?.image ?? null,
+      soloIds,
+      stickers: removed.map(stickerRef).filter((r) => r !== null),
+    } as const;
   });
 
   if (photo.blocked) return { ok: false, formError: deleteMessages.stillOwner };
   await deletePhotoFile(photo.image);
+  // Ses stickers que plus personne ne cite, et les dossiers des ligues disparues avec lui.
+  await removeLeagueStickers(photo.soloIds);
+  await removeUnusedStickers(photo.stickers.filter((s) => !photo.soloIds.includes(s.leagueId)));
   return { ok: true };
 }

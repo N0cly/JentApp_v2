@@ -5,5 +5,13 @@ export {
   type ProcessResult,
   type Sticker,
 } from "./process";
-export { isStickerHash, readStickerFile, stickersRoot, writeStickerFile } from "./files";
+export {
+  isStickerHash,
+  readStickerFile,
+  removeLeagueStickerDir,
+  removeStickerFile,
+  stickersRoot,
+  writeStickerFile,
+} from "./files";
+export { removeLeagueStickers, removeUnusedStickers, stickerRef, type StickerRef } from "./cleanup";
 export { STICKER_HEADERS, stickerResponse } from "./serve";

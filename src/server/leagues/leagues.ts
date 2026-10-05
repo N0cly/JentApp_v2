@@ -8,6 +8,7 @@ import { fieldErrors, type FieldErrors } from "@/server/auth/validation";
 import { memberOrNotFound, type Role } from "@/server/auth/access";
 import { NotFoundError } from "@/server/errors";
 import { postSystemMessage } from "@/server/chat/system";
+import { removeLeagueStickers } from "@/server/stickers/cleanup";
 import { post } from "@/server/ledger";
 import { notify } from "@/server/realtime/notify";
 import { assertAllowed, RateLimitedError, record, rules } from "@/server/rate-limit";
@@ -597,7 +598,7 @@ export async function deleteLeague(
   leagueId: string,
   confirmation: unknown,
 ): Promise<{ ok: true } | Failure<"confirmation">> {
-  return getDb().transaction(async (tx) => {
+  const result = await getDb().transaction(async (tx) => {
     const { league } = await lockAs(tx, actor.id, leagueId, "owner");
     if (typeof confirmation !== "string" || confirmation.trim() !== league.name) {
       return { ok: false, fieldErrors: { confirmation: leagueMessages.deleteConfirm } } as const;
@@ -605,4 +606,7 @@ export async function deleteLeague(
     await tx.delete(leagues).where(eq(leagues.id, leagueId));
     return { ok: true } as const;
   });
+  // Ses stickers partent avec elle (docs/STICKERS.md, § Nettoyage).
+  if (result.ok) await removeLeagueStickers([leagueId]);
+  return result;
 }

@@ -21,7 +21,9 @@ import { consume, RateLimitedError, rules } from "@/server/rate-limit";
 import {
   MAX_STICKER_BYTES,
   processSticker,
+  removeUnusedStickers,
   stickerMessages,
+  stickerRef,
   writeStickerFile,
 } from "@/server/stickers";
 import {
@@ -142,7 +144,8 @@ async function lockMessage(tx: Tx, leagueId: string, id: number) {
 
 /**
  * Supprimer : ses propres messages ; un admin ou l'owner, ceux des autres.
- * Jamais un message automatique. Il disparaît sans laisser de trace.
+ * Jamais un message automatique. Il disparaît sans laisser de trace ; le
+ * fichier d'un sticker part avec lui si plus aucun message ne le cite.
  */
 export async function deleteMessage(
   actor: { id: string },
@@ -151,7 +154,7 @@ export async function deleteMessage(
   now: Date,
 ) {
   const { role } = await memberOrNotFound(actor.id, leagueId);
-  return getDb().transaction(async (tx) => {
+  const removed = await getDb().transaction(async (tx) => {
     const row = await lockMessage(tx, leagueId, id);
     if (row.kind === "system") throw new NotFoundError();
     if (row.userId !== actor.id && role === "player") throw new NotFoundError();
@@ -162,8 +165,11 @@ export async function deleteMessage(
       .set({ deletedAt: now, body: null, gifUrl: null, betId: null, data: {} })
       .where(eq(messages.id, id));
     await notify(tx, { league: leagueId, type: "message.deleted", id });
-    return { ok: true } as const;
+    return row;
   });
+  const sticker = stickerRef(removed);
+  if (sticker) await removeUnusedStickers([sticker]);
+  return { ok: true } as const;
 }
 
 /** « J'aime » : un appui l'ajoute, un second le retire. */

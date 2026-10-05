@@ -20,6 +20,7 @@
     "db:migrate": "node --env-file-if-exists=.env src/db/migrate.ts",
     "test": "vitest run",
     "ledger:check": "node --env-file-if-exists=.env scripts/ledger-check.ts",
+    "stickers:gc": "node --env-file-if-exists=.env scripts/stickers-gc.ts",
     "admin:grant": "node --env-file-if-exists=.env scripts/admin-grant.ts",
     "announce": "node --env-file-if-exists=.env scripts/announce.ts",
     "vapid:generate": "node scripts/vapid-generate.ts",

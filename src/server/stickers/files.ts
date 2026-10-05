@@ -1,4 +1,4 @@
-import { mkdir, readFile, rename, stat, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
 // Fichiers des stickers : uploads/stickers/{ligue}/{empreinte}.webp
@@ -50,4 +50,14 @@ export async function readStickerFile(leagueId: string, hash: string): Promise<B
   } catch {
     return null;
   }
+}
+
+/** Supprime le fichier d'un sticker, s'il existe. */
+export async function removeStickerFile(leagueId: string, hash: string) {
+  await rm(stickerPath(leagueId, hash), { force: true });
+}
+
+/** Supprime le dossier des stickers d'une ligue. */
+export async function removeLeagueStickerDir(leagueId: string) {
+  await rm(leagueDir(leagueId), { recursive: true, force: true });
 }
