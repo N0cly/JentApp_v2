@@ -19,6 +19,12 @@ import { DELETED_PLAYER, playerNames } from "@/server/leagues";
 import { notify } from "@/server/realtime/notify";
 import { consume, RateLimitedError, rules } from "@/server/rate-limit";
 import {
+  MAX_STICKER_BYTES,
+  processSticker,
+  stickerMessages,
+  writeStickerFile,
+} from "@/server/stickers";
+import {
   chatMessages,
   cleanText,
   isGiphyUrl,
@@ -51,6 +57,20 @@ async function resolveMentions(tx: Tx, leagueId: string, text: string): Promise<
       ),
     );
   return rows.map((r) => r.id);
+}
+
+/** Mentions d'un texte : retenues, puis notifiées aux membres cités. */
+async function recordMentions(
+  tx: Tx,
+  leagueId: string,
+  messageId: number,
+  authorId: string,
+  text: string,
+) {
+  const mentioned = await resolveMentions(tx, leagueId, text);
+  if (mentioned.length === 0) return;
+  await tx.insert(messageMentions).values(mentioned.map((userId) => ({ messageId, userId })));
+  await notifyPlayers(tx, { kind: "mention", leagueId, messageId, authorId, userIds: mentioned });
 }
 
 async function limited(actorId: string, now: Date): Promise<string | null> {
@@ -103,21 +123,7 @@ export async function sendMessage(
       .values({ ...values, kind: values.kind!, leagueId, userId: actor.id, createdAt: now })
       .returning({ id: messages.id });
     const id = row!.id;
-    if (values.body) {
-      const mentioned = await resolveMentions(tx, leagueId, values.body);
-      if (mentioned.length > 0) {
-        await tx
-          .insert(messageMentions)
-          .values(mentioned.map((userId) => ({ messageId: id, userId })));
-        await notifyPlayers(tx, {
-          kind: "mention",
-          leagueId,
-          messageId: id,
-          authorId: actor.id,
-          userIds: mentioned,
-        });
-      }
-    }
+    if (values.body) await recordMentions(tx, leagueId, id, actor.id, values.body);
     await notify(tx, { league: leagueId, type: "message.new", id });
     return { ok: true, id } as const;
   });
@@ -219,24 +225,64 @@ export async function shareBet(
         createdAt: now,
       })
       .returning({ id: messages.id });
-    if (text) {
-      const mentioned = await resolveMentions(tx, leagueId, text);
-      if (mentioned.length > 0) {
-        await tx
-          .insert(messageMentions)
-          .values(mentioned.map((userId) => ({ messageId: row!.id, userId })));
-        await notifyPlayers(tx, {
-          kind: "mention",
-          leagueId,
-          messageId: row!.id,
-          authorId: actor.id,
-          userIds: mentioned,
-        });
-      }
-    }
+    if (text) await recordMentions(tx, leagueId, row!.id, actor.id, text);
     await notify(tx, { league: leagueId, type: "message.new", id: row!.id });
     return { ok: true, id: row!.id } as const;
   });
+}
+
+/** Ce que `data` garde d'un sticker : son empreinte, ses dimensions et son poids. */
+export type StickerData = { hash: string; width: number; height: number; bytes: number };
+
+/**
+ * Envoyer un sticker (docs/STICKERS.md, § Message), avec un texte facultatif.
+ * Mêmes gardes qu'un message : membre actif, 30 par minute, limite partagée.
+ * Le fichier est écrit avant la transaction ; si elle échoue, il reste orphelin
+ * et scripts/stickers-gc.ts le rattrape.
+ */
+export async function sendSticker(
+  actor: { id: string },
+  leagueId: string,
+  image: Uint8Array,
+  body: unknown,
+  now: Date,
+): Promise<SendResult> {
+  await memberOrNotFound(actor.id, leagueId);
+  const text = typeof body === "string" ? cleanText(body) : "";
+  if (text.length > MAX_LENGTH)
+    return { ok: false, error: chatMessages.tooLong(text.length - MAX_LENGTH) };
+  if (image.byteLength > MAX_STICKER_BYTES) return { ok: false, error: stickerMessages.tooLarge };
+
+  const tooFast = await limited(actor.id, now);
+  if (tooFast) return { ok: false, error: tooFast };
+
+  const processed = await processSticker(image);
+  if (!processed.ok) return processed;
+  const { hash, width, height, bytes, data } = processed.sticker;
+  await writeStickerFile(leagueId, hash, data);
+
+  return getDb().transaction(async (tx) => {
+    const sticker: StickerData = { hash, width, height, bytes };
+    const [row] = await tx
+      .insert(messages)
+      .values({
+        leagueId,
+        userId: actor.id,
+        kind: "sticker",
+        body: text || null,
+        data: sticker,
+        createdAt: now,
+      })
+      .returning({ id: messages.id });
+    if (text) await recordMentions(tx, leagueId, row!.id, actor.id, text);
+    await notify(tx, { league: leagueId, type: "message.new", id: row!.id });
+    return { ok: true, id: row!.id } as const;
+  });
+}
+
+/** Adresse d'un sticker : jamais son chemin sur le disque. */
+export function stickerUrl(leagueId: string, hash: string): string {
+  return `/api/l/${leagueId}/stickers/${hash}`;
 }
 
 // --- Phrases des messages automatiques -------------------------------------
@@ -322,9 +368,11 @@ async function systemText(rows: MessageRow[]): Promise<Map<number, string>> {
 
 export type MessageView = {
   id: number;
-  kind: "text" | "gif" | "bet" | "system";
+  kind: "text" | "gif" | "bet" | "system" | "sticker";
   body: string | null;
   gif: { url: string; width: number | null; height: number | null } | null;
+  /** Adresse et dimensions du sticker. */
+  sticker: { url: string; width: number; height: number } | null;
   betId: string | null;
   /** Carte du pari partagé ou annoncé, selon ce que le lecteur a le droit de voir. */
   bet: BetView | null;
@@ -400,12 +448,20 @@ async function toViews(
   return rows.map((r) => {
     const author = r.userId ? byAuthor.get(r.userId) : undefined;
     const data = r.data as { width?: number | null; height?: number | null };
+    const sticker = r.kind === "sticker" ? (r.data as StickerData) : null;
     return {
       id: r.id,
       kind: r.kind,
       body: r.body,
       gif: r.gifUrl
         ? { url: r.gifUrl, width: data.width ?? null, height: data.height ?? null }
+        : null,
+      sticker: sticker
+        ? {
+            url: stickerUrl(leagueId, sticker.hash),
+            width: sticker.width,
+            height: sticker.height,
+          }
         : null,
       betId: r.betId,
       bet: r.betId ? (cards.get(r.betId) ?? null) : null,

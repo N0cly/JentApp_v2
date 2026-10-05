@@ -1,7 +1,11 @@
 import { randomUUID } from "node:crypto";
+import { mkdtemp } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import sharp from "sharp";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { getDb } from "@/db/client";
-import { sendMessage } from "@/server/chat";
+import { sendMessage, sendSticker } from "@/server/chat";
 import { offerRound } from "@/server/leagues";
 import { post } from "@/server/ledger";
 import { leagueWith } from "@/test/bets";
@@ -98,6 +102,25 @@ describe("diffusion", () => {
     expect(b.events.filter((e) => e.type === "message.new")).toHaveLength(0);
     removeSubscriber(a.sub);
     removeSubscriber(b.sub);
+  });
+
+  it("un sticker arrive en direct chez un autre membre", async () => {
+    process.env.UPLOADS_DIR = await mkdtemp(join(tmpdir(), "jentapp-realtime-stickers-"));
+    const { league, owner, players } = await leagueWith(1);
+    const other = subscriber(league.id, players[0]!.id);
+    const image = await sharp({
+      create: { width: 64, height: 64, channels: 4, background: "#f2b632" },
+    })
+      .png()
+      .toBuffer();
+    const sent = await sendSticker(owner, league.id, image, "", new Date());
+    if (!sent.ok) throw new Error(sent.error);
+    expect(
+      await waitFor(() =>
+        other.events.some((e) => e.type === "message.new" && String(e.id) === String(sent.id)),
+      ),
+    ).toBe(true);
+    removeSubscriber(other.sub);
   });
 
   it("balance.changed n'atteint que le joueur concerné", async () => {

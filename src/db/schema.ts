@@ -257,7 +257,7 @@ export const wagers = pgTable(
 
 // --- Chat ------------------------------------------------------------------
 
-export const messageKind = pgEnum("message_kind", ["text", "gif", "bet", "system"]);
+export const messageKind = pgEnum("message_kind", ["text", "gif", "bet", "system", "sticker"]);
 export const messageEvent = pgEnum("message_event", [
   "bet_opened",
   "bet_resolved",

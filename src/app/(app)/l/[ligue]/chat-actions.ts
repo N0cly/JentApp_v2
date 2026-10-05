@@ -7,12 +7,14 @@ import {
   readMessage,
   readMessages,
   sendMessage,
+  sendSticker,
   shareBet,
   toggleLike,
   type MessageView,
   type Outgoing,
 } from "@/server/chat";
 import { NotFoundError } from "@/server/errors";
+import { stickerMessages } from "@/server/stickers";
 import { broadcastTyping } from "@/server/realtime";
 import { memberOrNotFound } from "@/server/auth";
 
@@ -31,6 +33,26 @@ export async function sendAction(
 ): Promise<{ id?: number; error?: string }> {
   const user = await requireUser();
   const result = await orNotFound(() => sendMessage(user, leagueId, outgoing, new Date()));
+  return result.ok ? { id: result.id } : { error: result.error };
+}
+
+/** Sticker collé, avec le texte du champ : un formulaire qui porte les deux. */
+export async function sendStickerAction(
+  leagueId: string,
+  form: FormData,
+): Promise<{ id?: number; error?: string }> {
+  const user = await requireUser();
+  const image = form.get("sticker");
+  if (!(image instanceof File)) return { error: stickerMessages.unreadable };
+  const result = await orNotFound(async () =>
+    sendSticker(
+      user,
+      leagueId,
+      new Uint8Array(await image.arrayBuffer()),
+      form.get("body"),
+      new Date(),
+    ),
+  );
   return result.ok ? { id: result.id } : { error: result.error };
 }
 
