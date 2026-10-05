@@ -59,6 +59,8 @@ type Props = {
 
 const PAGE = 50;
 const TYPING_EVERY_MS = 3000;
+/** Grand côté d'un sticker dans le fil (docs/STICKERS.md, § Affichage). */
+const STICKER_SIDE = 160;
 
 function upsert(list: MessageView[], message: MessageView) {
   const others = list.filter((m) => m.id !== message.id);
@@ -115,6 +117,43 @@ function Bubble({
       </button>
     );
   }
+  if (message.kind === "sticker" && message.sticker) {
+    // Sans bulle, 160 px au plus sur le grand côté ; dimensions connues d'avance,
+    // pour que le fil ne saute pas au chargement. Le texte suit dans une bulle.
+    const { url, width, height } = message.sticker;
+    const scale = Math.min(1, STICKER_SIDE / Math.max(width, height));
+    return (
+      <>
+        <button
+          type="button"
+          onClick={onOpen}
+          className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md"
+        >
+          <Image
+            src={url}
+            alt={`Sticker de ${message.author?.username ?? ""}`}
+            width={Math.round(width * scale)}
+            height={Math.round(height * scale)}
+            unoptimized
+          />
+        </button>
+        {message.body && <TextBubble message={message} mine={mine} onOpen={onOpen} />}
+      </>
+    );
+  }
+  if (!message.body) return null;
+  return <TextBubble message={message} mine={mine} onOpen={onOpen} />;
+}
+
+function TextBubble({
+  message,
+  mine,
+  onOpen,
+}: {
+  message: MessageView;
+  mine: boolean;
+  onOpen: () => void;
+}) {
   if (!message.body) return null;
   return (
     <button

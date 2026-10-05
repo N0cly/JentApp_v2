@@ -4,11 +4,12 @@
 
 import { randomUUID } from "node:crypto";
 import { asc, eq } from "drizzle-orm";
+import sharp from "sharp";
 import { getDb } from "@/db/client";
 import { betOptions, cosmetics, leagues, users } from "@/db/schema";
 import { getAuth } from "@/server/auth";
 import { cancelBet, createBet, placeWager, resolveBet, settleDue } from "@/server/bets";
-import { sendMessage } from "@/server/chat";
+import { sendMessage, sendSticker } from "@/server/chat";
 import { createLeague, joinLeague } from "@/server/leagues";
 import { post } from "@/server/ledger";
 import { purchase } from "@/server/shop";
@@ -200,6 +201,16 @@ export async function seedExtreme(): Promise<Seeded> {
     { kind: "text", body: `@${x.name} regarde ce pari incroyable` },
     minutes(3),
   );
+
+  // Stickers (docs/STICKERS.md) : un très haut chez un autre, avec 500 caractères
+  // sans espace dessous ; un très large chez X, sans texte ; un minuscule.
+  const sticker = (width: number, height: number) =>
+    sharp({ create: { width, height, channels: 4, background: "#f2b632" } })
+      .png()
+      .toBuffer();
+  await sendSticker(y, main, await sticker(300, 1200), "W".repeat(500), minutes(4));
+  await sendSticker(x, main, await sticker(1600, 200), "", minutes(5));
+  await sendSticker(z, main, await sticker(12, 12), "", minutes(6));
 
   // Une bordure portée.
   const [border] = await getDb().select().from(cosmetics).where(eq(cosmetics.name, "Nuit"));

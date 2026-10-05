@@ -214,6 +214,8 @@ Chat (M4), construits avec les composants existants :
 - Carte d'un pari dans le chat, hors état ouvert : en haut à droite « S'OUVRE DANS hh:mm », « FERMÉ », « RÉSULTAT SAISI », « RÉGLÉ » ou « ANNULÉ » ; le bouton devient « Voir ». Un pari mystère programmé n'affiche que le moment, « S'OUVRE DANS » et « Pari mystère ».
 - Feuille GIF : sans recherche, « Cherche un GIF. » (pas de tendances) ; sans résultat, « Aucun GIF pour cette recherche. ».
 - Flux coupé ou erreur d'envoi : le message d'erreur des champs (icône d'alerte, `loss`) au-dessus de la saisie, « Connexion perdue. On réessaie… ».
+- Sticker collé (`docs/STICKERS.md`) : aperçu au-dessus de la saisie, image de 64 px (`radius-md`, proportions conservées) suivie du bouton discret « Retirer » (44 px de haut). Pendant l'envoi, l'aperçu passe à l'opacité d'un bouton inactif et « Envoyer » est inactif ; en cas d'échec, l'aperçu reste et le message d'erreur des champs s'affiche au-dessus. Aucun bouton de plus dans la barre de saisie.
+- Sticker dans le fil : sans bulle, 160 px au plus sur le grand côté, proportions conservées, `width` et `height` renseignés ; zone d'appui de 44 px au moins autour d'un petit sticker. Il se range dans le groupe de son auteur comme un message, avec l'heure, la pastille « j'aime » et la feuille « Message » au toucher. Un texte éventuel suit dessous, dans une bulle ordinaire. Texte de remplacement : « Sticker de {pseudo} ».
 
 Classement, Moi et Profil (M5), construits avec les composants existants :
 

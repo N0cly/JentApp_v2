@@ -6,6 +6,7 @@
 
 import { mkdirSync, writeFileSync } from "node:fs";
 import { chromium, type Browser, type BrowserContext, type Page } from "playwright";
+import sharp from "sharp";
 import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
 import { PASSWORD } from "./seed";
 import { BASE, OUTPUT } from "./setup";
@@ -40,6 +41,37 @@ const tap = (selector: string) => async (page: Page) => {
   await page.locator(selector).first().click();
   await page.waitForTimeout(600);
 };
+
+/**
+ * Colle une image dans le champ du chat, comme le clavier de l'iPhone : un
+ * événement `paste` qui porte un fichier image.png. L'aperçu doit s'afficher,
+ * et rien ne doit s'insérer dans le champ.
+ */
+async function pasteSticker(page: Page) {
+  const png = await sharp({
+    create: {
+      width: 480,
+      height: 480,
+      channels: 4,
+      background: { r: 242, g: 182, b: 50, alpha: 0.6 },
+    },
+  })
+    .png()
+    .toBuffer();
+  await page.evaluate((base64) => {
+    const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+    const data = new DataTransfer();
+    data.items.add(new File([bytes], "image.png", { type: "image/png" }));
+    const field = document.getElementById("message")!;
+    field.focus();
+    field.dispatchEvent(
+      new ClipboardEvent("paste", { clipboardData: data, bubbles: true, cancelable: true }),
+    );
+  }, png.toString("base64"));
+  await page.getByAltText("Sticker à envoyer").waitFor();
+  if ((await page.inputValue("#message")) !== "") throw new Error("Le collage a inséré du texte");
+  await page.waitForTimeout(300);
+}
 
 const ROUTES: Route[] = [
   { name: "connexion", path: "/connexion", as: "none" },
@@ -94,6 +126,13 @@ const ROUTES: Route[] = [
   { name: "pari-programme", path: `/l/${L}/paris/${b.scheduled}`, as: "full" },
   { name: "chat", path: `/l/${L}/chat`, as: "full" },
   { name: "chat-vide", path: `/l/${E}/chat`, as: "empty" },
+  {
+    // Un sticker collé dans le champ : l'aperçu au-dessus de la saisie.
+    name: "chat-sticker",
+    path: `/l/${L}/chat`,
+    as: "full",
+    open: pasteSticker,
+  },
   {
     name: "gif",
     path: `/l/${L}/chat`,
