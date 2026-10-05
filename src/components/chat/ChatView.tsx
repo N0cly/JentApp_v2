@@ -2,12 +2,21 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ClipboardEvent,
+  type ReactNode,
+} from "react";
 import {
   deleteMessageAction,
   readMessageAction,
   readMessagesAction,
   sendAction,
+  sendStickerAction,
   shareBetAction,
   toggleLikeAction,
   typingAction,
@@ -15,6 +24,7 @@ import {
 import { useLive, useLiveEvents } from "@/components/live/LiveProvider";
 import {
   Avatar,
+  Button,
   Chip,
   FieldError,
   HeartIcon,
@@ -23,6 +33,7 @@ import {
   TicketIcon,
 } from "@/components/ui";
 import { cx } from "@/lib/cx";
+import { interceptStickerPaste, MAX_STICKER_BYTES, stickerMessages } from "@/lib/stickers";
 import { clockTime, dayKey, dayLabel } from "@/lib/time-format";
 import type { MessageView } from "@/server/chat";
 import { ChatBetCard } from "./ChatBetCard";
@@ -178,6 +189,9 @@ export function ChatView({
   const [sheet, setSheet] = useState<"gif" | "share" | null>(null);
   const [selected, setSelected] = useState<MessageView | null>(null);
   const [newBelow, setNewBelow] = useState(false);
+  // Sticker collé dans le champ, en attente d'envoi (docs/STICKERS.md, § Saisie).
+  const [sticker, setSticker] = useState<{ file: File; url: string } | null>(null);
+  const [sending, setSending] = useState(false);
   // Auteur d'un message : son profil ; parti ou supprimé, rien.
   const profile = useProfileSheet(leagueId);
   const scroller = useRef<HTMLDivElement>(null);
@@ -197,6 +211,12 @@ export function ChatView({
     if (stickNext.current) scrollToBottom();
     stickNext.current = false;
   }, [messages, scrollToBottom]);
+
+  // L'aperçu remplacé ou retiré libère son adresse locale.
+  useEffect(() => {
+    if (!sticker) return;
+    return () => URL.revokeObjectURL(sticker.url);
+  }, [sticker]);
 
   // Arrivée par une mention : le message au milieu de l'écran, s'il est chargé.
   useLayoutEffect(() => {
@@ -277,9 +297,46 @@ export function ChatView({
   }
 
   async function send() {
+    if (sending) return;
     const body = text;
+    if (sticker) {
+      await sendSticker(sticker.file, body);
+      return;
+    }
     if (!body.trim()) return;
     if (await sent(await sendAction(leagueId, { kind: "text", body }))) setText("");
+  }
+
+  /** Sticker et texte partent dans le même message ; en cas d'échec, l'aperçu reste. */
+  async function sendSticker(file: File, body: string) {
+    if (file.size > MAX_STICKER_BYTES) {
+      setError(stickerMessages.tooLarge);
+      return;
+    }
+    const form = new FormData();
+    form.append("sticker", file);
+    form.append("body", body);
+    setSending(true);
+    let result: { id?: number; error?: string };
+    try {
+      result = await sendStickerAction(leagueId, form);
+    } catch {
+      result = { error: stickerMessages.failed };
+    } finally {
+      setSending(false);
+    }
+    if (await sent(result)) {
+      setSticker(null);
+      setText("");
+    }
+  }
+
+  /** Un collage qui porte une image devient l'aperçu ; un collage de texte reste du texte. */
+  function onPaste(event: ClipboardEvent<HTMLInputElement>) {
+    const image = interceptStickerPaste(event);
+    if (!image) return;
+    setError(null);
+    setSticker({ file: image, url: URL.createObjectURL(image) });
   }
 
   function onType(value: string) {
@@ -462,6 +519,21 @@ export function ChatView({
           ))}
         </div>
       )}
+      {sticker && (
+        <div className={cx("flex items-center gap-3 px-5 pb-2", sending && "opacity-45")}>
+          <Image
+            src={sticker.url}
+            alt="Sticker à envoyer"
+            width={64}
+            height={64}
+            unoptimized
+            className="size-16 rounded-md object-contain"
+          />
+          <Button variant="discreet" disabled={sending} onClick={() => setSticker(null)}>
+            Retirer
+          </Button>
+        </div>
+      )}
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -486,9 +558,15 @@ export function ChatView({
           placeholder="Message"
           value={text}
           onChange={(e) => onType(e.target.value)}
+          onPaste={onPaste}
           className="h-[44px] min-w-0 grow rounded-full border border-line-strong bg-surface px-4 text-[15px] text-ink"
         />
-        <IconButton label="Envoyer" variant="brand" type="submit" disabled={!text.trim()}>
+        <IconButton
+          label="Envoyer"
+          variant="brand"
+          type="submit"
+          disabled={sending || (!text.trim() && !sticker)}
+        >
           <SendIcon size={20} />
         </IconButton>
       </form>

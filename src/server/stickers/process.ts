@@ -1,24 +1,18 @@
 import { createHash } from "node:crypto";
 import sharp from "sharp";
+import { MAX_STICKER_BYTES, stickerMessages } from "@/lib/stickers";
+
+export { MAX_STICKER_BYTES, stickerMessages };
 
 // Traitement d'un sticker (docs/STICKERS.md, § Traitement). Le type annoncé par
 // le navigateur ne compte pas : sharp décode le fichier et décide.
 
-export const MAX_STICKER_BYTES = 5 * 1024 * 1024;
 /** Au-delà, l'image est refusée avant d'être décodée : elle pourrait être piégée. */
 export const MAX_INPUT_SIDE = 4096;
 export const MAX_OUTPUT_SIDE = 512;
 /** Au-delà, seule la première image d'une animation est gardée. */
 export const MAX_FRAMES = 60;
 const ACCEPTED = new Set(["png", "webp", "jpeg", "gif"]);
-
-// Messages : docs/STICKERS.md, § Messages.
-export const stickerMessages = {
-  tooLarge: "Image trop lourde : 5 Mo au plus.",
-  badFormat: "Ce format n'est pas accepté. Essaie un autre sticker.",
-  unreadable: "Impossible de lire cette image.",
-  failed: "Le sticker n'est pas parti. Réessaie.",
-} as const;
 
 export type Sticker = {
   /** Empreinte SHA-256 du WebP produit : c'est son nom. */
