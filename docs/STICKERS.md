@@ -140,9 +140,9 @@ Bibliothèque de stickers et stickers récents. Bouton pour choisir une photo. A
 - [ ] Sur la validation, depuis un iPhone : un sticker découpé dans une photo, un Memoji et un sticker animé partent et s'affichent chez un autre compte, sans recharger.
 - [ ] Une image copiée depuis Photos se colle et s'affiche au format sticker.
 - [ ] Un collage de texte marche comme avant.
-- [ ] Message supprimé : le fichier n'est plus dans `uploads/stickers`.
+- [x] Message supprimé : le fichier n'est plus dans `uploads/stickers`.
 - [ ] La feuille « Quoi de neuf · 2.1.0 » s'affiche sur la validation et le push arrive.
-- [ ] `docs/design.md` est à jour, et la page `/kit/stickers` n'existe plus.
+- [x] `docs/design.md` est à jour, et la page `/kit/stickers` n'existe plus.
 
 ## Consigne pour Claude Code
 
