@@ -30,7 +30,7 @@ describe("base Postgres", () => {
 
   it("rend la santé ok", async () => {
     const health = await checkHealth();
-    expect(health.body).toEqual({ status: "ok", db: "ok" });
+    expect(health.body).toMatchObject({ status: "ok", db: "ok" });
   });
 
   it("refuse deux pseudos qui ne diffèrent que par la casse", async () => {

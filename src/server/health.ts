@@ -1,9 +1,12 @@
 import { sql } from "drizzle-orm";
 import { getDb } from "@/db/client";
+import { APP_VERSION } from "@/lib/version";
 
+// La version est celle de package.json (docs/NOUVEAUTES.md, périmètre 4) :
+// promote.sh y lit celle qui tourne en production.
 export type Health =
-  | { httpStatus: 200; body: { status: "ok"; db: "ok" } }
-  | { httpStatus: 503; body: { status: "error"; db: "error" } };
+  | { httpStatus: 200; body: { status: "ok"; db: "ok"; version: string } }
+  | { httpStatus: 503; body: { status: "error"; db: "error"; version: string } };
 
 const TIMEOUT_MS = 3000;
 
@@ -19,9 +22,9 @@ export async function checkHealth(
 
   try {
     await Promise.race([ping(), timeout]);
-    return { httpStatus: 200, body: { status: "ok", db: "ok" } };
+    return { httpStatus: 200, body: { status: "ok", db: "ok", version: APP_VERSION } };
   } catch {
-    return { httpStatus: 503, body: { status: "error", db: "error" } };
+    return { httpStatus: 503, body: { status: "error", db: "error", version: APP_VERSION } };
   } finally {
     clearTimeout(timer);
   }
