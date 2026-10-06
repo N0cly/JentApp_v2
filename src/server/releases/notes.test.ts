@@ -37,6 +37,7 @@ describe("notes de version : format", () => {
       version: "2.1.0",
       title: "Les stickers arrivent",
       push: null,
+      silent: false,
       intro: null,
       date: null,
       sections: [
@@ -139,6 +140,13 @@ describe("notes de version : format", () => {
     expect(() => parseRelease("2.1.0", "title: T\n\n## Nouveau\n- Un.\n- \n")).toThrow(
       "supprime la ligne",
     );
+  });
+
+  it("push: aucun : sans push, la notification garde le texte par défaut", () => {
+    const release = parseRelease("2.1.1", "title: Correctif\npush: aucun\n\n- Un point.\n");
+    expect(release).toMatchObject({ push: null, silent: true });
+    expect(releasePushText(release)).toBe("JentApp 2.1.1\u00a0: Correctif");
+    expect(parseRelease("2.1.1", "title: T\npush: Ouvre l'app.\n\n- Un.\n").silent).toBe(false);
   });
 
   it("refuse un nom qui n'est pas une version", () => {

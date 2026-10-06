@@ -612,7 +612,7 @@ Si la clé d'hôte du VPS change (réinstallation), refaire `ssh-keyscan`, compa
 | --- | --- | --- |
 | 1. Développement | Dépôt, branche `develop` | Commits, puis `git push origin develop` ; la CI publie l'image et déploie la validation : attendre `VAL déployée` sur Telegram |
 | 2. Essai courant | iPhone | Test sur la validation. Autant de fois que nécessaire |
-| 3. Numéro et notes | Dépôt, branche `develop` | Quand c'est prêt : `pnpm release:draft` pour la liste des commits, monter la version dans `package.json`, écrire `content/releases/{version}.md`, pousser |
+| 3. Numéro et notes | Dépôt, branche `develop` | Quand c'est prêt : `pnpm release:draft` pour la liste des commits, `pnpm release:bump minor` (ou `patch`, `major`, ou `pnpm release:set X.Y.Z`), écrire `content/releases/{version}.md`, commiter, pousser |
 | 4. Relecture de la note | VPS, puis iPhone | Après `VAL déployée` : `/opt/jentapp-validation/preview.sh --push`. La note s'affiche dans le terminal, le push arrive, la feuille s'ouvre. Corriger la note, pousser, relancer : autant de fois que nécessaire |
 | 5. Répétition générale | VPS, puis iPhone | `sudo /opt/jentapp-validation/refresh.sh` : copie fraîche de la production, migrations rejouées. La feuille « Quoi de neuf » s'affiche, le push arrive, rien d'autre n'est cassé |
 | 6. Fusion | Dépôt | `git checkout main && git merge --ff-only develop && git push origin main`, puis `git checkout develop`. La CI ajoute `latest` à l'image déjà validée |
@@ -625,6 +625,22 @@ Si la clé d'hôte du VPS change (réinstallation), refaire `ssh-keyscan`, compa
 - Le push part au démarrage de la production : éviter de promouvoir la nuit.
 - Retour arrière : `JENTAPP_TAG=<sha précédent> /opt/jentapp/deploy.sh`, et restauration de la sauvegarde si une migration est passée. Une version plus ancienne n'annonce rien.
 - Numérotation : `2.x.0` pour une nouveauté visible, `2.x.y` pour une correction.
+
+### Numéro de version
+
+```sh
+pnpm release:bump minor        # nouveauté visible : 2.1.0 en production → 2.2.0
+pnpm release:bump patch        # correction : 2.1.0 → 2.1.1
+pnpm release:bump major        # 2.1.0 → 3.0.0
+pnpm release:set 2.3.0         # une version précise
+```
+
+- La version de référence est celle de `package.json` sur `origin/main`, c'est-à-dire la production. Les deux commandes font d'abord `git fetch origin main` ; sans réseau, elles continuent avec `origin/main` tel qu'il est en local et affichent « origin/main n'a pas pu être mis à jour : version de production lue en local ».
+- `bump` part toujours de la production, jamais de la version courante de `develop` : le relancer ne cumule pas.
+- Elles écrivent la nouvelle version dans `package.json`. Une note jamais sortie (présente sur `develop`, absente de `origin/main`) est renommée avec `git mv`, sans toucher à son contenu ; sinon une note est créée depuis le gabarit, `title:` vide et une rubrique `## Nouveau` vide, et ajoutée à l'index. Tant qu'elle n'est pas remplie, `pnpm check` la refuse.
+- Elles refusent, sans rien modifier : une version qui n'est pas de la forme `X.Y.Z`, une version inférieure ou égale à la production, une version dont la note existe déjà sur `origin/main`, un `origin/main` introuvable, plusieurs notes jamais sorties, et une note du même nom non suivie par git.
+- Elles affichent la version de production, l'ancienne et la nouvelle version de `develop`, le fichier de note, et le rappel « Modifie la note, puis pousse. ». Si `develop` porte déjà cette version et sa note, elles le disent et ne changent rien.
+- Ni commit ni push.
 
 ### Écrire la note
 
@@ -645,7 +661,7 @@ intro: Première mise à jour depuis le lancement, avec vos retours.
 | Champ | Obligatoire | Règle |
 | --- | --- | --- |
 | `title` | oui | 60 caractères au plus. Titre de la feuille |
-| `push` | non | 120 caractères au plus. Texte du push et de la notification. Absent : « JentApp {version} : {title} » |
+| `push` | non | 120 caractères au plus. Texte du push et de la notification. Absent : « JentApp {version} : {title} ». `push: aucun` : la version est annoncée par la feuille et dans le centre de notifications, avec le texte par défaut, mais sans push |
 | `intro` | non | 200 caractères au plus. Une phrase sous le titre |
 | `date` | non | `AAAA-MM-JJ`. Absente : la date du premier démarrage de la version, notée par l'app |
 
@@ -673,7 +689,7 @@ Le terminal montre ce que verront les joueurs : version, titre, intro, rubriques
 3. affiche le nombre de comptes qui recevront la notification, et combien sont abonnés au push ;
 4. demande de taper le numéro de la version. Un autre numéro, ou pas de réponse : rien n'est déployé ni signalé. `promote.sh --oui` saute la question.
 
-Si la version ne change pas, il le dit : rien ne sera annoncé. Après le déploiement, Telegram reçoit :
+Si la version ne change pas, il le dit : rien ne sera annoncé. Si la note dit `push: aucun`, il affiche « aucun push ne partira », et la dernière ligne du message Telegram devient `Pas de push · 14 comptes notifiés`. Après le déploiement, Telegram reçoit :
 
 ```
 PROD · JentApp 2.1.0 en ligne · sha-abc1234

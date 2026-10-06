@@ -76,6 +76,8 @@ pnpm lint           ESLint
 pnpm typecheck      tsc --noEmit
 pnpm test           Vitest
 pnpm check          lint, format:check, typecheck, test et build, arrêt à la première erreur
+pnpm release:bump   <patch|minor|major> : version de develop à partir de la production (origin/main), note renommée ou créée
+pnpm release:set    <X.Y.Z> : idem, pour une version précise. Ni commit ni push
 pnpm db:generate    génère une migration à partir du schéma
 pnpm db:migrate     applique les migrations
 docker compose up   app + Postgres en local

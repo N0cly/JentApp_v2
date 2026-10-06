@@ -133,6 +133,8 @@ export async function pushNotification(
   if (!row) return 0;
   const payload = row.payload as NotificationPayload;
   if (!PUSHED.has(payload.type)) return 0;
+  // Version annoncée sans push (`push: aucun`, docs/NOUVEAUTES.md).
+  if (payload.type === "release" && payload.silent) return 0;
   if (!force && hasOpenStream(row.userId)) return 0;
 
   const subs = await getDb()

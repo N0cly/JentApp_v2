@@ -27,7 +27,7 @@ Un fichier par version dans `content/releases/`. En-tête, ligne vide, puis le c
 | Champ | Obligatoire | Règle |
 | --- | --- | --- |
 | `title` | oui | 60 caractères au plus. Titre de la feuille |
-| `push` | non | 120 caractères au plus. Texte du push et de la notification. Absent : « JentApp {version} : {title} » |
+| `push` | non | 120 caractères au plus. Texte du push et de la notification. Absent : « JentApp {version} : {title} ». `push: aucun` : la version est annoncée par la feuille et dans le centre de notifications, avec le texte par défaut, mais sans push |
 | `intro` | non | 200 caractères au plus. Une phrase sous le titre |
 | `date` | non | Voir § Date |
 
@@ -66,7 +66,7 @@ Conséquence : plus de commit de dernière minute le jour de la promotion.
 
 - **Terminal.** Affiche ce que verront les joueurs : version, titre, intro, rubriques, texte du push, et le nombre de caractères de chaque champ.
 - **Réarmer.** Remet `last_seen_release` des comptes de `VALIDATION_KEEP_EMAILS` à la version précédente : la feuille se rouvre à la prochaine page, autant de fois qu'on relance la commande.
-- **`--push`.** Recrée la notification de version pour ces seuls comptes et envoie le push, même si l'app est ouverte.
+- **`--push`.** Recrée la notification de version pour ces seuls comptes et envoie le push, même si l'app est ouverte. Avec `push: aucun`, la notification seulement.
 - Sans `--version`, c'est la version courante de l'image.
 
 Boucle de travail : modifier `content/releases/{version}.md`, `git push origin develop`, attendre « VAL déployée » sur Telegram, lancer `preview.sh --push`, regarder l'iPhone.
@@ -81,7 +81,7 @@ Avant de déployer, `promote.sh` :
 
 1. Lit la version en production (`/api/health`) et celle de l'image validée.
 2. Affiche les notes de toutes les versions comprises entre les deux, telles que les joueurs les verront, et le texte du push.
-3. Affiche le nombre de comptes qui recevront la notification, et combien sont abonnés au push.
+3. Affiche le nombre de comptes qui recevront la notification, et combien sont abonnés au push. Si la note dit `push: aucun`, il affiche « aucun push ne partira », et le message Telegram dit `Pas de push · M comptes notifiés`.
 4. Demande de taper le numéro de la version pour confirmer. `--oui` saute la question.
 5. Si la version ne change pas, il le dit : rien ne sera annoncé.
 
@@ -115,7 +115,7 @@ intro: Première mise à jour depuis le lancement, avec vos retours.
 
 | Sujet | Tests |
 | --- | --- |
-| Format | Fichier sans rubrique, avec rubriques, avec `push` et `intro` : acceptés. Rubriques libres dans n'importe quel ordre : acceptées. Ligne `# Titre`, élément de liste vide, cinq rubriques, titre de rubrique de 31 caractères, 13 lignes, titre de 61 caractères : refusés par le test de garde |
+| Format | Fichier sans rubrique, avec rubriques, avec `push` et `intro` : acceptés. Rubriques libres dans n'importe quel ordre : acceptées. Ligne `# Titre`, élément de liste vide, cinq rubriques, titre de rubrique de 31 caractères, 13 lignes, titre de 61 caractères : refusés par le test de garde. `push: aucun` : accepté ; notification sans push à l'annonce, à l'aperçu et à la promotion |
 | Date | Enregistrée au premier démarrage d'une version, inchangée au suivant. `date` du fichier prioritaire |
 | Feuille | Deux versions non vues : les deux s'affichent, la plus récente d'abord. Quatre : trois et le lien. Tout est marqué lu en une fois |
 | Aperçu | Refus hors validation. Seuls les comptes gardés sont réarmés. `--push` crée une notification par compte gardé et aucune pour les autres |

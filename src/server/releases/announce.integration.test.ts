@@ -9,7 +9,7 @@ import {
   stopListening,
   type Subscriber,
 } from "@/server/realtime/hub";
-import { notificationText } from "@/lib/notification-text";
+import { notificationText, type NotificationPayload } from "@/lib/notification-text";
 import { listNotifications, markRead } from "@/server/notifications";
 import { leagueWith } from "@/test/bets";
 import { resetDb } from "@/test/db";
@@ -183,5 +183,30 @@ describe("annonce automatique : push", () => {
         },
       },
     ]);
+  });
+
+  it("push: aucun : une notification par compte, mais aucun push", async () => {
+    const ctx = await leagueWith(1);
+    await subscribe(ctx.players[0]!, {
+      endpoint: "https://push.exemple.fr/1",
+      keys: { p256dh: "a", auth: "b" },
+    });
+    const sent: string[] = [];
+    stop = await startPush(async (subscription) => {
+      sent.push(subscription.endpoint);
+    });
+    await note("2.0.0");
+    expect(await announceRelease({ ...V2_1, silent: true })).toMatchObject({
+      kind: "announced",
+      accounts: 2,
+    });
+    await new Promise((r) => setTimeout(r, 400));
+    expect(sent).toEqual([]);
+    const rows = await releaseRows();
+    expect(rows).toHaveLength(2);
+    expect(rows[0]!.payload).toEqual({ type: "release", ...V2_1, silent: true });
+    expect(notificationText(rows[0]!.payload as NotificationPayload, new Date())).toBe(
+      "JentApp 2.1.0\u00a0: Les stickers arrivent",
+    );
   });
 });

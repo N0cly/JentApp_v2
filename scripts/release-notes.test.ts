@@ -33,5 +33,6 @@ describe("release-notes.ts", () => {
   it("--title : le titre seul ; version sans note : erreur", () => {
     expect(notes("--title", "2.0.0").stdout.trim()).toBe("La nouvelle JentApp");
     expect(notes("9.9.9").code).not.toBe(0);
+    expect(notes("--silent", "2.1.0").stdout.trim()).toBe("non");
   });
 });

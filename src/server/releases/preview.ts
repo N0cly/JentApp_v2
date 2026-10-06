@@ -32,11 +32,12 @@ export type PreviewReport = {
 /**
  * Remet `last_seen_release` des comptes gardés à `previous` ; avec `push`,
  * recrée pour eux seuls la notification de la version et la signale avec
- * `force` : l'app envoie le push même si elle est ouverte.
+ * `force` : l'app envoie le push même si elle est ouverte. Une note en
+ * `push: aucun` n'envoie rien : la notification et la feuille seulement.
  */
 export async function previewRelease(
   db: Db,
-  release: Pick<Release, "version" | "title" | "push">,
+  release: Pick<Release, "version" | "title" | "push"> & Partial<Pick<Release, "silent">>,
   previous: string,
   keep: string[],
   {
@@ -65,6 +66,7 @@ export async function previewRelease(
         version: release.version,
         title: release.title,
         ...(release.push ? { push: release.push } : {}),
+        ...(release.silent ? { silent: true } : {}),
       };
       await tx.execute(sql`
         delete from notifications

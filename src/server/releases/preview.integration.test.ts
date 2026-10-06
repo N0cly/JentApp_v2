@@ -153,4 +153,24 @@ describe("aperçu des nouveautés : push", () => {
       },
     ]);
   });
+
+  it("--push avec push: aucun : notification recréée, aucun push, même app ouverte", async () => {
+    const { me, keep } = await accounts();
+    await subscribe(me, {
+      endpoint: "https://push.exemple.fr/1",
+      keys: { p256dh: "a", auth: "b" },
+    });
+    const sent: string[] = [];
+    stop = await startPush(async (subscription) => {
+      sent.push(subscription.endpoint);
+    });
+    const report = await previewRelease(getDb(), { ...V2_1, silent: true }, "2.0.0", keep, {
+      push: true,
+      env: VALIDATION,
+    });
+    expect(report.notifications).toBe(1);
+    await new Promise((r) => setTimeout(r, 400));
+    expect(sent).toEqual([]);
+    expect((await releaseRows())[0]!.payload).toMatchObject({ silent: true });
+  });
 });

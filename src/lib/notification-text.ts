@@ -37,8 +37,9 @@ export type NotificationPayload =
   /**
    * Nouvelle version, annoncée au démarrage (docs/VALIDATION.md, B.7), sans ligue.
    * `push` : le texte choisi dans la note (docs/NOUVEAUTES.md, § Format).
+   * `silent` : `push: aucun`, la notification part sans push.
    */
-  | { type: "release"; version: string; title: string; push?: string };
+  | { type: "release"; version: string; title: string; push?: string; silent?: boolean };
 
 export type NotificationType = NotificationPayload["type"];
 

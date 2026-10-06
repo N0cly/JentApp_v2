@@ -28,6 +28,11 @@ export type Release = {
   title: string;
   /** Texte du push et de la notification ; vide, « JentApp {version} : {title} ». */
   push: string | null;
+  /**
+   * `push: aucun` : annoncée par la feuille et dans le centre de notifications,
+   * sans push. La notification garde le texte par défaut.
+   */
+  silent: boolean;
   intro: string | null;
   /** Date écrite dans le fichier ; sinon celle de la mise en ligne (§ Date). */
   date: string | null;
@@ -38,6 +43,8 @@ export class ReleaseFormatError extends Error {}
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 const FIELDS = ["title", "push", "intro", "date"] as const;
+/** Valeur de `push` qui coupe le push de la version. */
+export const NO_PUSH = "aucun";
 type Field = (typeof FIELDS)[number];
 
 function isCalendarDate(value: string): boolean {
@@ -137,7 +144,8 @@ export function parseRelease(version: string, source: string): Release {
   return {
     version,
     title: title!,
-    push: push ?? null,
+    push: push === NO_PUSH ? null : (push ?? null),
+    silent: push === NO_PUSH,
     intro: intro ?? null,
     date: date ?? null,
     sections,

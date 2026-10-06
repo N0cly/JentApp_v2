@@ -25,6 +25,8 @@
     "admin:grant": "node --env-file-if-exists=.env scripts/admin-grant.ts",
     "announce": "node --env-file-if-exists=.env scripts/announce.ts",
     "release:draft": "node scripts/release-draft.ts",
+    "release:bump": "node scripts/release-version.ts bump",
+    "release:set": "node scripts/release-version.ts set",
     "vapid:generate": "node scripts/vapid-generate.ts",
     "test:screens": "vitest run --config scripts/screens/vitest.config.ts"
   },

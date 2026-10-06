@@ -50,4 +50,10 @@ describe("garde des notes de version", () => {
     const dir = releasesWith({ "2.0.0.md": GOOD, "2.1.0.md": rich });
     expect(await releaseProblems("2.1.0", dir)).toEqual([]);
   });
+
+  it("push: aucun : la garde passe", async () => {
+    const silent = "title: Essai\npush: aucun\n\n- Un point.\n";
+    const dir = releasesWith({ "2.0.0.md": GOOD, "2.1.0.md": silent });
+    expect(await releaseProblems("2.1.0", dir)).toEqual([]);
+  });
 });

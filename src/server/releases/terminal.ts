@@ -38,6 +38,7 @@ export function releaseForTerminal(release: Release, { push = true } = {}): stri
 
 /** Le texte du push et de la notification, avec son nombre de caractères. */
 export function pushLine(release: Release): string {
+  if (release.silent) return "Push : aucun, la version s'annonce par la feuille et le centre";
   const text = releasePushText(release);
   return `Push ${release.push ? "" : "par défaut "}${count(text, MAX_PUSH_LENGTH)} : ${frenchSpacing(text)}`;
 }

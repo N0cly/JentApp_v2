@@ -74,9 +74,17 @@ try {
     console.log(
       `Feuille réarmée pour ${plural(report.accounts, "compte gardé")} : elle se rouvre à la prochaine page (dernière version vue : ${previous}).`,
     );
-    if (push) {
+    if (push && release!.silent) {
+      console.log(
+        `Notification recréée pour ${plural(report.notifications, "compte")} ; aucun push ne part : la note dit « push: aucun ».`,
+      );
+    } else if (push) {
       console.log(
         `Notification recréée pour ${plural(report.notifications, "compte")}, l'app envoie le push à ${plural(report.pushSubscribers, "abonné")}.`,
+      );
+    } else if (release!.silent) {
+      console.log(
+        "Pour recréer aussi la notification : ajoute --push. Aucun push ne partira : la note dit « push: aucun ».",
       );
     } else {
       console.log("Pour renvoyer aussi le push : ajoute --push.");

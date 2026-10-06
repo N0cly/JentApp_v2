@@ -33,6 +33,8 @@ interface Registry {
   prodHealth?: string;
   /** package.json de l'app en production, quand /api/health ne dit pas sa version. */
   prodPackage?: string;
+  /** La note de la version validée dit « push: aucun ». */
+  silent?: boolean;
 }
 
 function sandbox({
@@ -44,6 +46,7 @@ function sandbox({
   version = "2.1.0",
   prodHealth = '{"status":"ok","db":"ok","version":"2.0.0"}',
   prodPackage = "",
+  silent = false,
 }: Registry = {}) {
   const dir = mkdtempSync(join(tmpdir(), "jentapp-promote-"));
   dirs.push(dir);
@@ -66,6 +69,7 @@ case "$*" in
   *"{{.Id}}"*:sha-${REVISION.slice(0, 7)}) echo ${sha} ;;
   "run --rm ${running} node -p "*) echo ${version} ;;
   "run --rm ${running} node scripts/release-notes.ts --title "*) echo "Les stickers arrivent" ;;
+  "run --rm ${running} node scripts/release-notes.ts --silent "*) echo ${silent ? "oui" : "non"} ;;
   "run --rm ${running} node scripts/release-notes.ts "*) echo "NOTES $*" ;;
   "compose exec -T app node -p "*) [ -n "${prodPackage}" ] && echo ${prodPackage} || exit 1 ;;
   "compose exec -T db "*) echo "14|9" ;;
@@ -252,6 +256,17 @@ describe("promote.sh : nouveautés", () => {
     expect(result.stdout).not.toContain("deploy ");
     expect(result.stderr).toContain("Rien n'a été déployé.");
     expect(messages(dir)).toEqual([]);
+  });
+
+  it("push: aucun : « aucun push ne partira », et Telegram le dit", () => {
+    const { dir } = sandbox({ silent: true });
+    const result = run("deploy/promote.sh", dir, {}, { input: "2.1.0\n" });
+    expect(result.code).toBe(0);
+    expect(result.stdout).toContain("aucun push ne partira");
+    expect(result.stdout).not.toContain("abonnés au push.");
+    expect(result.stdout).toContain(
+      "annonce [Les stickers arrivent\nPas de push · 14 comptes notifiés]",
+    );
   });
 
   it("--oui saute la question", () => {

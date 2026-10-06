@@ -9,7 +9,7 @@
 #      les notes de toutes les versions entre celle de la production
 #      (/api/health) et celle de l'image validée, le texte du push, le nombre
 #      de comptes notifiés et d'abonnés au push. Même version : rien ne sera
-#      annoncé.
+#      annoncé. Note en « push: aucun » : aucun push ne partira.
 #   5. Demande de taper le numéro de la version pour confirmer ; --oui saute la
 #      question. Un autre numéro, ou pas de réponse : rien n'est déployé.
 #   6. Lance deploy.sh en production avec cette étiquette, qui prévient sur
@@ -110,14 +110,22 @@ else
       || fail "notes illisibles dans l'image validée"
   fi
   title="$(docker run --rm "$validated" node scripts/release-notes.ts --title "$version")"
+  silent="$(docker run --rm "$validated" node scripts/release-notes.ts --silent "$version")"
   reach="$(cd "$APP_DIR" && docker compose exec -T db sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -tAc "select count(*), count(*) filter (where exists (select 1 from push_subscriptions p where p.user_id = u.id)) from users u where u.deleted_at is null"')" \
     || fail "comptes de la production illisibles"
   accounts="${reach%%|*}"
   subscribers="${reach##*|}"
   echo
-  echo "Notification à $(plural "$accounts" compte), dont $(plural "$subscribers" abonné) au push."
-  ANNOUNCE="$title
+  if [ "$silent" = "oui" ]; then
+    # « push: aucun » : la feuille et le centre de notifications seulement.
+    echo "Notification à $(plural "$accounts" compte) ; aucun push ne partira (la note dit « push: aucun »)."
+    ANNOUNCE="$title
+Pas de push · $(plural "$accounts" compte) $( [ "$accounts" -gt 1 ] && echo notifiés || echo notifié )"
+  else
+    echo "Notification à $(plural "$accounts" compte), dont $(plural "$subscribers" abonné) au push."
+    ANNOUNCE="$title
 $(plural "$subscribers" abonné) au push sur $(plural "$accounts" compte)"
+  fi
 fi
 echo
 

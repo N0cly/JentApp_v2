@@ -32,6 +32,13 @@ describe("note dans le terminal", () => {
     expect(text).toContain("  - Bientôt\u00a0: la suite. (19/140)");
   });
 
+  it("push: aucun : le terminal le dit", () => {
+    const text = releaseForTerminal(parseRelease("2.1.1", "title: T\npush: aucun\n\n- Un.\n"));
+    expect(text.split("\n").at(-1)).toBe(
+      "Push\u00a0: aucun, la version s'annonce par la feuille et le centre",
+    );
+  });
+
   it("sans intro ni push ni rubrique : le push par défaut", () => {
     const text = releaseForTerminal(parseRelease("2.1.1", "title: Correctif\n\n- Un point.\n"));
     expect(text).toContain("Intro : aucune");
