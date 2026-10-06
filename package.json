@@ -19,6 +19,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "node --env-file-if-exists=.env src/db/migrate.ts",
     "test": "vitest run",
+    "check": "pnpm lint && pnpm format:check && pnpm typecheck && pnpm test",
     "ledger:check": "node --env-file-if-exists=.env scripts/ledger-check.ts",
     "stickers:gc": "node --env-file-if-exists=.env scripts/stickers-gc.ts",
     "admin:grant": "node --env-file-if-exists=.env scripts/admin-grant.ts",

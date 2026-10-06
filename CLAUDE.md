@@ -51,6 +51,7 @@ Réécriture complète de la v1 (`N0cly/JentApp`, React Native + Supabase). Rien
 - On travaille sur `develop`, jamais sur `main`. `main` n'avance que par `git merge --ff-only develop` : le commit validé sur `develop` est celui qui part en production.
 - Une fonctionnalité se construit dans cet ordre : logique serveur et ses tests, puis interface.
 - Un bug hors périmètre du jalon se note dans `docs/BUGS.md` ; il ne bloque pas le jalon.
+- Avant chaque fin de tâche, `pnpm check` doit passer : il enchaîne les vérifications de la CI. Pas une sélection de commandes à la place.
 
 ## Structure
 
@@ -74,6 +75,7 @@ pnpm dev            serveur de développement
 pnpm lint           ESLint
 pnpm typecheck      tsc --noEmit
 pnpm test           Vitest
+pnpm check          lint, format:check, typecheck et test, arrêt à la première erreur
 pnpm db:generate    génère une migration à partir du schéma
 pnpm db:migrate     applique les migrations
 docker compose up   app + Postgres en local
