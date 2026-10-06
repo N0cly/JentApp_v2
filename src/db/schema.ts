@@ -29,6 +29,13 @@ export const appMeta = pgTable("app_meta", {
   value: text("value"),
 });
 
+// Mise en ligne de chaque version dans cet environnement (docs/NOUVEAUTES.md,
+// § Date) : notée au premier démarrage, avec l'annonce automatique.
+export const releases = pgTable("releases", {
+  version: text("version").primaryKey(),
+  releasedAt: timestamp("released_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 // --- Better Auth -----------------------------------------------------------
 // Les noms de propriétés sont ceux qu'attend Better Auth ; `name` est le pseudo.
 

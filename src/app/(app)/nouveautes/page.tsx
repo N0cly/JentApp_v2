@@ -5,14 +5,14 @@ import { ScreenHeader } from "@/components/ScreenHeader";
 import { Card } from "@/components/ui";
 import { frenchSpacing } from "@/lib/typo";
 import { requireUser } from "@/server/auth";
-import { listReleases, releaseDate } from "@/server/releases";
+import { listReleases, releaseDate, withReleaseDates } from "@/server/releases";
 
 export const metadata: Metadata = { title: "Nouveautés · JentApp" };
 
 /** Toutes les versions, la plus récente d'abord (docs/VALIDATION.md, B.6). */
 export default async function ReleasesPage() {
   await requireUser("/nouveautes");
-  const releases = await listReleases();
+  const releases = await withReleaseDates(await listReleases());
   return (
     <Screen>
       <ScreenHeader back="/compte/aide" title="Nouveautés" />

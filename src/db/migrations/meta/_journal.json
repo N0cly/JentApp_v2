@@ -78,6 +78,13 @@
       "when": 1791190189800,
       "tag": "0010_sticker_messages",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1791287400443,
+      "tag": "0011_releases",
+      "breakpoints": true
     }
   ]
 }

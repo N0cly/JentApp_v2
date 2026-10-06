@@ -14,7 +14,7 @@ const seed = readFileSync("src/db/migrations/0005_shop_and_achievements.sql", "u
  */
 export async function resetDb() {
   await getDb().execute(
-    sql`truncate table notifications, push_subscriptions, member_achievements, member_cosmetics, achievements, cosmetics, message_mentions, message_reactions, messages, wagers, bet_options, bets, ledger, audit_log, league_members, leagues, rate_limits, verifications, accounts, sessions, users restart identity cascade`,
+    sql`truncate table notifications, push_subscriptions, member_achievements, member_cosmetics, achievements, cosmetics, message_mentions, message_reactions, messages, wagers, bet_options, bets, ledger, audit_log, league_members, leagues, rate_limits, verifications, accounts, sessions, users, releases restart identity cascade`,
   );
   for (const statement of seed) await getDb().execute(sql.raw(statement));
   await getDb().execute(sql`update achievements set active = false`);

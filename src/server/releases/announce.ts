@@ -1,7 +1,8 @@
 // Annonce automatique d'une nouvelle version (docs/VALIDATION.md, B.7), au
 // démarrage de l'app, après les migrations. Une notification `release` par
-// compte et la version notée dans app_meta, dans une seule transaction sous
-// verrou : deux démarrages simultanés n'annoncent qu'une fois.
+// compte, la version notée dans app_meta et sa date de mise en ligne dans
+// releases, dans une seule transaction sous verrou : deux démarrages
+// simultanés n'annoncent qu'une fois.
 
 import { sql } from "drizzle-orm";
 import { getDb } from "@/db/client";
@@ -29,6 +30,11 @@ export async function announceRelease(
 ): Promise<AnnounceResult> {
   return getDb().transaction(async (tx) => {
     await tx.execute(sql`select pg_advisory_xact_lock(${RELEASE_LOCK})`);
+    // Mise en ligne dans cet environnement (docs/NOUVEAUTES.md, § Date) : la
+    // première fois que la version démarre, quel que soit le cas ci-dessous.
+    await tx.execute(sql`
+      insert into releases (version) values (${release.version}) on conflict (version) do nothing
+    `);
     const [row] = await tx.execute<{ value: string | null }>(
       sql`select value from app_meta where key = ${RELEASE_META_KEY}`,
     );

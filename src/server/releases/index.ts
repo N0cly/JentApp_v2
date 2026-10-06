@@ -13,6 +13,7 @@ export {
 } from "./notes";
 export { markReleaseSeen, pendingRelease } from "./seen";
 export { releaseDate } from "./date";
+export { parisDay, withReleaseDates } from "./released";
 export {
   announceCurrentRelease,
   announceRelease,
