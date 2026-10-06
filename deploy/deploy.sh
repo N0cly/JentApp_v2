@@ -34,7 +34,9 @@ finish() {
   if [ "$status" -eq 0 ]; then
     local version
     version="$(docker compose exec -T app node -p "require('./package.json').version" 2>/dev/null || true)"
-    notify "PROD · JentApp ${version:-?} en ligne · $TAG"
+    # promote.sh y ajoute le titre de la version et le nombre d'abonnés notifiés.
+    notify "PROD · JentApp ${version:-?} en ligne · $TAG${JENTAPP_ANNOUNCE:+
+$JENTAPP_ANNOUNCE}"
   elif [ "$CHANGED" -eq 1 ]; then
     notify "PROD ÉCHEC · étape : $STAGE
 Retour arrière : JENTAPP_TAG=${PREVIOUS:-<sha précédent>} $APP_DIR/deploy.sh, puis restaurer la sauvegarde si une migration est passée (docs/DEPLOY.md, étape 10)."

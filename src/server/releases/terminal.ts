@@ -15,7 +15,8 @@ import {
 
 const count = (text: string, max: number) => `(${displayLength(text)}/${max})`;
 
-export function releaseForTerminal(release: Release): string {
+/** `push: false` : sans la ligne du push, pour une version qui n'est pas annoncée. */
+export function releaseForTerminal(release: Release, { push = true } = {}): string {
   const lines = [
     `NOUVEAUTÉS · ${release.version}`,
     `Titre ${count(release.title, MAX_TITLE_LENGTH)} : ${release.title}`,
@@ -28,10 +29,12 @@ export function releaseForTerminal(release: Release): string {
     if (section.heading) lines.push(section.heading.toUpperCase());
     for (const item of section.items) lines.push(`  - ${item} ${count(item, MAX_ITEM_LENGTH)}`);
   }
-  const push = releasePushText(release);
-  lines.push(
-    "",
-    `Push ${release.push ? "" : "par défaut "}${count(push, MAX_PUSH_LENGTH)} : ${push}`,
-  );
+  if (push) lines.push("", pushLine(release));
   return lines.join("\n");
+}
+
+/** Le texte du push et de la notification, avec son nombre de caractères. */
+export function pushLine(release: Release): string {
+  const text = releasePushText(release);
+  return `Push ${release.push ? "" : "par défaut "}${count(text, MAX_PUSH_LENGTH)} : ${text}`;
 }
