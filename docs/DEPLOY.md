@@ -5,7 +5,7 @@ Ce document déroule la partie B de `docs/PROD.md`, commande par commande. Il su
 | Où | Quoi |
 | --- | --- |
 | `/opt/jentapp/` | `docker-compose.yml`, `.env`, `deploy.sh`, `promote.sh`, `announce.sh`, `notify.sh`, `notify.env`, `backup/` |
-| `/opt/jentapp-validation/` | `docker-compose.yml`, `docker-compose.override.yml`, `.env`, `deploy.sh`, `ci-deploy.sh`, `refresh.sh`, `validation.sh` (étapes 16 et 17) |
+| `/opt/jentapp-validation/` | `docker-compose.yml`, `docker-compose.override.yml`, `.env`, `deploy.sh`, `ci-deploy.sh`, `refresh.sh`, `validation.sh`, `preview.sh` (étapes 16 et 17, « Publier une version ») |
 | `/opt/glitchtip/` | `docker-compose.yml`, `.env` |
 | `/etc/nginx/sites-available/` | `jentapp.conf`, `jentapp-validation.conf`, `glitchtip.conf` |
 | `/var/www/jentapp/` | `maintenance.html`, servie quand l'app ne répond pas |
@@ -195,7 +195,7 @@ L'étiquette `sha-<commit court>` de la dernière image est visible sur la page 
 cd /opt/jentapp
 JENTAPP_TAG=sha-abc1234 ./deploy.sh
 curl -s https://jentapp.nocly.fr/api/health
-# {"status":"ok","db":"ok"}
+# {"status":"ok","db":"ok","version":"2.1.0"}
 ```
 
 `deploy.sh` refuse de partir sans l'étiquette `sha-…` d'un commit : jamais `latest` ni `develop`, qui changent d'image. Il enchaîne la sauvegarde (sautée au premier lancement, la base n'existant pas encore), `docker compose pull`, `docker compose up -d`, l'attente du healthcheck et `ledger-check`. Il s'arrête à la première erreur et affiche les derniers journaux de l'app si elle ne démarre pas. Une fois l'app saine, il note l'étiquette dans `.env` (`JENTAPP_TAG`), pour que la sauvegarde et toute commande `docker compose` suivante gardent la même image. Les migrations s'appliquent au démarrage du conteneur.
@@ -259,7 +259,7 @@ docker compose exec -T app node scripts/ledger-check.ts
 
 Une mise à jour suit « Publier une version » : validation d'abord, puis `promote.sh`.
 
-`promote.sh` lit l'image exacte qui tourne en validation et le commit dont elle est issue. Il tire `latest` et vérifie qu'elle désigne cette même image, c'est-à-dire que le commit validé a été fusionné dans `main` ; sinon il s'arrête, sans rien changer en production, et dit quoi faire. Il lance enfin `deploy.sh` avec l'étiquette `sha-…` de ce commit.
+`promote.sh` lit l'image exacte qui tourne en validation et le commit dont elle est issue. Il tire `latest` et vérifie qu'elle désigne cette même image, c'est-à-dire que le commit validé a été fusionné dans `main` ; sinon il s'arrête, sans rien changer en production, et dit quoi faire. Il affiche ensuite ce que les joueurs vont recevoir et demande le numéro de la version (« Publier une version », Promotion). Il lance enfin `deploy.sh` avec l'étiquette `sha-…` de ce commit.
 
 Revenir à une version précise :
 
@@ -358,7 +358,7 @@ Depuis ton poste, à la racine du dépôt :
 ssh <vps> 'sudo mkdir -p /opt/jentapp-validation && sudo chown -R "$USER" /opt/jentapp-validation'
 scp deploy/docker-compose.yml deploy/validation/docker-compose.override.yml \
   deploy/validation/.env.example deploy/validation/deploy.sh deploy/validation/refresh.sh \
-  deploy/validation/validation.sh \
+  deploy/validation/validation.sh deploy/validation/preview.sh \
   <vps>:/opt/jentapp-validation/
 scp deploy/promote.sh deploy/deploy.sh <vps>:/opt/jentapp/
 scp deploy/nginx/jentapp-validation.conf <vps>:/tmp/
@@ -464,7 +464,7 @@ Un push sur `develop` met la validation à jour tout seul, et Telegram te dit ce
 | `VAL déployée · sha-… · https://val.jentapp.nocly.fr`, ou `VAL ÉCHEC · sha-… · étape : …` et les 15 dernières lignes du journal | `validation/deploy.sh`, lancé par la CI ou à la main |
 | `VAL en pause · déploiement de sha-… ignoré` | `validation/ci-deploy.sh`, quand la validation est arrêtée par `validation.sh stop` |
 | `VAL rafraîchie depuis la sauvegarde du JJ/MM · sha-…`, ou `VAL ÉCHEC du rafraîchissement · étape : …` | `validation/refresh.sh` |
-| `PROD · JentApp X.Y.Z en ligne · sha-…`, ou `PROD ÉCHEC · étape : …` et la commande de retour arrière | `deploy.sh` de production, lancé par `promote.sh` |
+| `PROD · JentApp X.Y.Z en ligne · sha-…`, suivi du titre de la version et de `Push envoyé à N abonnés sur M comptes` quand la version change ; ou `PROD ÉCHEC · étape : …` et la commande de retour arrière | `deploy.sh` de production, lancé par `promote.sh` |
 | `SAUVEGARDE ÉCHEC · voir journalctl -u jentapp-backup` | `jentapp-backup-failure.service`, par `OnFailure=` |
 | `SAUVEGARDE MANQUANTE · la dernière date du …` | `jentapp-backup-check.timer`, chaque matin à 9 h |
 | `CI ÉCHEC · develop · abc1234 · <titre du commit> · <lien>` | La CI, sur un push sur `develop` ou `main` dont un job échoue |
@@ -610,27 +610,85 @@ Si la clé d'hôte du VPS change (réinstallation), refaire `ssh-keyscan`, compa
 
 | Étape | Où | Commande ou geste |
 | --- | --- | --- |
-| 1. Développement | Dépôt, branche `develop` | Commits, puis `git push origin develop` ; la CI publie l'image `develop` |
-| 2. Essai courant | VPS, puis iPhone | `/opt/jentapp-validation/deploy.sh`, et test sur la validation. Autant de fois que nécessaire |
-| 3. Numéro et notes | Dépôt, branche `develop` | Quand c'est prêt : monter la version dans `package.json`, écrire `content/releases/{version}.md`, pousser |
-| 4. Répétition générale | VPS, puis iPhone | `/opt/jentapp-validation/refresh.sh` : copie fraîche de la production, migrations rejouées. La feuille « Quoi de neuf » s'affiche, le push arrive, rien d'autre n'est cassé |
-| 5. Fusion | Dépôt | `git checkout main && git merge --ff-only develop && git push origin main`, puis `git checkout develop`. La CI ajoute `latest` à l'image déjà validée |
-| 6. Promotion | VPS | `/opt/jentapp/promote.sh` : sauvegarde, même image, contrôle du journal |
-| 7. Contrôle | iPhone | La production affiche la nouvelle version dans Aide et légal |
+| 1. Développement | Dépôt, branche `develop` | Commits, puis `git push origin develop` ; la CI publie l'image et déploie la validation : attendre `VAL déployée` sur Telegram |
+| 2. Essai courant | iPhone | Test sur la validation. Autant de fois que nécessaire |
+| 3. Numéro et notes | Dépôt, branche `develop` | Quand c'est prêt : `pnpm release:draft` pour la liste des commits, monter la version dans `package.json`, écrire `content/releases/{version}.md`, pousser |
+| 4. Relecture de la note | VPS, puis iPhone | Après `VAL déployée` : `/opt/jentapp-validation/preview.sh --push`. La note s'affiche dans le terminal, le push arrive, la feuille s'ouvre. Corriger la note, pousser, relancer : autant de fois que nécessaire |
+| 5. Répétition générale | VPS, puis iPhone | `sudo /opt/jentapp-validation/refresh.sh` : copie fraîche de la production, migrations rejouées. La feuille « Quoi de neuf » s'affiche, le push arrive, rien d'autre n'est cassé |
+| 6. Fusion | Dépôt | `git checkout main && git merge --ff-only develop && git push origin main`, puis `git checkout develop`. La CI ajoute `latest` à l'image déjà validée |
+| 7. Promotion | VPS | `/opt/jentapp/promote.sh` : il affiche ce que les joueurs vont recevoir, demande le numéro de la version, puis sauvegarde, déploie la même image et contrôle le journal |
+| 8. Contrôle | iPhone | La production affiche la nouvelle version dans Aide et légal ; Telegram confirme `PROD · JentApp X.Y.Z en ligne` |
 
-- Avec l'automatisation (étape 17), l'étape 2 se fait toute seule à chaque push sur `develop` : attendre `VAL déployée` sur Telegram. `deploy.sh` reste là pour revenir à un commit précis.
+- `deploy.sh` reste là pour revenir à un commit précis de la validation : `JENTAPP_TAG=sha-abc1234 /opt/jentapp-validation/deploy.sh`.
 - Une correction urgente suit le même chemin : `develop`, validation, fusion, promotion. Rien ne s'écrit directement sur `main`.
 - Si `git merge --ff-only` refuse, c'est qu'un commit est arrivé sur `main` hors parcours : le reporter sur `develop` d'abord.
 - Le push part au démarrage de la production : éviter de promouvoir la nuit.
-- Retour arrière : `JENTAPP_TAG=<sha précédent> /opt/jentapp/deploy.sh`, et restauration de la sauvegarde si une migration est passée.
+- Retour arrière : `JENTAPP_TAG=<sha précédent> /opt/jentapp/deploy.sh`, et restauration de la sauvegarde si une migration est passée. Une version plus ancienne n'annonce rien.
 - Numérotation : `2.x.0` pour une nouveauté visible, `2.x.y` pour une correction.
 
-Les commandes exactes sur le VPS :
+### Écrire la note
 
-```sh
-/opt/jentapp-validation/deploy.sh            # 2. essai courant, image develop
-sudo /opt/jentapp-validation/refresh.sh      # 4. répétition générale, même étiquette que le dernier deploy.sh
-/opt/jentapp/promote.sh                      # 6. promotion, après la fusion dans main et la CI verte
+Un fichier par version, `content/releases/{version}.md` (`docs/NOUVEAUTES.md`, § Format) :
+
+```
+title: Les stickers arrivent dans le chat
+push: Les stickers sont là. Ouvre le chat pour essayer.
+intro: Première mise à jour depuis le lancement, avec vos retours.
+
+## Nouveau
+- Envoie les stickers de ton iPhone dans le chat.
+
+## Amélioré
+- Une page d'attente remplace l'erreur pendant les mises à jour.
 ```
 
-`refresh.sh` reprend l'étiquette notée dans le `.env` de la validation, `develop` après un `deploy.sh` : il tire donc la dernière image `develop`. `sudo` : les sauvegardes ne sont lisibles que par root.
+| Champ | Obligatoire | Règle |
+| --- | --- | --- |
+| `title` | oui | 60 caractères au plus. Titre de la feuille |
+| `push` | non | 120 caractères au plus. Texte du push et de la notification. Absent : « JentApp {version} : {title} » |
+| `intro` | non | 200 caractères au plus. Une phrase sous le titre |
+| `date` | non | `AAAA-MM-JJ`. Absente : la date du premier démarrage de la version, notée par l'app |
+
+- Rubriques facultatives, dans cet ordre : `## Nouveau`, `## Amélioré`, `## Corrigé`. Sans rubrique, une simple liste.
+- 12 lignes au plus en tout, 140 caractères au plus par ligne. Texte brut ; seul `**gras**` est interprété.
+- `pnpm test` refuse une note mal formée, et une version de `package.json` sans sa note.
+- `pnpm release:draft` liste les commits depuis le dernier changement de version, groupés en `feat`, `fix` et autres : de quoi écrire la note, sans rien écrire à sa place.
+
+### Aperçu sur la validation
+
+```sh
+/opt/jentapp-validation/preview.sh                   # la note dans le terminal, la feuille réarmée
+/opt/jentapp-validation/preview.sh --push            # et le push renvoyé, même si l'app est ouverte
+/opt/jentapp-validation/preview.sh --version 2.0.0   # une autre version que celle de l'image
+```
+
+Le terminal montre ce que verront les joueurs : version, titre, intro, rubriques, texte du push, et le nombre de caractères de chaque champ. Seuls les comptes de `VALIDATION_KEEP_EMAILS` sont touchés : leur dernière version vue revient à la précédente, et la feuille se rouvre à la prochaine page, autant de fois qu'on relance la commande. `--push` leur recrée la notification de la version et c'est l'app de validation qui envoie le push. Le script refuse de tourner si le `.env` n'a pas `APP_ENV=validation`, et la validation doit tourner.
+
+### Promotion
+
+`promote.sh` vérifie d'abord l'image (étape 11), puis, avant de toucher la production :
+
+1. lit la version en production dans `/api/health` (ou dans son `package.json` pour une production d'avant ce champ) et celle de l'image validée ;
+2. affiche les notes de toutes les versions comprises entre les deux, la plus récente d'abord, et le texte du push, le seul qui partira ;
+3. affiche le nombre de comptes qui recevront la notification, et combien sont abonnés au push ;
+4. demande de taper le numéro de la version. Un autre numéro, ou pas de réponse : rien n'est déployé ni signalé. `promote.sh --oui` saute la question.
+
+Si la version ne change pas, il le dit : rien ne sera annoncé. Après le déploiement, Telegram reçoit :
+
+```
+PROD · JentApp 2.1.0 en ligne · sha-abc1234
+Les stickers arrivent dans le chat
+Push envoyé à 9 abonnés sur 14 comptes
+```
+
+### Mise à jour des scripts
+
+Une fois, pour installer l'aperçu et la nouvelle promotion, depuis ton poste, à la racine du dépôt, sur `develop` :
+
+```sh
+scp deploy/promote.sh deploy/deploy.sh <vps>:/opt/jentapp/
+scp deploy/validation/preview.sh <vps>:/opt/jentapp-validation/
+ssh <vps> 'chmod +x /opt/jentapp/promote.sh /opt/jentapp/deploy.sh /opt/jentapp-validation/preview.sh'
+```
+
+`preview.sh` lance `scripts/release-preview.ts` dans le conteneur : il faut une image de validation construite après son arrivée sur `develop`. `promote.sh` lit les notes dans l'image validée, qui doit aussi la contenir.
