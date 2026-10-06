@@ -23,6 +23,7 @@
     "stickers:gc": "node --env-file-if-exists=.env scripts/stickers-gc.ts",
     "admin:grant": "node --env-file-if-exists=.env scripts/admin-grant.ts",
     "announce": "node --env-file-if-exists=.env scripts/announce.ts",
+    "release:draft": "node scripts/release-draft.ts",
     "vapid:generate": "node scripts/vapid-generate.ts",
     "test:screens": "vitest run --config scripts/screens/vitest.config.ts"
   },
