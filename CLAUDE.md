@@ -75,7 +75,7 @@ pnpm dev            serveur de développement
 pnpm lint           ESLint
 pnpm typecheck      tsc --noEmit
 pnpm test           Vitest
-pnpm check          lint, format:check, typecheck et test, arrêt à la première erreur
+pnpm check          lint, format:check, typecheck, test et build, arrêt à la première erreur
 pnpm db:generate    génère une migration à partir du schéma
 pnpm db:migrate     applique les migrations
 docker compose up   app + Postgres en local
