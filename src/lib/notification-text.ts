@@ -34,8 +34,11 @@ export type NotificationPayload =
   | { type: "round"; amount: number }
   /** Annonce à tous les joueurs (docs/ANNONCE.md), sans ligue : son texte tel quel. */
   | { type: "announcement"; message: string }
-  /** Nouvelle version, annoncée au démarrage (docs/VALIDATION.md, B.7), sans ligue. */
-  | { type: "release"; version: string; title: string };
+  /**
+   * Nouvelle version, annoncée au démarrage (docs/VALIDATION.md, B.7), sans ligue.
+   * `push` : le texte choisi dans la note (docs/NOUVEAUTES.md, § Format).
+   */
+  | { type: "release"; version: string; title: string; push?: string };
 
 export type NotificationType = NotificationPayload["type"];
 
@@ -74,6 +77,7 @@ export function notificationText(
     case "announcement":
       return payload.message;
     case "release":
+      if (payload.push) return frenchSpacing(payload.push);
       return `JentApp ${payload.version} : ${frenchSpacing(payload.title)}`;
   }
 }

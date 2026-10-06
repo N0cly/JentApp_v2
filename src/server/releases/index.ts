@@ -6,7 +6,10 @@ export {
   releaseProblems,
   ReleaseFormatError,
   RELEASES_DIR,
+  RELEASE_HEADINGS,
+  releasePushText,
   type Release,
+  type ReleaseSection,
 } from "./notes";
 export { markReleaseSeen, pendingRelease } from "./seen";
 export { releaseDate } from "./date";

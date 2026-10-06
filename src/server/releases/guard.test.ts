@@ -5,9 +5,10 @@ import { afterAll, describe, expect, it } from "vitest";
 import { APP_VERSION } from "@/lib/version";
 import { releaseProblems } from "./notes";
 
-// docs/VALIDATION.md, B.3 : une version ne part pas sans ses notes. Ce test
-// échoue tant que package.json porte une version sans fichier bien formé.
-const GOOD = "date: 2026-10-10\ntitle: Essai\n\n- Un point.\n";
+// docs/VALIDATION.md, B.3, et docs/NOUVEAUTES.md, § Format : une version ne
+// part pas sans ses notes. Ce test échoue tant que package.json porte une
+// version sans fichier bien formé.
+const GOOD = "title: Essai\n\n- Un point.\n";
 const dirs: string[] = [];
 afterAll(() => dirs.forEach((d) => rmSync(d, { recursive: true, force: true })));
 
@@ -29,8 +30,22 @@ describe("garde des notes de version", () => {
     expect(problems[0]).toContain("2.1.0.md manquant");
   });
 
-  it("fichier mal formé : la garde échoue", async () => {
-    const dir = releasesWith({ "2.0.0.md": GOOD, "2.1.0.md": "title: Sans date\n\n- Un point.\n" });
-    expect(await releaseProblems("2.1.0", dir)).toHaveLength(1);
+  it.each([
+    ["rubrique inconnue", "title: Essai\n\n## Divers\n- Un point.\n"],
+    ["rubriques dans le désordre", "title: Essai\n\n## Corrigé\n- Un.\n\n## Nouveau\n- Deux.\n"],
+    ["13 lignes", `title: Essai\n\n${"- Un point.\n".repeat(13)}`],
+    ["titre de 61 caractères", `title: ${"t".repeat(61)}\n\n- Un point.\n`],
+  ])("fichier mal formé, %s : la garde échoue", async (_, content) => {
+    const dir = releasesWith({ "2.0.0.md": GOOD, "2.1.0.md": content });
+    const problems = await releaseProblems("2.1.0", dir);
+    expect(problems).toHaveLength(1);
+    expect(problems[0]).toContain("2.1.0.md");
+  });
+
+  it("sans rubrique, avec rubriques, avec push et intro : la garde passe", async () => {
+    const rich =
+      "title: Essai\npush: Ouvre l'app.\nintro: Une phrase.\n\n## Nouveau\n- Un.\n\n## Corrigé\n- Deux.\n";
+    const dir = releasesWith({ "2.0.0.md": GOOD, "2.1.0.md": rich });
+    expect(await releaseProblems("2.1.0", dir)).toEqual([]);
   });
 });

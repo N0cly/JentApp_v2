@@ -9,6 +9,7 @@ import {
   stopListening,
   type Subscriber,
 } from "@/server/realtime/hub";
+import { notificationText } from "@/lib/notification-text";
 import { listNotifications, markRead } from "@/server/notifications";
 import { leagueWith } from "@/test/bets";
 import { resetDb } from "@/test/db";
@@ -65,6 +66,21 @@ describe("annonce automatique d'une version", () => {
       expect(r.payload).toEqual({ type: "release", ...V2_1 });
     }
     expect(await noted()).toBe("2.1.0");
+  });
+
+  it("push de la note : porté par la notification, qui l'affiche", async () => {
+    const ctx = await leagueWith(1);
+    await note("2.0.0");
+    await announceRelease({ ...V2_1, push: "Les stickers sont là. Ouvre le chat." });
+    const { items } = await listNotifications(ctx.players[0]!, 0, new Date());
+    expect(items[0]!.payload).toEqual({
+      type: "release",
+      ...V2_1,
+      push: "Les stickers sont là. Ouvre le chat.",
+    });
+    expect(notificationText(items[0]!.payload, new Date())).toBe(
+      "Les stickers sont là. Ouvre le chat.",
+    );
   });
 
   it("redémarrage sans changement de version, ou version plus ancienne : rien", async () => {

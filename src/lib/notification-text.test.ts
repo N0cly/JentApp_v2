@@ -85,6 +85,10 @@ describe("phrase d'une notification", () => {
     expect(notificationHref(null, payload)).toBe("/nouveautes");
     expect(centerHref(null, payload)).toBe("/nouveautes");
     expect(notificationTag(payload)).toBeNull();
+    // Le texte choisi dans la note remplace la phrase par défaut.
+    expect(notificationText({ ...payload, push: "Les stickers sont là !" }, new Date())).toBe(
+      "Les stickers sont là\u00a0!",
+    );
   });
 
   it("annonce : son texte tel quel, le centre pour lien, sans étiquette", () => {

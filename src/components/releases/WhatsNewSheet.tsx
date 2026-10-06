@@ -6,6 +6,7 @@ import { markReleaseSeenAction } from "@/app/(app)/release-actions";
 import { BottomSheet, Button } from "@/components/ui";
 import { frenchSpacing } from "@/lib/typo";
 import type { Release } from "@/server/releases";
+import { ReleaseBody } from "./ReleaseBody";
 
 /**
  * Feuille « Quoi de neuf » (docs/VALIDATION.md, B.5), à la première page
@@ -33,11 +34,7 @@ export function WhatsNewSheet({ release }: { release: Release }) {
       overline={`NOUVEAUTÉS · ${release.version}`}
       title={frenchSpacing(release.title)}
     >
-      <ul className="text-body flex list-disc flex-col gap-2 pl-5 text-ink-muted">
-        {release.items.map((item) => (
-          <li key={item}>{frenchSpacing(item)}</li>
-        ))}
-      </ul>
+      <ReleaseBody release={release} />
       <Button onClick={() => close()} className="mt-3">
         Compris
       </Button>

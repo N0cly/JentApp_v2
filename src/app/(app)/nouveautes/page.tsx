@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ReleaseBody } from "@/components/releases/ReleaseBody";
 import { Screen } from "@/components/Screen";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { Card } from "@/components/ui";
@@ -20,17 +21,13 @@ export default async function ReleasesPage() {
           <Card key={release.version}>
             <div className="flex flex-col gap-1">
               <p className="text-overline text-ink-subtle">
-                {release.version} · {releaseDate(release.date)}
+                {release.date ? `${release.version} · ${releaseDate(release.date)}` : release.version}
               </p>
               <h2 className="text-[20px] leading-6 font-bold [overflow-wrap:anywhere]">
                 {frenchSpacing(release.title)}
               </h2>
             </div>
-            <ul className="text-body flex list-disc flex-col gap-2 pl-5 text-ink-muted">
-              {release.items.map((item) => (
-                <li key={item}>{frenchSpacing(item)}</li>
-              ))}
-            </ul>
+            <ReleaseBody release={release} />
           </Card>
         ))}
       </main>

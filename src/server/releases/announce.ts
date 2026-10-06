@@ -25,7 +25,7 @@ export type AnnounceResult =
  * noté (premier démarrage) : la version est notée sans annonce.
  */
 export async function announceRelease(
-  release: Pick<Release, "version" | "title">,
+  release: Pick<Release, "version" | "title"> & Partial<Pick<Release, "push">>,
 ): Promise<AnnounceResult> {
   return getDb().transaction(async (tx) => {
     await tx.execute(sql`select pg_advisory_xact_lock(${RELEASE_LOCK})`);
@@ -49,6 +49,7 @@ export async function announceRelease(
       type: "release",
       version: release.version,
       title: release.title,
+      ...(release.push ? { push: release.push } : {}),
     };
     const rows = await tx.execute<{ id: string; user_id: string }>(sql`
       insert into notifications (user_id, league_id, type, payload)
