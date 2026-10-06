@@ -21,7 +21,9 @@ export default async function ReleasesPage() {
           <Card key={release.version}>
             <div className="flex flex-col gap-1">
               <p className="text-overline text-ink-subtle">
-                {release.date ? `${release.version} · ${releaseDate(release.date)}` : release.version}
+                {release.date
+                  ? `${release.version} · ${releaseDate(release.date)}`
+                  : release.version}
               </p>
               <h2 className="text-[20px] leading-6 font-bold [overflow-wrap:anywhere]">
                 {frenchSpacing(release.title)}

@@ -171,8 +171,7 @@ describe("deploy.sh", () => {
     const dir = production("healthy");
     const result = run("deploy/deploy.sh", dir, {
       JENTAPP_TAG: "sha-abc1234",
-      JENTAPP_ANNOUNCE:
-        "Les stickers arrivent dans le chat\n9 abonnés au push sur 14 comptes",
+      JENTAPP_ANNOUNCE: "Les stickers arrivent dans le chat\n9 abonnés au push sur 14 comptes",
     });
     expect(result.code).toBe(0);
     expect(messages(dir)).toEqual([
