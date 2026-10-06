@@ -65,6 +65,23 @@ describe("notes de version : format", () => {
     ]);
   });
 
+  it("rubriques libres : n'importe quel titre, dans l'ordre du fichier, quatre au plus", () => {
+    const release = parseRelease(
+      "2.1.0",
+      "title: T\n\n## Soon !\n- Un.\n\n## Corrigé\n- Deux.\n## Nouveau\n- Trois.\n## Corrigé\n- Quatre.\n",
+    );
+    expect(release.sections.map((s) => s.heading)).toEqual([
+      "Soon !",
+      "Corrigé",
+      "Nouveau",
+      "Corrigé",
+    ]);
+    const thirty = "r".repeat(30);
+    expect(parseRelease("2.1.0", `title: T\n\n## ${thirty}\n- Un.\n`).sections[0]!.heading).toBe(
+      thirty,
+    );
+  });
+
   it("une rubrique seule, n'importe laquelle", () => {
     const release = parseRelease("2.1.1", "title: Correctif\n\n## Corrigé\n- Un point.\n");
     expect(release.sections).toEqual([{ heading: "Corrigé", items: ["Un point."] }]);
@@ -83,9 +100,16 @@ describe("notes de version : format", () => {
   });
 
   it.each([
-    ["rubrique inconnue", "title: T\n\n## Divers\n- Un point.\n"],
-    ["rubriques dans le désordre", "title: T\n\n## Corrigé\n- Un.\n\n## Nouveau\n- Deux.\n"],
-    ["rubrique en double", "title: T\n\n## Nouveau\n- Un.\n## Nouveau\n- Deux.\n"],
+    [
+      "cinq rubriques",
+      `title: T\n\n${["A", "B", "C", "D", "E"].map((h) => `## ${h}\n- Un.\n`).join("")}`,
+    ],
+    ["titre de rubrique de 31 caractères", `title: T\n\n## ${"r".repeat(31)}\n- Un.\n`],
+    ["titre de rubrique vide", "title: T\n\n##\n- Un.\n"],
+    ["rubrique à un seul dièse", "title: T\n\n# Nouveau\n- Un.\n"],
+    ["rubrique à trois dièses", "title: T\n\n### Nouveau\n- Un.\n"],
+    ["élément de liste vide", "title: T\n\n## Nouveau\n- Un.\n- \n"],
+    ["élément de liste vide sans espace", "title: T\n\n## Nouveau\n- Un.\n-\n"],
     ["rubrique vide", "title: T\n\n## Nouveau\n\n## Corrigé\n- Un.\n"],
     ["dernière rubrique vide", "title: T\n\n## Nouveau\n- Un.\n## Corrigé\n"],
     ["liste avant la première rubrique", "title: T\n\n- Un.\n## Nouveau\n- Deux.\n"],
@@ -106,6 +130,15 @@ describe("notes de version : format", () => {
     ["gras non fermé", "title: T\n\n- Un **point.\n"],
   ])("%s : refusé", (_, source) => {
     expect(() => parseRelease("2.1.0", source)).toThrow(ReleaseFormatError);
+  });
+
+  it("rubrique à un seul dièse ou élément vide : le message dit comment corriger", () => {
+    expect(() => parseRelease("2.1.0", "title: T\n\n# Nouveau\n- Un.\n")).toThrow(
+      "écris « ## Nouveau »",
+    );
+    expect(() => parseRelease("2.1.0", "title: T\n\n## Nouveau\n- Un.\n- \n")).toThrow(
+      "supprime la ligne",
+    );
   });
 
   it("refuse un nom qui n'est pas une version", () => {

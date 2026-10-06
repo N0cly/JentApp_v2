@@ -6,7 +6,7 @@ export {
   releaseProblems,
   ReleaseFormatError,
   RELEASES_DIR,
-  RELEASE_HEADINGS,
+  MAX_SECTIONS,
   releasePushText,
   type Release,
   type ReleaseSection,

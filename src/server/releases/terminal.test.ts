@@ -23,6 +23,15 @@ describe("note dans le terminal", () => {
     ]);
   });
 
+  it("textes passés par frenchSpacing, comme à l'écran", () => {
+    const text = releaseForTerminal(
+      parseRelease("2.1.0", "title: Enfin !\n\n## Soon ?\n- Bientôt : la suite.\n"),
+    );
+    expect(text).toContain("Titre (7/60)\u00a0: Enfin\u00a0!");
+    expect(text).toContain("SOON\u00a0?");
+    expect(text).toContain("  - Bientôt\u00a0: la suite. (19/140)");
+  });
+
   it("sans intro ni push ni rubrique : le push par défaut", () => {
     const text = releaseForTerminal(parseRelease("2.1.1", "title: Correctif\n\n- Un point.\n"));
     expect(text).toContain("Intro : aucune");

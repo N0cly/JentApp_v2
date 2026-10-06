@@ -55,7 +55,7 @@ COPY --from=build --chown=nextjs:nodejs /app/src/server/env.ts ./src/server/env.
 COPY --from=build --chown=nextjs:nodejs /app/src/server/validation/scrub.ts /app/src/server/validation/login.ts ./src/server/validation/
 COPY --from=build --chown=nextjs:nodejs /app/src/server/stickers/gc.ts ./src/server/stickers/gc.ts
 COPY --from=build --chown=nextjs:nodejs /app/src/server/releases/notes.ts /app/src/server/releases/preview.ts /app/src/server/releases/terminal.ts ./src/server/releases/
-COPY --from=build --chown=nextjs:nodejs /app/src/lib/semver.ts /app/src/lib/release-text.ts ./src/lib/
+COPY --from=build --chown=nextjs:nodejs /app/src/lib/semver.ts /app/src/lib/release-text.ts /app/src/lib/typo.ts ./src/lib/
 
 USER nextjs
 EXPOSE 3000

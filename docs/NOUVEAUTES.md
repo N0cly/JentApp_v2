@@ -33,10 +33,11 @@ Un fichier par version dans `content/releases/`. En-tête, ligne vide, puis le c
 
 Le corps est une liste, avec ou sans rubriques :
 
-- Rubriques admises, dans cet ordre, toutes facultatives : `## Nouveau`, `## Amélioré`, `## Corrigé`.
+- Rubriques libres, toutes facultatives : une rubrique est toute ligne `## Titre`, avec un titre de 1 à 30 caractères (`## Nouveau`, `## Corrigé`, `## Soon !`…). Quatre au plus, affichées dans l'ordre du fichier.
+- Une ligne `# Titre` à un seul dièse et un élément de liste vide (`-` seul) sont refusés, avec un message qui dit comment corriger.
 - Sans rubrique, une simple liste : les fichiers déjà écrits restent valides.
 - 12 lignes au plus en tout, 140 caractères au plus par ligne.
-- Texte brut. Seul `**gras**` est interprété.
+- Texte brut. Seul `**gras**` est interprété. À l'affichage, les textes passent par `frenchSpacing` (espace insécable devant « ? ! : ; »).
 
 Le test de garde vérifie ces règles pour chaque fichier, et qu'un fichier existe pour la version de `package.json`.
 
@@ -114,7 +115,7 @@ intro: Première mise à jour depuis le lancement, avec vos retours.
 
 | Sujet | Tests |
 | --- | --- |
-| Format | Fichier sans rubrique, avec rubriques, avec `push` et `intro` : acceptés. Rubrique inconnue, rubriques dans le désordre, 13 lignes, titre de 61 caractères : refusés par le test de garde |
+| Format | Fichier sans rubrique, avec rubriques, avec `push` et `intro` : acceptés. Rubriques libres dans n'importe quel ordre : acceptées. Ligne `# Titre`, élément de liste vide, cinq rubriques, titre de rubrique de 31 caractères, 13 lignes, titre de 61 caractères : refusés par le test de garde |
 | Date | Enregistrée au premier démarrage d'une version, inchangée au suivant. `date` du fichier prioritaire |
 | Feuille | Deux versions non vues : les deux s'affichent, la plus récente d'abord. Quatre : trois et le lien. Tout est marqué lu en une fois |
 | Aperçu | Refus hors validation. Seuls les comptes gardés sont réarmés. `--push` crée une notification par compte gardé et aucune pour les autres |

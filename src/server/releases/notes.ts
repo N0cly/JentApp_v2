@@ -1,8 +1,8 @@
 // Notes de version (docs/NOUVEAUTES.md, § Format) : un fichier par version dans
 // content/releases/{version}.md. Un en-tête `clé: valeur` (title obligatoire ;
 // push, intro et date facultatifs), une ligne vide, puis une liste, avec ou
-// sans rubriques « ## Nouveau », « ## Amélioré », « ## Corrigé », dans cet
-// ordre. Texte brut : seul **gras** est interprété. Lu sans dépendance.
+// sans rubriques « ## Titre », libres, dans l'ordre du fichier. Texte brut :
+// seul **gras** est interprété. Lu sans dépendance.
 // Sans alias d'import : scripts/release-preview.ts charge ce fichier avec Node.
 
 import { readdir, readFile } from "node:fs/promises";
@@ -17,12 +17,11 @@ export const MAX_TITLE_LENGTH = 60;
 export const MAX_PUSH_LENGTH = 120;
 export const MAX_INTRO_LENGTH = 200;
 
-/** Rubriques admises, dans l'ordre où elles doivent paraître. */
-export const RELEASE_HEADINGS = ["Nouveau", "Amélioré", "Corrigé"] as const;
-export type ReleaseHeading = (typeof RELEASE_HEADINGS)[number];
+export const MAX_SECTIONS = 4;
+export const MAX_HEADING_LENGTH = 30;
 
 /** Une rubrique ; `heading` vide pour une note sans rubrique, qui n'en a qu'une. */
-export type ReleaseSection = { heading: ReleaseHeading | null; items: string[] };
+export type ReleaseSection = { heading: string | null; items: string[] };
 
 export type Release = {
   version: string;
@@ -88,33 +87,41 @@ export function parseRelease(version: string, source: string): Release {
   limit("intro", intro, MAX_INTRO_LENGTH);
   if (date !== undefined && !isCalendarDate(date)) fail("« date » attendue au format AAAA-MM-JJ");
 
-  // Corps : une liste, avec ou sans rubriques. Les lignes vides séparent.
+  // Corps : une liste, avec ou sans rubriques « ## Titre ». Les lignes vides séparent.
   const sections: ReleaseSection[] = [];
   let count = 0;
   for (let i = n + 1; i < lines.length; i++) {
     const line = lines[i]!;
     const at = `ligne ${i + 1}`;
     if (line.trim() === "") continue;
-    const heading = /^## (.*)$/.exec(line)?.[1]?.trim();
+    const heading = /^## (.*)$/.exec(line)?.[1]?.trim() ?? (/^##\s*$/.test(line) ? "" : undefined);
+    if (heading === undefined && line.startsWith("#")) {
+      const text = line.replace(/^#+\s*/, "") || "Titre";
+      fail(`${at} : une rubrique s'écrit avec deux dièses et une espace ; écris « ## ${text} »`);
+    }
     if (heading !== undefined) {
-      const rank = (RELEASE_HEADINGS as readonly string[]).indexOf(heading);
-      if (rank < 0)
-        fail(`${at} : rubrique inconnue « ${heading} » (${RELEASE_HEADINGS.join(", ")})`);
-      if (sections.length > 0 && sections[0]!.heading === null) {
-        fail(`${at} : rubrique après une liste sans rubrique`);
+      const length = [...heading].length;
+      if (length < 1 || length > MAX_HEADING_LENGTH) {
+        fail(`${at} : titre de rubrique de 1 à ${MAX_HEADING_LENGTH} caractères, ${length} ici`);
       }
-      const previous = sections.at(-1)?.heading;
-      if (previous && RELEASE_HEADINGS.indexOf(previous) >= rank) {
-        fail(`${at} : rubriques dans l'ordre ${RELEASE_HEADINGS.join(", ")}, chacune une fois`);
+      if (sections.length > 0 && sections[0]!.heading === null) {
+        fail(
+          `${at} : rubrique après une liste sans rubrique ; mets les premières lignes sous une rubrique`,
+        );
       }
       if (sections.length > 0 && sections.at(-1)!.items.length === 0) {
-        fail(`${at} : rubrique « ${previous} » vide`);
+        fail(
+          `${at} : rubrique « ${sections.at(-1)!.heading} » vide ; ajoute-lui une ligne « - … » ou supprime-la`,
+        );
       }
-      sections.push({ heading: heading as ReleaseHeading, items: [] });
+      if (sections.length >= MAX_SECTIONS) fail(`${at} : ${MAX_SECTIONS} rubriques au plus`);
+      sections.push({ heading, items: [] });
       continue;
     }
+    if (/^-\s*$/.test(line))
+      fail(`${at} : élément de liste vide ; supprime la ligne ou écris son texte après « - »`);
     const item = /^- (.*)$/.exec(line)?.[1]?.trim() ?? "";
-    if (!item) fail(`${at} : attendu « - … », non vide, ou « ## Rubrique »`);
+    if (!item) fail(`${at} : attendu « - … » ou « ## Rubrique »`);
     if (item.split("**").length % 2 === 0) fail(`${at} : « ** » sans sa fermeture`);
     if (displayLength(item) > MAX_ITEM_LENGTH) {
       fail(`${at} : ${displayLength(item)} caractères, ${MAX_ITEM_LENGTH} au plus`);

@@ -649,7 +649,7 @@ intro: Première mise à jour depuis le lancement, avec vos retours.
 | `intro` | non | 200 caractères au plus. Une phrase sous le titre |
 | `date` | non | `AAAA-MM-JJ`. Absente : la date du premier démarrage de la version, notée par l'app |
 
-- Rubriques facultatives, dans cet ordre : `## Nouveau`, `## Amélioré`, `## Corrigé`. Sans rubrique, une simple liste.
+- Rubriques facultatives et libres : toute ligne `## Titre`, titre de 1 à 30 caractères, quatre au plus, affichées dans l'ordre du fichier. Sans rubrique, une simple liste. Une ligne `# Titre` à un seul dièse ou un élément de liste vide sont refusés.
 - 12 lignes au plus en tout, 140 caractères au plus par ligne. Texte brut ; seul `**gras**` est interprété.
 - `pnpm test` refuse une note mal formée, et une version de `package.json` sans sa note.
 - `pnpm release:draft` liste les commits depuis le dernier changement de version, groupés en `feat`, `fix` et autres : de quoi écrire la note, sans rien écrire à sa place.

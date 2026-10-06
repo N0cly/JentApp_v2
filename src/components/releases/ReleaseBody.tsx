@@ -23,9 +23,11 @@ export function ReleaseBody({ release }: { release: Release }) {
   return (
     <div className="flex flex-col gap-3">
       {release.intro && <p className="text-body text-ink-muted">{frenchSpacing(release.intro)}</p>}
-      {release.sections.map((section) => (
-        <div key={section.heading ?? ""} className="flex flex-col gap-2">
-          {section.heading && <p className="text-overline text-ink-subtle">{section.heading}</p>}
+      {release.sections.map((section, i) => (
+        <div key={i} className="flex flex-col gap-2">
+          {section.heading && (
+            <p className="text-overline text-ink-subtle">{frenchSpacing(section.heading)}</p>
+          )}
           <ul className="text-body flex list-disc flex-col gap-2 pl-5 text-ink-muted">
             {section.items.map((item) => (
               <li key={item}>

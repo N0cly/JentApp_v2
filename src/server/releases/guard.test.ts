@@ -31,8 +31,10 @@ describe("garde des notes de version", () => {
   });
 
   it.each([
-    ["rubrique inconnue", "title: Essai\n\n## Divers\n- Un point.\n"],
-    ["rubriques dans le désordre", "title: Essai\n\n## Corrigé\n- Un.\n\n## Nouveau\n- Deux.\n"],
+    ["rubrique à un seul dièse", "title: Essai\n\n# Nouveau\n- Un point.\n"],
+    ["élément de liste vide", "title: Essai\n\n## Nouveau\n- Un.\n- \n"],
+    ["cinq rubriques", `title: Essai\n\n${"## R\n- Un.\n".repeat(5)}`],
+    ["titre de rubrique de 31 caractères", `title: Essai\n\n## ${"r".repeat(31)}\n- Un.\n`],
     ["13 lignes", `title: Essai\n\n${"- Un point.\n".repeat(13)}`],
     ["titre de 61 caractères", `title: ${"t".repeat(61)}\n\n- Un point.\n`],
   ])("fichier mal formé, %s : la garde échoue", async (_, content) => {
@@ -42,9 +44,9 @@ describe("garde des notes de version", () => {
     expect(problems[0]).toContain("2.1.0.md");
   });
 
-  it("sans rubrique, avec rubriques, avec push et intro : la garde passe", async () => {
+  it("sans rubrique, avec rubriques libres, avec push et intro : la garde passe", async () => {
     const rich =
-      "title: Essai\npush: Ouvre l'app.\nintro: Une phrase.\n\n## Nouveau\n- Un.\n\n## Corrigé\n- Deux.\n";
+      "title: Essai\npush: Ouvre l'app.\nintro: Une phrase.\n\n## Soon !\n- Un.\n\n## Nouveau\n- Deux.\n";
     const dir = releasesWith({ "2.0.0.md": GOOD, "2.1.0.md": rich });
     expect(await releaseProblems("2.1.0", dir)).toEqual([]);
   });
