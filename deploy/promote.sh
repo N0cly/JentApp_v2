@@ -117,7 +117,7 @@ else
   echo
   echo "Notification à $(plural "$accounts" compte), dont $(plural "$subscribers" abonné) au push."
   ANNOUNCE="$title
-Push envoyé à $(plural "$subscribers" abonné) sur $(plural "$accounts" compte)"
+$(plural "$subscribers" abonné) au push sur $(plural "$accounts" compte)"
 fi
 echo
 

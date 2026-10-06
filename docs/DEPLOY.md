@@ -464,7 +464,7 @@ Un push sur `develop` met la validation à jour tout seul, et Telegram te dit ce
 | `VAL déployée · sha-… · https://val.jentapp.nocly.fr`, ou `VAL ÉCHEC · sha-… · étape : …` et les 15 dernières lignes du journal | `validation/deploy.sh`, lancé par la CI ou à la main |
 | `VAL en pause · déploiement de sha-… ignoré` | `validation/ci-deploy.sh`, quand la validation est arrêtée par `validation.sh stop` |
 | `VAL rafraîchie depuis la sauvegarde du JJ/MM · sha-…`, ou `VAL ÉCHEC du rafraîchissement · étape : …` | `validation/refresh.sh` |
-| `PROD · JentApp X.Y.Z en ligne · sha-…`, suivi du titre de la version et de `Push envoyé à N abonnés sur M comptes` quand la version change ; ou `PROD ÉCHEC · étape : …` et la commande de retour arrière | `deploy.sh` de production, lancé par `promote.sh` |
+| `PROD · JentApp X.Y.Z en ligne · sha-…`, suivi du titre de la version et de `N abonnés au push sur M comptes` quand la version change ; ou `PROD ÉCHEC · étape : …` et la commande de retour arrière | `deploy.sh` de production, lancé par `promote.sh` |
 | `SAUVEGARDE ÉCHEC · voir journalctl -u jentapp-backup` | `jentapp-backup-failure.service`, par `OnFailure=` |
 | `SAUVEGARDE MANQUANTE · la dernière date du …` | `jentapp-backup-check.timer`, chaque matin à 9 h |
 | `CI ÉCHEC · develop · abc1234 · <titre du commit> · <lien>` | La CI, sur un push sur `develop` ou `main` dont un job échoue |
@@ -678,7 +678,7 @@ Si la version ne change pas, il le dit : rien ne sera annoncé. Après le déplo
 ```
 PROD · JentApp 2.1.0 en ligne · sha-abc1234
 Les stickers arrivent dans le chat
-Push envoyé à 9 abonnés sur 14 comptes
+9 abonnés au push sur 14 comptes
 ```
 
 ### Mise à jour des scripts

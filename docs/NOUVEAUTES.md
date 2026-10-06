@@ -89,7 +89,7 @@ Après le déploiement, le message Telegram devient :
 ```
 PROD · JentApp 2.1.0 en ligne · sha-abc1234
 Les stickers arrivent dans le chat
-Push envoyé à 9 abonnés sur 14 comptes
+9 abonnés au push sur 14 comptes
 ```
 
 ## Exemple

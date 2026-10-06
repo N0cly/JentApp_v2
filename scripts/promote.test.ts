@@ -172,11 +172,11 @@ describe("deploy.sh", () => {
     const result = run("deploy/deploy.sh", dir, {
       JENTAPP_TAG: "sha-abc1234",
       JENTAPP_ANNOUNCE:
-        "Les stickers arrivent dans le chat\nPush envoyé à 9 abonnés sur 14 comptes",
+        "Les stickers arrivent dans le chat\n9 abonnés au push sur 14 comptes",
     });
     expect(result.code).toBe(0);
     expect(messages(dir)).toEqual([
-      "PROD · JentApp 2.1.0 en ligne · sha-abc1234\nLes stickers arrivent dans le chat\nPush envoyé à 9 abonnés sur 14 comptes",
+      "PROD · JentApp 2.1.0 en ligne · sha-abc1234\nLes stickers arrivent dans le chat\n9 abonnés au push sur 14 comptes",
     ]);
   });
 
@@ -238,7 +238,7 @@ describe("promote.sh : nouveautés", () => {
     expect(result.stdout).toContain("tape le numéro de la version (2.1.0)");
     expect(result.stdout).toContain("deploy sha-abc1234");
     expect(result.stdout).toContain(
-      "annonce [Les stickers arrivent\nPush envoyé à 9 abonnés sur 14 comptes]",
+      "annonce [Les stickers arrivent\n9 abonnés au push sur 14 comptes]",
     );
   });
 
