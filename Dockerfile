@@ -45,13 +45,16 @@ COPY --from=build --chown=nextjs:nodejs /app/src/db/migrate.ts ./db/migrate.ts
 #   docker compose run --rm app node scripts/validation-scrub.ts   (validation seulement)
 #   docker compose exec app node scripts/validation-login.ts <pseudo> <mot de passe>   (idem)
 #   docker compose exec app node scripts/stickers-gc.ts [--supprimer]
-COPY --from=build --chown=nextjs:nodejs /app/scripts/admin-grant.ts /app/scripts/ledger-check.ts /app/scripts/announce.ts /app/scripts/validation-scrub.ts /app/scripts/validation-login.ts /app/scripts/stickers-gc.ts ./scripts/
+#   docker compose exec app node scripts/release-preview.ts [--push] [--version x.y.z]   (validation seulement)
+COPY --from=build --chown=nextjs:nodejs /app/scripts/admin-grant.ts /app/scripts/ledger-check.ts /app/scripts/announce.ts /app/scripts/validation-scrub.ts /app/scripts/validation-login.ts /app/scripts/stickers-gc.ts /app/scripts/release-preview.ts ./scripts/
 COPY --from=build --chown=nextjs:nodejs /app/src/server/ledger/check.ts ./src/server/ledger/check.ts
 COPY --from=build --chown=nextjs:nodejs /app/src/server/notifications/announce.ts ./src/server/notifications/announce.ts
 COPY --from=build --chown=nextjs:nodejs /app/src/server/realtime/notify.ts ./src/server/realtime/notify.ts
 COPY --from=build --chown=nextjs:nodejs /app/src/server/env.ts ./src/server/env.ts
 COPY --from=build --chown=nextjs:nodejs /app/src/server/validation/scrub.ts /app/src/server/validation/login.ts ./src/server/validation/
 COPY --from=build --chown=nextjs:nodejs /app/src/server/stickers/gc.ts ./src/server/stickers/gc.ts
+COPY --from=build --chown=nextjs:nodejs /app/src/server/releases/notes.ts /app/src/server/releases/preview.ts /app/src/server/releases/terminal.ts ./src/server/releases/
+COPY --from=build --chown=nextjs:nodejs /app/src/lib/semver.ts /app/src/lib/release-text.ts ./src/lib/
 
 USER nextjs
 EXPOSE 3000

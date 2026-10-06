@@ -111,13 +111,14 @@ function statusOf(error: unknown): number | null {
 
 /**
  * Envoie le push d'une notification validée. Rien pour « Pari réglé », rien
- * à un joueur qui a un flux ouvert. Un abonnement mort (404, 410) est
+ * à un joueur qui a un flux ouvert, sauf `force` (aperçu des nouveautés). Un abonnement mort (404, 410) est
  * supprimé ; un autre échec se journalise et n'annule rien.
  */
 export async function pushNotification(
   notificationId: string,
   send: PushSender = webPushSender,
   now = new Date(),
+  { force = false }: { force?: boolean } = {},
 ): Promise<number> {
   const [row] = await getDb()
     .select({
@@ -132,7 +133,7 @@ export async function pushNotification(
   if (!row) return 0;
   const payload = row.payload as NotificationPayload;
   if (!PUSHED.has(payload.type)) return 0;
-  if (hasOpenStream(row.userId)) return 0;
+  if (!force && hasOpenStream(row.userId)) return 0;
 
   const subs = await getDb()
     .select()
@@ -171,6 +172,9 @@ export async function startPush(send: PushSender = webPushSender): Promise<() =>
   return onEnvelope((envelope) => {
     if (envelope.type !== "notification.new" || typeof envelope.id !== "string") return;
     if (send === webPushSender && !vapidKeys()) return;
-    void pushNotification(envelope.id, send).catch((error) => console.warn("Push en échec", error));
+    const force = envelope.force === true;
+    void pushNotification(envelope.id, send, new Date(), { force }).catch((error) =>
+      console.warn("Push en échec", error),
+    );
   });
 }

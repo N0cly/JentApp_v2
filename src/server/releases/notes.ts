@@ -3,11 +3,12 @@
 // push, intro et date facultatifs), une ligne vide, puis une liste, avec ou
 // sans rubriques « ## Nouveau », « ## Amélioré », « ## Corrigé », dans cet
 // ordre. Texte brut : seul **gras** est interprété. Lu sans dépendance.
+// Sans alias d'import : scripts/release-preview.ts charge ce fichier avec Node.
 
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { displayLength } from "@/lib/release-text";
-import { compareVersions, isVersion } from "@/lib/version";
+import { displayLength } from "../../lib/release-text.ts";
+import { compareVersions, isVersion } from "../../lib/semver.ts";
 
 export const RELEASES_DIR = "content/releases";
 export const MAX_ITEMS = 12;

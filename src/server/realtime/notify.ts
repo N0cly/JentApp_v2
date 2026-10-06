@@ -22,6 +22,11 @@ export type Envelope = {
   id?: string | number;
   /** Destinataire unique (balance.changed, notification.new). */
   user?: string;
+  /**
+   * notification.new : push même si l'app du joueur est ouverte. Réservé à
+   * l'aperçu des nouveautés sur la validation (docs/NOUVEAUTES.md, § Aperçu).
+   */
+  force?: boolean;
 };
 
 type Executor = { execute: (query: ReturnType<typeof sql>) => PromiseLike<unknown> };
