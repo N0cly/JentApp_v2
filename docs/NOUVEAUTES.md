@@ -124,10 +124,10 @@ intro: Première mise à jour depuis le lancement, avec vos retours.
 ## Critères de fin
 
 - [ ] `pnpm lint`, `pnpm typecheck`, `pnpm test` et `pnpm build` passent ; la CI est verte.
-- [ ] En local : `release-preview.ts` réaffiche la feuille deux fois de suite pour le compte gardé.
+- [x] En local : `release-preview.ts` réaffiche la feuille deux fois de suite pour le compte gardé.
 - [ ] Sur la validation : `preview.sh --push` affiche la note dans le terminal, le push arrive sur l'iPhone, la feuille s'ouvre avec ses rubriques.
 - [ ] En local, sur le compose de production : `promote.sh` liste la note, refuse un mauvais numéro, et ne déploie rien sans confirmation.
-- [ ] `docs/DEPLOY.md` et `docs/design.md` sont à jour.
+- [x] `docs/DEPLOY.md` et `docs/design.md` sont à jour.
 
 ## Consigne pour Claude Code
 
